@@ -114,11 +114,6 @@ const Feed = () => {
         maxToRenderPerBatch={LIMIT}
         windowSize={10}
         initialNumToRender={LIMIT}
-<<<<<<< HEAD
-=======
-
-       
->>>>>>> de0e086cb2d365cd478b10bd154ee9ed5ab14877
         updateCellsBatchingPeriod={50}
         contentContainerStyle={styles.contentContainer}
       />
