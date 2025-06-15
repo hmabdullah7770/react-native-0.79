@@ -40,16 +40,6 @@ params:{
     } )
 
     
-    // export const getcategourydatacount = (categoury,limit,page) =>
-    //   api.get('/categouries/getcategourycount', {
-    //     params: {
-    //       categoury,
-    //       adminpassword:"(Bunny)tota#34#",
-    //       limit,
-    //       page,
-    //     },
-    //   });
-
 
 
     // addcategoury

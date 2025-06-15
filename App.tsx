@@ -18,6 +18,12 @@ import * as Keychain from 'react-native-keychain';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
+
 import { tokencheck } from './Redux/action/auth';
 // import { tokencheckrequest } from './Redux/action/auth';
 
@@ -31,6 +37,15 @@ interface RootState {
     // Add other properties of your auth state here
   };
   // Add other slices of your state here
+}
+
+const queryClient = new QueryClient()
+
+
+if (__DEV__) {
+  import('react-query-native-devtools').then(({ addPlugin }) => {
+    addPlugin({ queryClient });
+  });
 }
 
 const App = () => {
@@ -137,12 +152,13 @@ console.log('User in App.tsx :', user)
   
 const Root = () => {
   return (
+       <QueryClientProvider  client={queryClient}>
            <ReduxProvider store={store}>
             <SafeAreaProvider>
             <App />
             </SafeAreaProvider>
           </ReduxProvider>
-     
+         </QueryClientProvider>
   );
 };
 
