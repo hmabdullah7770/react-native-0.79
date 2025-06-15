@@ -27,6 +27,12 @@ import {
 import { tokencheck } from './Redux/action/auth';
 // import { tokencheckrequest } from './Redux/action/auth';
 
+const __DEV__ = true
+
+if (__DEV__) {
+  require('./reactotron.ts');
+}
+
 
 export const navigationRef = createNavigationContainerRef();
 // Define a type for your Redux state (replace with your actual RootState)
@@ -42,11 +48,6 @@ interface RootState {
 const queryClient = new QueryClient()
 
 
-if (__DEV__) {
-  import('react-query-native-devtools').then(({ addPlugin }) => {
-    addPlugin({ queryClient });
-  });
-}
 
 const App = () => {
 
