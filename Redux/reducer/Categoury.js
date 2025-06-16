@@ -91,4 +91,63 @@ const initialState = {
   };
   
   export default categoury;
+
+
+  //tackstack reducer
+
+
+//   // 2. Redux Reducer (reducers/categoryReducer.js)
+// import { categoryActionTypes } from '../actions/categoryActions';
+
+// const initialState = {
+//   selectedCategoryIndex: 0,
+//   loading: false,
+//   error: null,
+//   categoryFilter: null,
+//   lastSelectedCategory: null
+// };
+
+// const categoryReducer = (state = initialState, action) => {
+//   switch (action.type) {
+//     case categoryActionTypes.SET_SELECTED_CATEGORY:
+//       return {
+//         ...state,
+//         selectedCategoryIndex: action.payload,
+//         lastSelectedCategory: state.selectedCategoryIndex
+//       };
+
+//     case categoryActionTypes.SET_LOADING:
+//       return {
+//         ...state,
+//         loading: action.payload
+//       };
+
+//     case categoryActionTypes.SET_ERROR:
+//       return {
+//         ...state,
+//         error: action.payload,
+//         loading: false
+//       };
+
+//     case categoryActionTypes.CLEAR_ERROR:
+//       return {
+//         ...state,
+//         error: null
+//       };
+
+//     case categoryActionTypes.SET_CATEGORY_FILTER:
+//       return {
+//         ...state,
+//         categoryFilter: action.payload
+//       };
+
+//     case categoryActionTypes.RESET_CATEGORY_STATE:
+//       return initialState;
+
+//     default:
+//       return state;
+//   }
+// };
+
+// export default categoryReducer;
   

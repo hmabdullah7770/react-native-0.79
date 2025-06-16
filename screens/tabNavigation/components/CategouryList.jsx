@@ -249,3 +249,87 @@ export default CategouryList;
 
 
 
+
+
+//appply the tanstack query code
+
+
+
+// // 7. Component with Traditional Redux (components/CategoryList.js)
+// import React, { useMemo, useCallback } from 'react';
+// import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { useCategoryNames } from '../hooks/useCategoryQueries';
+// import { setSelectedCategory } from '../actions/categoryActions';
+
+// const CategoryList = () => {
+//   const dispatch = useDispatch();
+//   const { selectedCategoryIndex, error } = useSelector(state => state.category);
+  
+//   const { data: categoryResponse, isLoading } = useCategoryNames();
+
+//   const categoriesWithAll = useMemo(() => {
+//     if (!categoryResponse?.messege) return [];
+    
+//     const filteredList = categoryResponse.messege.filter(
+//       cat => cat.categouryname.toLowerCase() !== 'all'
+//     );
+    
+//     return [
+//       { _id: '6834c7f5632a2871571413f7', categouryname: 'All' },
+//       ...filteredList,
+//     ];
+//   }, [categoryResponse]);
+
+//   const handleCategorySelect = useCallback((index) => {
+//     if (index === selectedCategoryIndex) return;
+//     dispatch(setSelectedCategory(index));
+//   }, [selectedCategoryIndex, dispatch]);
+
+//   const renderItem = useCallback(({ item, index }) => (
+//     <TouchableOpacity
+//       style={[
+//         styles.item,
+//         selectedCategoryIndex === index && styles.selectedItem
+//       ]}
+//       onPress={() => handleCategorySelect(index)}
+//       activeOpacity={0.7}
+//     >
+//       <Text style={[
+//         styles.text, 
+//         selectedCategoryIndex === index && styles.selectedText
+//       ]}>
+//         {item.categouryname.charAt(0).toUpperCase() + item.categouryname.slice(1)}
+//       </Text>
+//     </TouchableOpacity>
+//   ), [selectedCategoryIndex, handleCategorySelect]);
+
+//   if (isLoading) {
+//     return (
+//       <View style={styles.container}>
+//         <Text>Loading categories...</Text>
+//       </View>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <View style={styles.container}>
+//         <Text>Error: {error}</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <View style={styles.container}>
+//       <FlatList
+//         data={categoriesWithAll}
+//         renderItem={renderItem}
+//         keyExtractor={item => item._id}
+//         horizontal
+//         showsHorizontalScrollIndicator={false}
+//         contentContainerStyle={styles.list}
+//       />
+//     </View>
+//   );
+// };
