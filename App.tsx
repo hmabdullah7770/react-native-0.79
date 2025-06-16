@@ -27,12 +27,10 @@ import {
 import { tokencheck } from './Redux/action/auth';
 // import { tokencheckrequest } from './Redux/action/auth';
 
-const __DEV__ = true
 
 if (__DEV__) {
-  require('./reactotron.ts');
+  require("./ReactotronConfig");
 }
-
 
 export const navigationRef = createNavigationContainerRef();
 // Define a type for your Redux state (replace with your actual RootState)
