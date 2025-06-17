@@ -1,51 +1,48 @@
-// 6. TanStack Query Hooks (hooks/useCategoryQueries.js)
+// TanStack Query Hooks (hooks/useCategories.js)
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { getCategoryNames, getCategoryData } from '../services/categoryApi';
-import { setLoading, setError, clearError } from '../actions/categoryActions';
+import { getCategoryNamesList, getCategoryData } from '../../API/categoury';
+import { setLoading, setError, clearError } from '../../Redux/action/categoury';
 
 export const useCategoryNames = () => {
   const dispatch = useDispatch();
 
   return useQuery({
     queryKey: ['categoryNames'],
-    queryFn: getCategoryNames,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
-    onSuccess: () => {
+    queryFn: async () => {
+     
+      const response = await getCategoryNamesList();
+   
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // Replaced cacheTime with gcTime (new TanStack Query)
+    retry: 2,
+    refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+    
       dispatch(clearError());
     },
     onError: (error) => {
+   
       dispatch(setError(error.message));
     }
   });
 };
 
+// In your React Query hook
 export const useCategoryDataInfinite = (category, limit) => {
-  const dispatch = useDispatch();
-
   return useInfiniteQuery({
     queryKey: ['categoryData', category, limit],
     queryFn: async ({ pageParam = 1 }) => {
-      dispatch(setLoading(true));
-      try {
-        const data = await getCategoryData(category, limit, pageParam);
-        dispatch(setLoading(false));
-        return data;
-      } catch (error) {
-        dispatch(setLoading(false));
-        throw error;
-      }
+      console.log('🔥 Calling getCategoryData API with params:', { category, limit, page: pageParam });
+      const response = await getCategoryData(category, limit, pageParam);
+      console.log('✅ getCategoryData response:', response);
+      return response.data; // This should return the data object that contains messege.cards
     },
-    enabled: !!category,
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.messege?.pagination;
       return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
     },
-    staleTime: 2 * 60 * 1000,
-    cacheTime: 5 * 60 * 1000,
-    onError: (error) => {
-      dispatch(setError(error.message));
-    }
   });
 };

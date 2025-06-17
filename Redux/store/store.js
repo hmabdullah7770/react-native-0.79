@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from '../reducer/index'; // or reducer if you have only one
 import authrootSaga from '../saga/Auth';
 // import staterootSaga from '../saga/states';
-import categouryrootSaga from '../saga/Categoury';
+// import categouryrootSaga from '../saga/Categoury';
 import createSagaMiddleware from 'redux-saga';
 // import * as ReduxSagaModule from 'redux-saga';
 // const createSagaMiddleware = require('redux-saga').default; // Added for diagnostics
@@ -22,7 +22,7 @@ const store = configureStore({
 
 sagaMiddleware.run(authrootSaga);
 // sagaMiddleware.run(staterootSaga);
-sagaMiddleware.run(categouryrootSaga);
+// sagaMiddleware.run(categouryrootSaga);
 
 
 // Add this line

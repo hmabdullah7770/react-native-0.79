@@ -1,126 +1,85 @@
-//categoury
-export const categouryrequest = (categoury,limit,page) => {
-  console.log("Inside categoury request")
-  console.log("categoury action called with:", categoury);
-  return{
-  type: 'CATEGOURY_REQUEST',
-  categoury,
-  limit,
-  page,
-  //  phone ,
-  
-}};
+// Action types for category management
+export const categoryActionTypes = {
+  SET_SELECTED_CATEGORY: 'SET_SELECTED_CATEGORY',
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
+  CLEAR_ERROR: 'CLEAR_ERROR',
+  SET_CATEGORY_FILTER: 'SET_CATEGORY_FILTER',
+  RESET_CATEGORY_STATE: 'RESET_CATEGORY_STATE'
+};
 
+export const setSelectedCategory = (categoryIndex) => {
+  console.log('🎯 setSelectedCategory called with:', categoryIndex);
+  return {
+    type: categoryActionTypes.SET_SELECTED_CATEGORY,
+    payload: categoryIndex
+  };
+};
 
+export const setLoading = (loading) => {
+  console.log('⏳ setLoading called with:', loading);
+  return {
+    type: categoryActionTypes.SET_LOADING,
+    payload: loading
+  };
+};
 
+export const setError = (error) => {
+  console.log('❌ setError called with:', error);
+  return {
+    type: categoryActionTypes.SET_ERROR,
+    payload: error
+  };
+};
 
-export const categourysuccessful = data => ({
-  type: 'CATEGOURY_SUCCESSFUL',
-  payload: data,
-});
+export const clearError = () => {
+  console.log('✅ clearError called');
+  return {
+    type: categoryActionTypes.CLEAR_ERROR
+  };
+};
 
-export const categouryfails = error => ({
-  type: 'CATEGOURY_FAILS',
-  payload: error,
-});
+export const setCategoryFilter = (filter) => {
+  console.log('🔍 setCategoryFilter called with:', filter);
+  return {
+    type: categoryActionTypes.SET_CATEGORY_FILTER,
+    payload: filter
+  };
+};
 
-//categoury with count  (5th Api call)
+export const resetCategoryState = () => {
+  console.log('🔄 resetCategoryState called');
+  return {
+    type: categoryActionTypes.RESET_CATEGORY_STATE
+  };
+};
 
-// export const categourycountrequest = (categoury,limit,page) => {
-//   console.log("Inside categourycount request")
-//   console.log("categourycount action called with:", categoury);
-//   return{
-//   type: 'CATEGOURY_COUNT_REQUEST',
-//   categoury,
-//   limit,
-//   page,
-//   //  phone ,
-  
-// }};
+// Legacy Redux actions (for backward compatibility)
+export const categoryRequest = (category, limit, page) => {
+  console.log('📋 categoryRequest called');
+  console.log('Inside category request');
+  console.log('category action called with:', category);
+  console.log('limit:', limit, 'page:', page);
+  return {
+    type: 'CATEGORY_REQUEST',
+    category,
+    limit,
+    page,
+  };
+};
 
+export const categorySuccessful = data => {
+  console.log('✅ categorySuccessful called with data:', data);
+  return {
+    type: 'CATEGORY_SUCCESSFUL',
+    payload: data,
+  };
+};
 
-
-
-// export const categourycountsuccessful = data => ({
-//   type: 'CATEGOURY_COUNT_SUCCESSFUL',
-//   payload: data,
-// });
-
-// export const categourycountfails = error => ({
-//   type: 'CATEGOURY_COUNT_FAILS',
-//   payload: error,
-// });
-
-
-
-
-
-
-
-export const categourynamerequest = () => {
-  console.log("Inside categoury name request")
-  return{
-  type: 'CATEGOURY_NAME_REQUEST'
-}};
-
-
-export const categourynamerequestsuccessful = data => ({
-  type: 'CATEGOURY_NAME_SUCCESSFUL',
-  payload: data,
-});
-
-export const categourynamerequestfails = error => ({
-  type: 'CATEGOURY_NAME_FAILS',
-  payload: error,
-});
-
-
-//LOADER
-export const setloading = loading => ({
-  type: 'LOADING',
-  payload: loading,
-});
-
-
-
-
-
-//tanstack  code
-
-// // Action types for category management
-// export const categoryActionTypes = {
-//   SET_SELECTED_CATEGORY: 'SET_SELECTED_CATEGORY',
-//   SET_LOADING: 'SET_LOADING',
-//   SET_ERROR: 'SET_ERROR',
-//   CLEAR_ERROR: 'CLEAR_ERROR',
-//   SET_CATEGORY_FILTER: 'SET_CATEGORY_FILTER',
-//   RESET_CATEGORY_STATE: 'RESET_CATEGORY_STATE'
-// };
-
-// export const setSelectedCategory = (categoryIndex) => ({
-//   type: categoryActionTypes.SET_SELECTED_CATEGORY,
-//   payload: categoryIndex
-// });
-
-// export const setLoading = (loading) => ({
-//   type: categoryActionTypes.SET_LOADING,
-//   payload: loading
-// });
-
-// export const setError = (error) => ({
-//   type: categoryActionTypes.SET_ERROR,
-//   payload: error
-// });
-
-// export const clearError = () => ({
-//   type: categoryActionTypes.CLEAR_ERROR
-// });
-
-// export const setCategoryFilter = (filter) => ({
-//   type: categoryActionTypes.SET_CATEGORY_FILTER,
-//   payload: filter
-// });
-
-// export const resetCategoryState = () => ({
-//   type: categoryActionTypes.RESET_CATEGORY_STATE
-// });
+export const categoryFails = error => {
+  console.log('❌ categoryFails called with error:', error);
+  return {
+    type: 'CATEGORY_FAILS',
+    payload: error,
+  };
+};
