@@ -1,6 +1,6 @@
-// Fixed Feed.jsx - Corrected API response path
+// Updated Feed.jsx with Pull-to-Refresh functionality
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useCategoryNames, useCategoryDataInfinite } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
@@ -13,17 +13,17 @@ const Feed = () => {
   const { selectedCategoryIndex } = useSelector(state => state.category);
   const flashListRef = useRef(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // Pull-to-refresh state
 
   // Get category names to determine selected category
   const { data: categoryResponse } = useCategoryNames();
 
-  // FIXED: Correct the path to access category data
+  // Calculate selected category name
   const selectedCategoryName = useMemo(() => {
     console.log('🎯 Feed - Calculating selectedCategoryName');
     console.log('📊 categoryResponse:', categoryResponse);
     console.log('🔢 selectedCategoryIndex:', selectedCategoryIndex);
     
-    // FIXED: The correct path is categoryResponse.data.messege (removed extra .data)
     if (!categoryResponse?.data?.messege) {
       console.log('⚠️ No messege in categoryResponse.data');
       return null;
@@ -59,7 +59,8 @@ const Feed = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch
+    refetch, // This will refetch the first page
+    remove // This will clear the cache completely
   } = useCategoryDataInfinite(selectedCategoryName, LIMIT);
 
   // Add logging for query states
@@ -71,9 +72,10 @@ const Feed = () => {
     console.log('- data:', data);
     console.log('- hasNextPage:', hasNextPage);
     console.log('- isFetchingNextPage:', isFetchingNextPage);
-  }, [selectedCategoryName, isLoading, error, data, hasNextPage, isFetchingNextPage]);
+    console.log('- refreshing:', refreshing);
+  }, [selectedCategoryName, isLoading, error, data, hasNextPage, isFetchingNextPage, refreshing]);
 
-  // FIXED: Correct the data path for processing pages
+  // Process all items from pages
   const allItems = useMemo(() => {
     console.log('🔄 Feed - Calculating allItems');
     console.log('📄 Raw data:', data);
@@ -86,7 +88,6 @@ const Feed = () => {
     const items = data.pages.reduce((acc, page) => {
       console.log('📃 Processing page:', page);
       
-      // FIXED: Based on your API response structure: response.data.messege.cards
       let cards = [];
       
       if (page?.data?.messege?.cards) {
@@ -119,14 +120,36 @@ const Feed = () => {
     }
   }, [selectedCategoryName]);
 
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    console.log('🔄 Pull-to-refresh triggered');
+    setRefreshing(true);
+    
+    try {
+      // Option 1: Just refetch the first page (keeps existing pages)
+      await refetch();
+      
+      // Option 2: Clear cache and start fresh (uncomment if you want complete refresh)
+      // remove();
+      // await refetch();
+      
+      console.log('✅ Refresh completed successfully');
+    } catch (error) {
+      console.log('❌ Refresh failed:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
   // Load more data function
   const loadMoreData = useCallback(async () => {
     console.log('📥 loadMoreData called');
     console.log('- hasNextPage:', hasNextPage);
     console.log('- isLoadingMore:', isLoadingMore);
     console.log('- isFetchingNextPage:', isFetchingNextPage);
+    console.log('- refreshing:', refreshing);
     
-    if (!hasNextPage || isLoadingMore || isFetchingNextPage) {
+    if (!hasNextPage || isLoadingMore || isFetchingNextPage || refreshing) {
       console.log('⚠️ Skipping loadMoreData - conditions not met');
       return;
     }
@@ -141,13 +164,13 @@ const Feed = () => {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasNextPage, isLoadingMore, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isLoadingMore, isFetchingNextPage, refreshing, fetchNextPage]);
 
   // Handle scroll-based preloading
   const onViewableItemsChanged = useCallback(({ viewableItems }) => {
     console.log('👀 Viewable items changed:', viewableItems?.length);
     
-    if (!hasNextPage || isLoadingMore || isFetchingNextPage || !viewableItems?.length) {
+    if (!hasNextPage || isLoadingMore || isFetchingNextPage || refreshing || !viewableItems?.length) {
       console.log('⚠️ Skipping preload - conditions not met');
       return;
     }
@@ -166,7 +189,7 @@ const Feed = () => {
       console.log('🎯 Preload threshold reached, loading more data');
       loadMoreData();
     }
-  }, [hasNextPage, isLoadingMore, isFetchingNextPage, allItems.length, loadMoreData]);
+  }, [hasNextPage, isLoadingMore, isFetchingNextPage, refreshing, allItems.length, loadMoreData]);
 
   const viewabilityConfig = useMemo(() => ({
     itemVisiblePercentThreshold: 30,
@@ -182,11 +205,24 @@ const Feed = () => {
 
   const onEndReached = useCallback(() => {
     console.log('🏁 onEndReached called');
-    if (hasNextPage && !isLoadingMore && !isFetchingNextPage) {
+    if (hasNextPage && !isLoadingMore && !isFetchingNextPage && !refreshing) {
       console.log('🚀 Loading more data from onEndReached');
       loadMoreData();
     }
-  }, [hasNextPage, isLoadingMore, isFetchingNextPage, loadMoreData]);
+  }, [hasNextPage, isLoadingMore, isFetchingNextPage, refreshing, loadMoreData]);
+
+  // Create RefreshControl component
+  const refreshControl = useMemo(() => 
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={['#1FFFA5']} // Android
+      tintColor="#1FFFA5" // iOS
+      title="Pull to refresh" // iOS
+      titleColor="#1FFFA5" // iOS
+    />, 
+    [refreshing, onRefresh]
+  );
 
   if (isLoading) {
     console.log('🔄 Feed rendering loading state');
@@ -228,6 +264,8 @@ const Feed = () => {
         initialNumToRender={LIMIT}
         updateCellsBatchingPeriod={50}
         contentContainerStyle={styles.contentContainer}
+        // Add RefreshControl for pull-to-refresh
+        refreshControl={refreshControl}
       />
       
       {(isFetchingNextPage || isLoadingMore) && (
