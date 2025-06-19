@@ -1,16 +1,19 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Textfield from '../../components/TextField'
 import Button from '../../components/Button';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { verifyemailrequest,matchusenamerequest,matchotpreques,signuprequest} from '../../Redux/action/auth'
+import { useDispatch,useSelector } from 'react-redux';
+import { verifyemailrequest,matchusenamerequest,clearerror } from '../../Redux/action/auth'
 
 import OTPInputView from '@twotalltotems/react-native-otp-input'
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import NextButton from './components/NextButton';
+
+
+
 
 
 
@@ -35,22 +38,50 @@ const UsernamePassword = ({ navigation }) => {
 
   const dispatch = useDispatch();
 
+  const {email,username,error ,isLoading, user} = useSelector(state => state.auth);
+
+  
+
    const [showPassword, setShowPassword] = useState(true);
+   const [apiError, setApiError] = useState({ email: '', username: '' });
 
     const formik = useFormik({
-       initialValues: { email: '' ,username: '', password: '' },
+       initialValues: { email:'' ,username: '', password: '' },
        validationSchema: schema,
-       onSubmit: async (values, { setSubmitting }) => {
-         const { username, password } = values;
-   
-        dispatch(loginrequest(username, password));
-   
-        //  dispatch(userstaterequest(username));
-        //  dispatch(locationlistrequest());
-        //  dispatch(partnerlistrequest());
+       onSubmit: (values, { setSubmitting }) => {
+         dispatch(verifyemailrequest(values.email));
+         dispatch(matchusenamerequest(values.username));
          setSubmitting(false);
        },
      }); 
+
+  const handleChange = (field) => (value) => {
+    formik.setFieldValue(field, value);
+    if (error) dispatch(clearerror());
+    setApiError((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const isButtonDisabled =
+    !!formik.errors.email ||
+    !!formik.errors.username ||
+    !!formik.errors.password ||
+    !!error ||
+    isLoading ||
+    formik.isSubmitting;
+
+  useEffect(() => {
+    if (user && user.data.otp) {
+      navigation.navigate('SignupScreens', {
+        screen: 'EmailVerification',
+        params: {
+          email: formik.values.email,
+          username: formik.values.username,
+          password: formik.values.password,
+          otp: user.data.otp,
+        },
+      });
+    }
+  }, [user]);
 
   return (
     <View style={styles.container}>
@@ -59,31 +90,33 @@ const UsernamePassword = ({ navigation }) => {
     <Textfield
        placeholder={'Enter your email '}
           iconName={'person'}
-          onChangeText={formik.handleChange('email')}
+          onChangeText={handleChange('email')}
           onBlur={formik.handleBlur('email')}
           value={formik.values.email}
     />
 
-{formik.errors.email && formik.touched.email && (
-          <Text style={styles.errorText}>{formik.errors.email}</Text>
-        )}
+{(formik.errors.email && formik.touched.email) || error?.includes('user already exist') ? (
+  <Text style={styles.errorText}>
+    {formik.errors.email || (error && typeof error === 'string' && error)}
+  </Text>
+) : null}
 
 
     <Textfield
        placeholder={'Enter your username'}
           iconName={'person'}
-          onChangeText={formik.handleChange('username')}
+          onChangeText={handleChange('username')}
           onBlur={formik.handleBlur('username')}
           value={formik.values.username}
     />
 
-{formik.errors.username && formik.touched.username && (
-          <Text style={styles.errorText}>{formik.errors.username}</Text>
-        )}
+{(formik.errors.username && formik.touched.username)  || error?.includes('Username Already taken please chose another') ? (
+          <Text style={styles.errorText}>{formik.errors.username || (error && typeof error === 'string' && error)}</Text>
+        ): null}
   <Textfield
         placeholder={'Enter your password'}
         iconName={'lock'}
-        onChangeText={formik.handleChange('password')}
+        onChangeText={handleChange('password')}
         onBlur={formik.handleBlur('password')}
         value={formik.values.password}
         isPassword={true}
@@ -94,16 +127,14 @@ const UsernamePassword = ({ navigation }) => {
 {formik.errors.password && formik.touched.password && (
           <Text style={styles.errorText}>{formik.errors.password}</Text>
         )}
-    {/* <Button
-          onPress={formik.handleSubmit}
-          isSubmitting={formik.isSubmitting}
-          iconName="sign-in-alt"
-          value="Login"
-        /> */}
+    
 
 
 <NextButton
-onPress={() => navigation.navigate('SignupScreens',{screen:'EmailVerification'})}
+
+onPress={formik.handleSubmit}
+disabled={isButtonDisabled}
+// onPress={() => navigation.navigate('SignupScreens',{screen:'EmailVerification'},{email:formik.values.email,username:formik.values.username,password:formik.values.password})}
 
 />
  

@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import * as Yup from 'yup';
 import LinearGradient from 'react-native-linear-gradient';
-import { matchotprequest, signuprequest } from '../../Redux/action/auth';
+import { verifyemailrequest, signuprequest } from '../../Redux/action/auth';
 import NextButton from './components/NextButton';
 // Get screen dimensions for responsive design
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -31,10 +31,10 @@ const EmailVerification = ({navigation}) => {
   });
   
   const dispatch = useDispatch();
-  // const navigation = useNavigation();
+  const navigation = useNavigation();
   
-  // // Extract email from route params if available
-  // const { email } = route?.params || { email: '' };
+  // Extract email from route params if available
+  const { email } = route?.params || { email: '' };
 
   // Handle screen rotation and dimension changes
   useEffect(() => {
