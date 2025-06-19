@@ -454,8 +454,8 @@ function* LogoutSaga() {
 
     if (response.status === 200) {
      // Should be - CORRECT
-yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
-yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
+  yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
+  yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
       yield put(
         actions.logoutsuccessful([
           response.data.message,
@@ -467,31 +467,6 @@ yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
             // Clear store after successful logout
       yield put(actions.clearstore());
     } 
-    else if(response.status === 401  &&  response.data.error ==="invalid token"){
-      
-      console.log('invalid token', response);
-      yield put(
-        actions.loginfail({
-        error: "invalid token", 
-              }),
-
-   
-            );
-   
-    }
-
-    else if(response.status === 401  &&  response.data.error ==="jwt expired"){
-      
-      console.log('jwt expired', response);
-      yield put(
-        actions.loginfail({
-        error: "jwt expired", 
-              }),
-
-   //refreshtoken 
-            );
-   
-    }
     
     else {
       yield put(

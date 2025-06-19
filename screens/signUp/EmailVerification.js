@@ -19,11 +19,12 @@ const otpSchema = Yup.string()
   .required('OTP is required')
   .matches(/^[0-9]{6}$/, 'OTP must be exactly 6 digits');
 
-const EmailVerification = ({ route }) => {
+const EmailVerification = ({ route, navigation }) => {
+  const { email, username, password, otp: expectedOtp } = route?.params || {};
   const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [screenDimensions, setScreenDimensions] = useState({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
@@ -31,11 +32,7 @@ const EmailVerification = ({ route }) => {
   });
   
   const dispatch = useDispatch();
-  const navigation = useNavigation();
   
-  // Extract email from route params if available
-  const { email } = route?.params || { email: '' };
-
   // Handle screen rotation and dimension changes
   useEffect(() => {
     const updateDimensions = () => {
@@ -56,22 +53,23 @@ const EmailVerification = ({ route }) => {
     };
   }, []);
 
-  // Validate OTP whenever it changes
-  // useEffect(() => {
-  //   validateOtp(otp);
-  // }, [otp]);
-
-  // Function to validate OTP using Yup schema
-  // const validateOtp = async (code) => {
-  //   try {
-  //     await otpSchema.validate(code);
-  //     setIsValid(true);
-  //     setError('');
-  //   } catch (err) {
-  //     setIsValid(false);
-  //     setError(err.message);
-  //   }
-  // };
+  useEffect(() => {
+    otpSchema
+      .validate(otp)
+      .then(() => {
+        if (otp !== expectedOtp) {
+          setError('OTP does not match');
+          setIsValid(false);
+        } else {
+          setError('');
+          setIsValid(true);
+        }
+      })
+      .catch((err) => {
+        setError(err.message);
+        setIsValid(false);
+      });
+  }, [otp, expectedOtp]);
 
   // Handle OTP verification and navigation
   const handleVerify = async () => {
@@ -132,21 +130,10 @@ const EmailVerification = ({ route }) => {
         autoFocusOnLoad
         codeInputFieldStyle={styles.codeInputField}
         codeInputHighlightStyle={styles.codeInputHighlight}
-        // onCodeFilled={(code) => {
-        //   setOtp(code);
-        //   validateOtp(code);
-          
-        //   // Auto-navigate on valid input if needed
-        //   // if (code.length === 6 && !error) {
-        //   //   handleVerify();
-        //   // }
-        // }}
-        // onCodeChanged={(code) => {
-        //   setOtp(code);
-        // }}
+        onCodeChanged={setOtp}
       />
       
-      {/* {error ? <Text style={styles.errorText}>{error}</Text> : null} */}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={[styles.buttonContainer, dynamicStyles.buttonContainer]}>
         <TouchableOpacity 
@@ -174,9 +161,13 @@ const EmailVerification = ({ route }) => {
         <Text style={styles.resendText}>Didn't receive code? </Text>
         <TouchableOpacity><Text  style={styles.resendLink}>Resend</Text></TouchableOpacity>
       </View>
-       {/* <NextButton
-       onPress={() => navigation.navigate('ProfileImage2')}
-      />   */}
+       <NextButton
+       onPress={() => navigation.navigate('SignupScreens', {
+         screen: 'ProfileImage2',
+         params: { email, username, password, otp }
+       })}
+       disabled={!isValid}
+      />  
     </View>
   );
 };

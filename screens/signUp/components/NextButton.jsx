@@ -1,13 +1,24 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native'
 import React from 'react'
 
-const NextButton = ({onPress}) => {
+const NextButton = ({ onPress, disabled }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-          onPress={onPress}
-          style={styles.button}>
-          <Text style={styles.buttonText}>Next</Text>
+        onPress={onPress}
+        disabled={disabled}
+        style={[
+          styles.button,
+          disabled && { backgroundColor: '#ccc' } // light color when disabled
+        ]}
+        activeOpacity={disabled ? 1 : 0.7}
+      >
+        <Text style={[
+          styles.buttonText,
+          disabled && { color: '#888' } // dim text when disabled
+        ]}>
+          Next
+        </Text>
       </TouchableOpacity>
     </View>
   )
