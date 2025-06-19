@@ -81,7 +81,7 @@ const initialState = {
 
       
 case 'MATCH_USERNAME_SUCCESSFUL':
-  console.log('VERIFY_EMAIL_SUCCESSFUL : ', action.payload);
+  console.log('MATCH_USERNAM_SUCCESSFUL : ', action.payload);
   return {
     ...state,
     user: action.payload.data,
@@ -92,7 +92,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
   }
 
   case 'MATCH_USERNAME_FAIL':
-  console.log('MATCH_USERNAME_FAIL : ', action.payload.error);
+  console.log('MATCH_USERNAME_FAIL in reduer : ', action.payload);
   return {
     ...state,
     user: null,
@@ -397,31 +397,8 @@ case 'MATCH_USERNAME_SUCCESSFUL':
       //     setuserstate: action.payload.error,
       //   };
 
-      case 'TOKEN_CHECK_SUCCESSFUL':
-        console.log('TOKEN_CHECK_SUCCESSFUL : ', action.payload);
-        return {
-          ...state,
-          user: action.payload,
-          isAuthenticated: true,
-          error: null,
-          messege: 'Token check successful',
-        };
 
-      case 'TOKEN_CHECK_FAIL':
-        console.log('TOKEN_CHECK_FAIL : ', action.payload.data);
-        return {
-          ...state,
-          user: null,
-          isAuthenticated: false,
-          error: action.payload || 'Token check failed',
-          messege: null,
-        };
-
-      case 'TOKEN_CHECK_REQUEST':
-        return {
-          ...state,
-          isAuthenticated: true,
-        };
+      
 
       default:
         return state;

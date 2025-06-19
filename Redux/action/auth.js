@@ -1,18 +1,3 @@
-export const tokencheckrequest = () => {
-  console.log("Inside tokencheckrequest");
- return {
-  type: 'TOKEN_CHECK_REQUEST',
-}};
-
-// Add success and fail actions for token check
-export const tokenchecksuccessful = (userData) => {
-  console.log("Inside tokenchecksuccessful");
- return {
-  type: 'TOKEN_CHECK_SUCCESSFUL',
-  payload: userData, // Pass user data if fetched
-}};
-
-export const tokencheckfail = (error) => ({ type: 'TOKEN_CHECK_FAIL', payload: error });
 
 
 
@@ -36,12 +21,14 @@ export const tokencheck = () => ({
 
 //verifyemail
 
-export const verifyemailrequest = (email) => ({
+export const verifyemailrequest = (email) => {
+  console.log("Inside verifyemailrequest with email:", email);
+  return{
   type: 'VERIFY_EMAIL_REQUEST',
   email,
   //  phone ,
   
-});
+}};
 
 
 export const verifyemailsuccessful = (data, messege) => ({
@@ -61,20 +48,22 @@ export const verifyemailfail = error => ({
 
 //matchusename
 
-export const matchusenamerequest = (username) => ({
+export const matchusernamerequest = (username) => {
+   console.log("Inside username ", username);
+ return {
   type: 'MATCH_USERNAME_REQUEST',
  username,
   //  phone ,
   
-});
+}};
 
 
-export const matchusenamesuccessful = (data, messege) => ({
+export const matchusernamesuccessful = (data, messege) => ({
   type: 'MATCH_USERNAME_SUCCESSFUL',
   payload: { data, messege },
 });
 
-export const matchusenamefail = error => ({
+export const matchusernamefail = error => ({
   type: 'MATCH_USERNAME_FAIL',
   payload: error,
 });

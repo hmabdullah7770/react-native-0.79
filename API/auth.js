@@ -21,13 +21,19 @@ export const verifyemail = (email) =>
    email,
   });
 
-export const matchusername = (username) =>
-  api.get('/users/match-username', {
+// export const matchusername = (username) =>
+//   api.get('/users/match-username', {
    
-     params: {
-      username,
-    },
-  });
+//      params: {
+//       username,
+//     },
+//   });
+
+
+
+  export const  matchusername  = (username) =>  
+    api.get(`/users/match-username/${encodeURIComponent(username)}`
+);
 
 export const matchotp = (email, otp) =>
   api.post('/users/match-otp', {

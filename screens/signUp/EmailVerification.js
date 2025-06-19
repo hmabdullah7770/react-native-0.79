@@ -19,7 +19,7 @@ const otpSchema = Yup.string()
   .required('OTP is required')
   .matches(/^[0-9]{6}$/, 'OTP must be exactly 6 digits');
 
-const EmailVerification = ({navigation}) => {
+const EmailVerification = ({ route }) => {
   const [otp, setOtp] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(false);

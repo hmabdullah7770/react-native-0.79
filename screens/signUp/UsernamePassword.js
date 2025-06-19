@@ -4,7 +4,7 @@ import Textfield from '../../components/TextField'
 import Button from '../../components/Button';
 import { useState } from 'react';
 import { useDispatch,useSelector } from 'react-redux';
-import { verifyemailrequest,matchusenamerequest,clearerror } from '../../Redux/action/auth'
+import { verifyemailrequest,matchusernamerequest,clearerror } from '../../Redux/action/auth'
 
 import OTPInputView from '@twotalltotems/react-native-otp-input'
 
@@ -29,10 +29,7 @@ username: yup.string().required('Name is required'),
     .string()
     .required('Password is required')
   .min(8, 'Password must be at least 8 characters long')
-    .matches(
-   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]/,
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    ),
+    
 });
 const UsernamePassword = ({ navigation }) => {
 
@@ -50,7 +47,7 @@ const UsernamePassword = ({ navigation }) => {
        validationSchema: schema,
        onSubmit: (values, { setSubmitting }) => {
          dispatch(verifyemailrequest(values.email));
-         dispatch(matchusenamerequest(values.username));
+         dispatch(matchusernamerequest(values.username));
          setSubmitting(false);
        },
      }); 

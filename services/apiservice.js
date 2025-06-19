@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { Producturl } from '../utils/apiconfig';
+import { Producturl,Baseurl } from '../utils/apiconfig';
 import * as Keychain from 'react-native-keychain';
 import { logoutrequest } from '../Redux/action/auth';
 // import { useDispatch } from 'react-redux';
 import { getStore } from '../utils/store';
 
 const api = axios.create({
-  baseURL: Producturl(),
+  baseURL: Baseurl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -71,19 +71,19 @@ api.interceptors.response.use(
     const response = error.response;
 
     if (
-      response &&
-      response.status === 401 &&
-      response.data &&
-      response.data.error === "jwt expired" &&
-      !originalRequest._retry
+      
+      response.status === 401 
+   
+     
+      
     ) {
-      originalRequest._retry = true;
+      
       try {
         // Get refresh token
         const refreshToken = await getRefreshToken();
         // Call refresh endpoint with refresh token in Authorization header
         const refreshResponse = await axios.post(
-          `${Producturl()}/users/refresh-token`,
+          `${Baseurl()}/users/refresh-token`,
           {},
           {
             headers: {
