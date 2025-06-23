@@ -468,6 +468,16 @@ function* LogoutSaga() {
       yield put(actions.clearstore());
     } 
     
+// else if (response.status === 401 && response.data.error === 'jwt expired') {
+//       // Don't handle 401 jwt expired here - create an error to trigger the interceptor
+//       const error = new Error('JWT expired');
+//       error.response = response;
+//       error.config = response.config;
+//       throw error;
+//     }
+
+
+
     else {
       yield put(
         actions.logoutfails({
