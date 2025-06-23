@@ -1,3 +1,5 @@
+
+
 import axios from 'axios';
 import { Producturl,Baseurl } from '../utils/apiconfig';
 import * as Keychain from 'react-native-keychain';
@@ -11,13 +13,14 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 
+ 
   validateStatus: function (status) {
-    // Resolve only if the status code is less than 500
-    // This means 2xx, 3xx, and 4xx responses will not throw an error
-    // in the Axios call, and will be available in the .then() or try block.
+  //   // Resolve only if the status code is less than 500
+  //   // This means 2xx, 3xx, and 4xx responses will not throw an error
+  //   // in the Axios call, and will be available in the .then() or try block.
     return status < 500; 
-    // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
-    // return (status >= 200 && status < 300) || status === 401 || status === 404;
+  //   // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
+  //   // return (status >= 200 && status < 300) || status === 401 || status === 404;
   },
 
 
@@ -26,6 +29,7 @@ const api = axios.create({
 // const dispatch = useDispatch();
 // Helper functions
 const getAccessToken = async () => {
+   console.log("base url is", Baseurl())
   const credentials = await Keychain.getGenericPassword({ service: 'accessToken'});
   
     return credentials ? credentials.password : null;
@@ -55,6 +59,9 @@ const removeTokens = async () => {
 api.interceptors.request.use(
   async (config) => {
     const token = await getAccessToken();
+
+    console.log("in 1 interceptor")
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,17 +77,31 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const response = error.response;
 
+      console.log("in 2 interceptor")
     if (
       
-      response.status === 401 
+      response.status === 401 && 
+      response.data.error === 'jwt expired' 
+    
+      // Check for specific error message
+  
+      && !originalRequest._retry // Prevent infinite loop
    
      
       
     ) {
       
+      originalRequest._retry = true; // Mark the request as retried
       try {
         // Get refresh token
         const refreshToken = await getRefreshToken();
+        
+          if (!refreshToken) {
+          console.log('No refresh token available');
+          throw new Error('No refresh token');
+        }
+        
+        
         // Call refresh endpoint with refresh token in Authorization header
         const refreshResponse = await axios.post(
           `${Baseurl()}/users/refresh-token`,
@@ -91,6 +112,16 @@ api.interceptors.response.use(
             },
           }
         );
+
+
+        // If refresh API returns an error, logout the user
+if (refreshResponse.data.error) {
+  await getStore().dispatch(logoutrequest());
+  await removeTokens();
+  console.error("Refresh token error:", refreshResponse.data.error);
+  return Promise.reject(new Error(refreshResponse.data.error));
+}
+
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
 
         // Remove old tokens and set new ones
@@ -99,13 +130,17 @@ api.interceptors.response.use(
         // Update header and retry original request
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-      } catch (refreshError) {
+
+      } 
+      
+      
+      catch (refreshError) {
         // On refresh failure, remove tokens
       
         // dispatch(logoutrequest());
          await getStore().dispatch(logoutrequest());
         await removeTokens();
-        console.error("Refresh token error:", refreshError);
+        // console.error("Refresh token error:", refreshError);
         return Promise.reject(refreshError);
       }
     }
@@ -124,83 +159,40 @@ export default api;
 
 
 
-
-
-// // filepath: c:\rn\ecom\services\apiservice.js
 // import axios from 'axios';
-// import { Baseurl, Header,Producturl } from '../utils/apiconfig';
+// import { Producturl, Baseurl } from '../utils/apiconfig';
 // import * as Keychain from 'react-native-keychain';
-
-
-// const accessToken = await Keychain.getGenericPassword({ service: 'accessToken' }); // Assuming 'accessToken' is the service name you used for the access token
-// const refreshToken = await Keychain.getGenericPassword({ service: 'refreshToken' }); 
-
-
-// // console.log("base url is", Baseurl())
-// console.log("base url is", Producturl())
-// const api = axios.create({
-  
-//   //  baseURL:  Baseurl(),
-//   baseURL:Producturl(),
-//   headers: {
-//     //  Authorization: Header(),
-//      'Content-Type': 'application/json',
-//   },
-// });
-
-
-
-
-
-// api.interceptors.request.use(
-//   async (config) => {
-//     const header = await Header();
-//     config.headers = {
-//       ...config.headers,
-//       ...header,
-//     };
-//     console.log("config is", config)
-//     return config;
-//   },
-//   (error) => {
-//     console.error('API Request Error:', error);
-//     return Promise.reject(error);
-//   }
-// );
-
-// // api.interceptors.response.use(
-// //   function (response) {
-// //     return response;
-// //   },
-// //   function (error) {
-// //     console.error('API Request Error:', error);
-// //     return Promise.reject(error);
-// //   }
-// // );
-
-// export default api;
-
-
-// import axios from 'axios';
-// import { Baseurl, Header } from '../utils/apiConfig';
-
+// // import { applyAuthResponseInterceptor } from './authResponseInterceptor';
 
 // const api = axios.create({
 //   baseURL: Baseurl(),
 //   headers: {
 //     'Content-Type': 'application/json',
-//   Authorization: Header(),
-  
 //   },
 // });
 
-// axios.interceptors.response.use(
-//   function (response) {
-//     return response;
+// // Helper function to get access token
+// const getAccessToken = async () => {
+//   console.log("base url is", Baseurl());
+//   const credentials = await Keychain.getGenericPassword({ service: 'accessToken' });
+//   return credentials ? credentials.password : null;
+// };
+
+// // Attach access token to every request
+// api.interceptors.request.use(
+//   async (config) => {
+//     const token = await getAccessToken();
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
 //   },
-//   function (error) {
-//     return Promise.reject(error);
-//   },
+//   (error) => Promise.reject(error)
 // );
 
+// // // Apply the auth response interceptor
+// // applyAuthResponseInterceptor(api);
+
 // export default api;
+
+

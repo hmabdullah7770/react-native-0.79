@@ -222,7 +222,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           messege: action.payload.messege,
         };
   
-      case 'LOG_OUT_FAILS': {
+      case 'LOG_OUT_FAIL': {
         console.log('Logout Fails ', action.payload);
         return {
           ...state,
