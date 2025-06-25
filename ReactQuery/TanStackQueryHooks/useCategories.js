@@ -1,7 +1,7 @@
 // TanStack Query Hooks (hooks/useCategories.js)
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { getCategoryNamesList, getCategoryData } from '../../API/categoury';
+import { getCategoryNamesList, getCategoryData, getfollowingCategoryData } from '../../API/categoury';
 import { setLoading, setError, clearError } from '../../Redux/action/categoury';
 
 export const useCategoryNames = () => {
@@ -60,6 +60,34 @@ export const useCategoryDataInfinite = (category, limit) => {
     networkMode: 'online', // Only run queries when online
   });
 };
+
+
+export const useFollowingCategoryDataInfinite = (category, limit) => {
+  return useInfiniteQuery({   
+    queryKey: ['followingCategoryData', category, limit],
+    queryFn: async ({ pageParam = 1 }) => {
+      console.log('🔥 Calling getfollowingCategoryData API with params:', { category, limit, page: pageParam });
+      const response = await getfollowingCategoryData(category, limit, pageParam);
+      console.log('✅ getfollowingCategoryData response:', response);
+      return response.data; // This should return the data object that contains messege.cards
+    },
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.messege?.pagination;
+      return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
+    },
+    // Added stale time configuration
+    staleTime: 2 * 1000, // 2 seconds - data stays fresh for 2 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes - cache retention time
+    retry: 2, // Retry failed requests twice
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnReconnect: true, // Refetch when network reconnects
+    // Optional: Add these for better UX
+    refetchOnMount: 'always', // Always refetch on component mount
+    networkMode: 'online', // Only run queries when online
+    }
+  );
+};
+
 
 
 // // In your React Query hook

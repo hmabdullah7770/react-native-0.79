@@ -19,6 +19,23 @@ export const getCategoryData = (categoury, limit, page) =>
     }
   });
 
+
+
+
+  // Get category data with pagination
+export const getfollowingCategoryData = (categoury, limit, page) =>
+  api.get('/categouries/getfollowinguserscategoury', {
+    params: {  
+      categoury,
+      limit,
+      page,
+    }
+  });
+
+
+
+
 // Legacy function names for backward compatibility
 export const getcategourynameslist = getCategoryNamesList;
 export const getcategourydata = getCategoryData;
+export const getfollowingcategourydata = getfollowingCategoryData;
