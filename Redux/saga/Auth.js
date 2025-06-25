@@ -4,6 +4,7 @@ import * as actions from '../action/auth';
 import * as api from '../../API/auth';
 import * as Keychain from 'react-native-keychain';
 import { navigate } from '../../utils/rootNavigation';
+import authResponseInterceptor  from '../../services/authResponseInterceptor'
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
 
@@ -468,6 +469,13 @@ function* LogoutSaga() {
       yield put(actions.clearstore());
     } 
     
+    // else if (response.status === 401 && response.data.error === 'jwt expired') {
+     
+    //       authResponseInterceptor();
+
+    // }
+
+
 // else if (response.status === 401 && response.data.error === 'jwt expired') {
 //       // Don't handle 401 jwt expired here - create an error to trigger the interceptor
 //       const error = new Error('JWT expired');
