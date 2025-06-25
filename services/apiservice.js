@@ -14,14 +14,14 @@ const api = axios.create({
   },
 
  
-  validateStatus: function (status) {
-  //   // Resolve only if the status code is less than 500
-  //   // This means 2xx, 3xx, and 4xx responses will not throw an error
-  //   // in the Axios call, and will be available in the .then() or try block.
-    return status < 500; 
-  //   // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
-  //   // return (status >= 200 && status < 300) || status === 401 || status === 404;
-  },
+  // validateStatus: function (status) {
+  // //   // Resolve only if the status code is less than 500
+  // //   // This means 2xx, 3xx, and 4xx responses will not throw an error
+  // //   // in the Axios call, and will be available in the .then() or try block.
+  //   return status < 500; 
+  // //   // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
+  // //   // return (status >= 200 && status < 300) || status === 401 || status === 404;
+  // },
 
 
 });

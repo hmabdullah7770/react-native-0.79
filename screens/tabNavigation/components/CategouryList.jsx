@@ -1,27 +1,35 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
+import React, { useMemo, useCallback, useEffect ,useRef} from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCategoryNames } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
 import { setSelectedCategory } from '../../../Redux/action/categoury';
 
+
+// Move this OUTSIDE the component (before the CategoryList function)
+let renderCount = 0;
+
 const CategoryList = () => {
+
+
+const prevHandleCategorySelect = useRef();
+const prevRenderItem = useRef();
+
+
+
+renderCount++;
+console.log(`-----------------------CategoryList render count: ${renderCount}`);
+
+
+
   const dispatch = useDispatch();
   const { selectedCategoryIndex, error } = useSelector(state => state.category);
   
   const { data: categoryResponse, isLoading, error: queryError } = useCategoryNames();
 
-  // Add detailed logging
-  useEffect(() => {
-    console.log('🎯 CategoryList mounted');
-    console.log('📊 categoryResponse:', categoryResponse);
-    console.log('⚡ isLoading:', isLoading);
-    console.log('❌ queryError:', queryError);
-  }, [categoryResponse, isLoading, queryError]);
+ 
 
   const categoriesWithAll = useMemo(() => {
-    console.log('🔄 Calculating categoriesWithAll');
-    console.log('📋 Raw categoryResponse:', categoryResponse);
-    
+   
     // FIX: Access the correct path - categoryResponse.data.messege
     if (!categoryResponse?.data?.messege) {
       console.log('⚠️ No messege in categoryResponse.data');
@@ -31,14 +39,14 @@ const CategoryList = () => {
     // Fix: Handle the correct property name from your API
     // Your API returns 'categoryname' but your filter was looking for 'categouryname'
     const rawCategories = categoryResponse.data.messege; // Fixed path
-    console.log('📝 Raw categories:', rawCategories);
+  
     
     const filteredList = rawCategories.filter(cat => {
       const categoryName = cat.categoryname || cat.categouryname; // Handle both cases
       return categoryName?.toLowerCase() !== 'all';
     });
     
-    console.log('🔍 Filtered categories (without All):', filteredList);
+  
     
     const result = [
       { _id: '6834c7f5632a2871571413f7', categoryname: 'All' },
@@ -50,15 +58,14 @@ const CategoryList = () => {
   }, [categoryResponse]);
 
   const handleCategorySelect = useCallback((index) => {
-    console.log('🎯 handleCategorySelect called with index:', index);
-    console.log('🎯 Current selectedCategoryIndex:', selectedCategoryIndex);
+   
     
     if (index === selectedCategoryIndex) {
       console.log('⚠️ Same category selected, skipping');
       return;
     }
     
-    console.log('✅ Dispatching setSelectedCategory with index:', index);
+   
     dispatch(setSelectedCategory(index));
   }, [selectedCategoryIndex, dispatch]);
 
@@ -85,9 +92,22 @@ const CategoryList = () => {
     );
   }, [selectedCategoryIndex, handleCategorySelect]);
 
+
+
+  // Check right here
+const wasRecreated = prevHandleCategorySelect.current !== handleCategorySelect;
+console.log(`>>>>>>>>>>>>>>handleCategorySelect recreated: ${wasRecreated}`);
+prevHandleCategorySelect.current = handleCategorySelect;
+
+
+// Add this check for renderItem too
+const renderItemRecreated = prevRenderItem.current !== renderItem;
+console.log(`>>>>>>>>>>>>renderItem recreated: ${renderItemRecreated}`);
+prevRenderItem.current = renderItem;
+
   // Add debug logging for render states
   if (isLoading) {
-    console.log('🔄 CategoryList rendering loading state');
+  
     return (
       <View style={styles.container}>
         <Text>Loading categories...</Text>
