@@ -14,16 +14,27 @@ const api = axios.create({
   },
 
  
+
+  // validateStatus: function (status) {
+  // //   // Resolve only if the status code is less than 500
+  // //   // This means 2xx, 3xx, and 4xx responses will not throw an error
+  // //   // in the Axios call, and will be available in the .then() or try block.
+  //   return status < 500; 
+  // //   // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
+  // //   // return (status >= 200 && status < 300) || status === 401 || status === 404;
+  // },
+
   validateStatus: function (status) {
   //   // Resolve only if the status code is less than 500
   //   // This means 2xx, 3xx, and 4xx responses will not throw an error
   //   // in the Axios call, and will be available in the .then() or try block.
     // return status < 500;
 
-      return (status >= 200 && status < 500) && status !== 401;
+      return (status >= 200 && status < 500) && status !== 401  
   //   // Alternatively, if you only want to specifically handle 2xx, 401, and 404:
   //   // return (status >= 200 && status < 300) || status === 401 || status === 404;
   },
+
 
 
 });
@@ -80,9 +91,10 @@ api.interceptors.response.use(
     const response = error.response;
 
       console.log("in 2 interceptor")
-    if (
+    
+      if (
       
-      response.status === 401 && 
+      response?.status === 401 && 
       response.data.error === 'jwt expired' 
     
       // Check for specific error message
@@ -112,6 +124,9 @@ api.interceptors.response.use(
             headers: {
               Authorization: `Bearer ${refreshToken}`,
             },
+            //  validateStatus: function (status) {
+            //   return status < 500; // Accept all responses under 500
+            // }
           }
         );
 
@@ -120,11 +135,11 @@ api.interceptors.response.use(
 if (refreshResponse.data.error) {
   await getStore().dispatch(logoutrequest());
   await removeTokens();
-  console.error("Refresh token error:", refreshResponse.data.error);
+  console.error("Refresh token error:", refreshResponse.data?.error);
   return Promise.reject(new Error(refreshResponse.data.error));
 }
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data?.data;
 
         // Remove old tokens and set new ones
         await setTokens(newAccessToken, newRefreshToken);
