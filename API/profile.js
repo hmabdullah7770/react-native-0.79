@@ -19,42 +19,7 @@ import api from '../services/apiservice';
 //     },
 //   });
 
-
-export const addbanner = (bannerImage,bannerbutton) =>
-  api.post('/banner/createbanner',
- 
-      
-    {
-    
-        bannerImage,
-       
-  });
-
-
- 
-
-export const deletebanner = (bannerId) =>
-  api.delete('/banner/deletebanner',
- 
-      
-    {
-  params:{
-    bannerId,
-  }
-
-    })
-
-
-
-export const getallbanner = () =>
-  api.get('/banner/getbanner',
- 
-      
-    {
-params:{
-    adminpassword:"(Bunny)tota#34#"
-    }
-  });
-
+export const profile = username =>
+  api.get(`/users/f/${encodeURIComponent(username)}`);
 
 

@@ -124,18 +124,18 @@ api.interceptors.response.use(
             headers: {
               Authorization: `Bearer ${refreshToken}`,
             },
-            //  validateStatus: function (status) {
-            //   return status < 500; // Accept all responses under 500
-            // }
+             validateStatus: function (status) {
+              return status < 500; // Accept all responses under 500
+            }
           }
         );
 
 
         // If refresh API returns an error, logout the user
-if (refreshResponse.data.error) {
-  await getStore().dispatch(logoutrequest());
+if (refreshResponse.data.error ==='jwt expired' && refreshResponse.status === 401) {
+  // await getStore().dispatch(logoutrequest());
   await removeTokens();
-  console.error("Refresh token error:", refreshResponse.data?.error);
+  console.log("Refresh token error:", refreshResponse.data?.error);
   return Promise.reject(new Error(refreshResponse.data.error));
 }
 
@@ -155,7 +155,7 @@ if (refreshResponse.data.error) {
         // On refresh failure, remove tokens
       
         // dispatch(logoutrequest());
-         await getStore().dispatch(logoutrequest());
+        //  await getStore().dispatch(logoutrequest());
         await removeTokens();
         // console.error("Refresh token error:", refreshError);
         return Promise.reject(refreshError);
