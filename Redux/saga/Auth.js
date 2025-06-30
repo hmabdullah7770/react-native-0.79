@@ -5,6 +5,8 @@ import * as api from '../../API/auth';
 import * as Keychain from 'react-native-keychain';
 import { navigate } from '../../utils/rootNavigation';
 import authResponseInterceptor  from '../../services/authResponseInterceptor'
+import { error } from 'console';
+import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
 
@@ -447,6 +449,12 @@ function* ChangepasswordSaga(payload) {
 }
 
 
+
+
+
+
+
+
 function* LogoutSaga() {
   yield put(actions.setloading(true));
   
@@ -484,7 +492,11 @@ function* LogoutSaga() {
 //       throw error;
 //     }
 
+  //  else if(response.data.error === 'jwt expired' && response.status === 401){
 
+  //   //  run interceptor 2
+
+  //  }
 
     else {
       yield put(
@@ -497,9 +509,10 @@ function* LogoutSaga() {
   } catch (error) {
     yield put(actions.setloading(false));
 
+
     yield put(
       actions.logoutfails({
-        error: ['An error occurred', error.message || 'Unknown error'],
+        error: ['An error occurred', error.message ,"statuscode:", error.status || 'Unknown error'],
       }),
     );
   }
@@ -531,11 +544,16 @@ function* ForgetpasswordSaga() {
   } catch (error) {
     yield put(actions.setloading(false));
 
-    yield put(
-      actions.forgetpasswordfails({
-        error: ['An error occurred', error.message || 'Unknown error'],
-      }),
-    );
+  if(error.status === 401){
+    yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
+  yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
+   yield put(actions.clearstore());
+}
+    // yield put(
+    //   actions.forgetpasswordfails({
+    //     error: ['An error occurred', error.message || 'Unknown error'],
+    //   }),
+    // );
   }
 
 

@@ -173,7 +173,7 @@ export const logoutrequest = ()=> {
 
 
 export const logoutsuccessful = messege => {
-  console.log(messege)
+  console.log('messege in action',messege)
   return{
 
   type: 'LOG_OUT_SUCCESSFUL',
