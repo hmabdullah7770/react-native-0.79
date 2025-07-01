@@ -183,7 +183,28 @@
 
 
 
-// real logic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // real logic
+
+
+
 
 
 
@@ -312,10 +333,10 @@ api.interceptors.response.use(
             headers: {
               Authorization: `Bearer ${refreshToken}`,
             },
-             validateStatus: function (status) {
-              return status < 500; // Accept all responses under 500
-              //  return (status >= 200 && status < 500) && status !== 401  
-            }
+              validateStatus: function (status) {
+            //   return status < 500; // Accept all responses under 500
+             return (status >= 200 && status < 500) && status !== 401  
+             }
           }
         );
 
@@ -328,8 +349,23 @@ if (refreshResponse.data.error ==='jwt expired' && refreshResponse.status === 40
   return Promise.reject(new Error(refreshResponse.data.error));
 }
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data //add .data more
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse?.data?.data //add .data more
 
+       
+        console.log("new accesstoken is:::::",newAccessToken )
+        console.log("new refreshtoken is::::::",newRefreshToken)
+
+
+        if(refreshResponse?.statusCode){
+        console.log("refresh responve with out data", refreshResponse?.statusCode)
+        }
+
+        if(refreshResponse?.data?.statusCode){
+          console.log("refresh responve  data", refreshResponse?.data?.statusCode)
+        }
+        // console.log("accesstoken is:::::",accessToken)
+        // console.log("refreshtoken is::::::",refreshToken)
+        
         // Remove old tokens and set new ones
         await setTokens(newAccessToken, newRefreshToken);
 
@@ -355,51 +391,6 @@ if (refreshResponse.data.error ==='jwt expired' && refreshResponse.status === 40
 );
 
 export default api;
-
-
-
-
-
-
-
-
-
-
-// import axios from 'axios';
-// import { Producturl, Baseurl } from '../utils/apiconfig';
-// import * as Keychain from 'react-native-keychain';
-// // import { applyAuthResponseInterceptor } from './authResponseInterceptor';
-
-// const api = axios.create({
-//   baseURL: Baseurl(),
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
-// // Helper function to get access token
-// const getAccessToken = async () => {
-//   console.log("base url is", Baseurl());
-//   const credentials = await Keychain.getGenericPassword({ service: 'accessToken' });
-//   return credentials ? credentials.password : null;
-// };
-
-// // Attach access token to every request
-// api.interceptors.request.use(
-//   async (config) => {
-//     const token = await getAccessToken();
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-
-// // // Apply the auth response interceptor
-// // applyAuthResponseInterceptor(api);
-
-// export default api;
 
 
 

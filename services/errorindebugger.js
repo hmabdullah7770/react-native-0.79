@@ -46,3 +46,50 @@ auth.js:189 {error: Array(4)}error: (4) ['An error occurred', "Cannot read prop
 Auth.js:226 Logout Fails  {error: Array(4)}error: (4) ['An error occurred', "Cannot read property 'accessToken' of null", 'statuscode:', 'Unknown error'][[Prototype]]: Object
 App.tsx:122 Is authenticated: false
 App.tsx:125 User in App.tsx : null
+
+
+
+
+
+///success response
+
+
+auth.js:166 Inside logout request
+
+App.tsx:122 Is authenticated: true
+
+App.tsx:125 User in App.tsx : {data: {…}, messege: Array(2)}
+
+AppScreens.js:15 user token:  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJlbWFpbCI6ImhtYWJkdWxsYWg3NzcwQGdtYWlsLmNvbSIsImZ1bGxuYW1lIjoiaG1hYmR1bGxhaCIsInVzZXJuYW1lIjoiaG0gYWJkdWxsYWgiLCJpYXQiOjE3NTEzNjEzNTUsImV4cCI6MTc1MTM2MTQxNX0.R4mDR_j7A5zDmcZVEgU1Gr59g_ArxWQo5aqdX9qaVbE
+
+CategouryList.jsx:14 CategoryList render count: 5
+
+CategouryList.jsx:74 handleCategorySelect recreated: true
+
+CategouryList.jsx:78 renderItem recreated: true
+
+apiservice.js:254 base url is http://192.168.251.101:4000/api/v1
+
+apiservice.js:285 in 1 interceptor
+
+apiservice.js:302 in 2 interceptor
+
+apiservice.js:263 refresh token is {storage: 'KeystoreAESGCM_NoAuth', password: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJpYXQiOjE3NTEzNjEzNTUsImV4cCI6MTc1MTM2MjU1NX0.LgBBrCXEJdXCWGGak0Em5N7HZF2QMIBRdTt6g8TOmnI', username: 'refreshToken', service: 'refreshToken'}
+
+apiservice.js:355 new accesstoken is::::: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJlbWFpbCI6ImhtYWJkdWxsYWg3NzcwQGdtYWlsLmNvbSIsImZ1bGxuYW1lIjoiaG1hYmR1bGxhaCIsInVzZXJuYW1lIjoiaG0gYWJkdWxsYWgiLCJpYXQiOjE3NTEzNjE2NTQsImV4cCI6MTc1MTM2MTcxNH0.eH4lU3oq4Tg_PrQhzamY6U_iIwLZKjABIsrqyDvcDf4
+
+apiservice.js:356 new refreshtoken is:::::: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJpYXQiOjE3NTEzNjE2NTQsImV4cCI6MTc1MTM2Mjg1NH0.vaZ6eEeCY_jWzrafLwBdLYNJz6TuI8eeYpRtH2tIhmA
+
+apiservice.js:364 refresh responve  data 200
+
+apiservice.js:254 base url is http://192.168.251.101:4000/api/v1
+
+apiservice.js:285 in 1 interceptor
+
+auth.js:176 messege in action (2) [undefined, 'You are logged out']
+
+Auth.js:215 Logout Successful  (2) [undefined, 'You are logged out']
+
+App.tsx:122 Is authenticated: false
+
+App.tsx:125 User in App.tsx : null
