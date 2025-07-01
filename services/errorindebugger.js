@@ -93,3 +93,27 @@ Auth.js:215 Logout Successful  (2) [undefined, 'You are logged out']
 App.tsx:122 Is authenticated: false
 
 App.tsx:125 User in App.tsx : null
+
+
+
+
+
+//fail logout api
+
+
+Inside logout request
+App.tsx:122 Is authenticated: true
+App.tsx:125 User in App.tsx : {data: {…}, messege: Array(2)}
+AppScreens.js:15 user token:  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJlbWFpbCI6ImhtYWJkdWxsYWg3NzcwQGdtYWlsLmNvbSIsImZ1bGxuYW1lIjoiaG1hYmR1bGxhaCIsInVzZXJuYW1lIjoiaG0gYWJkdWxsYWgiLCJpYXQiOjE3NTEzNjQyMTYsImV4cCI6MTc1MTM2NDI3Nn0.uA-dUG49CAHNn9E8Hlgx8yKd5eYq87qnpBidu8_qboA
+CategouryList.jsx:14 CategoryList render count: 3
+CategouryList.jsx:74 handleCategorySelect recreated: true
+CategouryList.jsx:78 renderItem recreated: true
+apiservice.js:254 base url is http://192.168.251.101:4000/api/v1
+apiservice.js:285 in 1 interceptor
+apiservice.js:302 in 2 interceptor
+apiservice.js:263 refresh token is {storage: 'KeystoreAESGCM_NoAuth', password: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJpYXQiOjE3NTEzNjQyMTYsImV4cCI6MTc1MTM2NTQxNn0.Pq1DJz9BtvBsvMCJrbzzHRrmTHzPrrvgUQ3Fn2RGDnc', username: 'refreshToken', service: 'refreshToken'}password: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI4ZGExZDRkYzJkYmRlMmZmOTk0NWEiLCJpYXQiOjE3NTEzNjQyMTYsImV4cCI6MTc1MTM2NTQxNn0.Pq1DJz9BtvBsvMCJrbzzHRrmTHzPrrvgUQ3Fn2RGDnc"service: "refreshToken"storage: "KeystoreAESGCM_NoAuth"username: "refreshToken"[[Prototype]]: Object
+auth.js:188 Inside logout fails
+auth.js:189 {error: Array(4)}error: (4) ['An error occurred', 'Request failed with status code 401', 'statuscode:', 401][[Prototype]]: Object
+Auth.js:226 Logout Fails  {error: Array(4)}error: (4) ['An error occurred', 'Request failed with status code 401', 'statuscode:', 401][[Prototype]]: Object
+App.tsx:122 Is authenticated: false
+App.tsx:125 User in App.tsx : null

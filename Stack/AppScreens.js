@@ -25,6 +25,8 @@ console.log("user token: ",user?.data?.data?.accessToken);
       if (user?.data?.data?.accessToken && user?.data?.data?.refreshToken && !tokensStored) {
         try {
           // Store the access token using a generic password
+          await Keychain.resetGenericPassword({service:'accessToken'});
+          await Keychain.resetGenericPassword({service:'refreshToken'});
           await Keychain.setGenericPassword('accessToken', user?.data?.data?.accessToken,{service:'accessToken'});
           // Store the refresh token using a generic password
           await Keychain.setGenericPassword('refreshToken', user?.data?.data?.refreshToken,{service:'refreshToken'});
