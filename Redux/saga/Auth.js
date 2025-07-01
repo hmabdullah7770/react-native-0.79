@@ -7,6 +7,7 @@ import { navigate } from '../../utils/rootNavigation';
 import authResponseInterceptor  from '../../services/authResponseInterceptor'
 import { error } from 'console';
 import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
+import { refreshTokenLogic } from '../../services/apiservice';
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
 
@@ -493,11 +494,16 @@ function* LogoutSaga() {
 //       throw error;
 //     }
 
-  //  else if(response.data.error === 'jwt expired' && response.status === 401){
+   else if(response.data.error === 'jwt expired' && response.status === 401){
 
-  //   //  run interceptor 2
+  //   // Refresh tokens and retry
+      yield call(refreshTokenLogic);
+      response = yield call(api.post, '/users/logout');
 
-  //  }
+    }
+
+
+  
 
     else {
       yield put(
