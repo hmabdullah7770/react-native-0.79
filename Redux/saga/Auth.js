@@ -494,13 +494,13 @@ function* LogoutSaga() {
 //       throw error;
 //     }
 
-   else if(response.data.error === 'jwt expired' && response.status === 401){
+  //  else if(response.data.error === 'jwt expired'){
 
-  //   // Refresh tokens and retry
-      yield call(refreshTokenLogic);
-      response = yield call(api.post, '/users/logout');
+  // //   // Refresh tokens and retry
+  //     yield call(refreshTokenLogic);
+  //     yield call(api.logout);
 
-    }
+  //   }
 
 
   
@@ -515,7 +515,8 @@ function* LogoutSaga() {
     yield put(actions.setloading(false));
   } catch (error) {
     yield put(actions.setloading(false));
-
+ 
+  
 
     yield put(
       actions.logoutfails({

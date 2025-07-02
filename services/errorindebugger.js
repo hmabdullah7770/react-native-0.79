@@ -117,3 +117,45 @@ auth.js:189 {error: Array(4)}error: (4) ['An error occurred', 'Request failed w
 Auth.js:226 Logout Fails  {error: Array(4)}error: (4) ['An error occurred', 'Request failed with status code 401', 'statuscode:', 401][[Prototype]]: Object
 App.tsx:122 Is authenticated: false
 App.tsx:125 User in App.tsx : null
+
+
+
+
+
+//success with valid token
+
+
+Running "ecommerceverse" with {"rootTag":21,"initialProps":{},"fabric":true}
+App.tsx:122 Is authenticated: false
+App.tsx:125 User in App.tsx : null
+App.tsx:86 Token found in Keychain. Dispatching tokencheck.
+App.tsx:122 Is authenticated: true
+App.tsx:125 User in App.tsx : null
+AppScreens.js:15 user token:  undefined
+CategouryList.jsx:14 CategoryList render count: 1
+CategouryList.jsx:74 handleCategorySelect recreated: true
+CategouryList.jsx:78 renderItem recreated: true
+useCategories.js:43 🔥 Calling getCategoryData API with params: {category: null, limit: 5, page: 1}
+2apiservice.js:257 base url is http://192.168.251.101:4000/api/v1
+2apiservice.js:289 in 1 interceptor
+useCategories.js:45 ✅ getCategoryData response: {data: {…}, status: 400, statusText: undefined, headers: {…}, config: {…}, request: {…}}
+CategouryList.jsx:14 CategoryList render count: 2
+CategouryList.jsx:74 handleCategorySelect recreated: true
+CategouryList.jsx:78 renderItem recreated: true
+useCategories.js:43 🔥 Calling getCategoryData API with params: {category: 'All', limit: 5, page: 1}
+apiservice.js:257 base url is http://192.168.251.101:4000/api/v1
+apiservice.js:289 in 1 interceptor
+useCategories.js:45 ✅ getCategoryData response: {data: {…}, status: 200, statusText: undefined, headers: {…}, config: {…}, request: {…}}
+auth.js:166 Inside logout request
+App.tsx:122 Is authenticated: true
+App.tsx:125 User in App.tsx : null
+AppScreens.js:15 user token:  undefined
+CategouryList.jsx:14 CategoryList render count: 3
+CategouryList.jsx:74 handleCategorySelect recreated: true
+CategouryList.jsx:78 renderItem recreated: true
+apiservice.js:257 base url is http://192.168.251.101:4000/api/v1
+apiservice.js:289 in 1 interceptor
+auth.js:176 messege in action (2) [undefined, 'You are logged out']
+Auth.js:215 Logout Successful  (2) [undefined, 'You are logged out']
+App.tsx:122 Is authenticated: false
+App.tsx:125 User in App.tsx : null
