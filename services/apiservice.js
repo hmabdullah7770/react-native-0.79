@@ -285,8 +285,12 @@ const removeTokens = async () => {
 api.interceptors.request.use(
 
   async (config) => {
+    
+   
+    
     const token = await getAccessToken();
 
+    
     console.log("in 1 interceptor")
 
     if (token) {
@@ -335,7 +339,7 @@ api.interceptors.response.use(
 
         // Call refresh endpoint with refresh token in Authorization header
        
-        const refreshResponse = await axios.post(
+        const refreshResponse = await axios.create().post(
           
           `${Baseurl()}/users/refresh-token`,
           {},

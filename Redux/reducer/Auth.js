@@ -36,6 +36,26 @@ const initialState = {
     
     
     switch (action.type) {
+          
+
+      case 'REFRESH_TOKEN_SUCCESSFUL':
+        console.log('REFRESH_TOKEN_SUCCESSFUL : ', action.payload);
+        return {
+          ...state,
+          user: action.payload.data,
+          isAuthenticated: true,
+          error: null,
+        };
+      case 'REFRESH_TOKEN_FAIL':
+        console.log('REFRESH_TOKEN_FAIL : ', action.payload.error);
+        return {
+          ...state,
+          user: null,
+          isAuthenticated: false,
+          error: action.payload.error,
+        };
+
+
 
 
          case  'CLEAR_STORE':
