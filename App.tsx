@@ -13,11 +13,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {Provider as ReduxProvider, useSelector} from 'react-redux';
 import store from './Redux/store/store';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-
+import {SnackProvider} from './context/Snackbar';
 import * as Keychain from 'react-native-keychain';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-
+import PaperSnackbar from './components/PaperSnackbar';
 import {
   QueryClient,
   QueryClientProvider,
@@ -25,6 +25,7 @@ import {
 } from '@tanstack/react-query'
 
 import { tokencheck } from './Redux/action/auth';
+
 // import { tokencheckrequest } from './Redux/action/auth';
 
 
@@ -142,7 +143,7 @@ console.log('User in App.tsx :', user)
     ) : (
       <AuthScreens/>
     )}
-  
+  <PaperSnackbar />
   </NavigationContainer>
   </GestureHandlerRootView>
 );
@@ -155,7 +156,9 @@ const Root = () => {
        <QueryClientProvider  client={queryClient}>
            <ReduxProvider store={store}>
             <SafeAreaProvider>
-            <App />
+              <SnackProvider>
+              <App />
+            </SnackProvider>
             </SafeAreaProvider>
           </ReduxProvider>
          </QueryClientProvider>

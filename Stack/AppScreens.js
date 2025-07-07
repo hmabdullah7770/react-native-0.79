@@ -3,14 +3,32 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Loader from '../components/Loader';
 import { useSelector } from 'react-redux';
 import * as Keychain from 'react-native-keychain';
+import { useContext } from 'react';
+import { SnackbarContext } from '../context/Snackbar';
 import TestingScreen from '../screens/TestingScreen'; // Assuming this is the initial screen
 import Tabnavigation from '../screens/tabNavigation/Tabnavigation'
+import { clearerror, clearmessege } from '../Redux/action/auth';
+import { useDispatch } from 'react-redux';
 // import api from '../services/apiservice'; //
 const AppScreens = () => {
   const App = createStackNavigator();
 
   // Access the loading state and the user object from Redux
-  const { loading, user } = useSelector(state => state.auth);
+  const { loading, user,error, messege, clearerror, clearmessege } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  const { handleSnackbar } = useContext(SnackbarContext);
+
+
+   useEffect(() => {
+    if (error) {
+      handleSnackbar(error);
+     dispatch( clearerror());
+    } else if (messege) {
+      handleSnackbar({ messege });
+     dispatch (clearmessege());
+    }
+  }, [error, messege]);
 
 console.log("user tokenin: ",user?.data?.data?.accessToken);
 

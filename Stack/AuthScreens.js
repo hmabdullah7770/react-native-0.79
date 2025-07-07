@@ -12,7 +12,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SignupScreens from '../screens/signUp/SignupScreens';
 import SigninScreen from '../screens/signIn/SigninScreen';
 import Loader from '../components/Loader';
+import { useContext } from 'react';
+import { SnackbarContext } from '../context/Snackbar';
 import { useSelector } from 'react-redux';
+import { clearerror, clearmessege } from '../Redux/action/auth';
+import { useDispatch } from 'react-redux';
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
 
@@ -21,19 +25,23 @@ const AuthScreens = () => {
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 
-  const  {loading}  = useSelector(state => state.auth);
+  const  {loading, error, messege, clearerror, clearmessege}  = useSelector(state => state.auth);
 
-  // // const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  
 
-  // useEffect(() => {
-  //   if (error) {
-  //     handleSnackbar({ error });
-  //     clearerror();
-  //   } else if (messege) {
-  //     handleSnackbar({ messege });
-  //     clearmessege();
-  //   }
-  // }, [error, messege]);
+  const { handleSnackbar } = useContext(SnackbarContext);
+  
+  useEffect(() => {
+      if (error) {
+        handleSnackbar(error);
+       dispatch (clearerror());
+      } else if (messege) {
+        handleSnackbar({ messege });
+        dispatch(clearmessege());
+      }
+    }, [error, messege]);
+
 
   return (
     <>
