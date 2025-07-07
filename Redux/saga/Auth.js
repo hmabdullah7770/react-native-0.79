@@ -527,6 +527,38 @@ function* LogoutSaga() {
 }
 
 
+function*  RefreshTokenSaga(){
+
+   try {
+    const response = yield call(api.refreshtoken);
+
+    if (response.status === 200) {
+      console.log('Response data:', response.data);
+      yield put(
+        actions.refreshtokensuccessful([
+          response.data,
+          'Please check your email',
+        ]),
+      );
+    } else {
+      yield put(
+        actions.refreshtokenfails({
+          error: `Unexpected response status: ${response.status}`,
+        }),
+      );
+    }
+    yield put(actions.setloading(false));
+  } catch (error) {
+    yield put(actions.setloading(false));
+
+
+
+}
+}
+
+
+
+
 function* ForgetpasswordSaga() {
 
   yield put(actions.setloading(true));
@@ -670,6 +702,9 @@ function* ChangeAvatarSaga() {
 
 
 
+
+
+
 export function* watchAuthSaga() {
   yield takeLatest('AZURE_LOGIN_REQUEST', AzureLoginSaga);
 
@@ -684,7 +719,7 @@ export function* watchAuthSaga() {
   yield takeLatest('RESET_PASSWORD_REQUEST', ResetpasswordSaga);
   yield takeLatest('RESEND_OTP_REQUEST', ResendOtpSaga);
   yield takeLatest('CHANGE_AVATAR_REQUEST', ChangeAvatarSaga);
-
+  yield takeLatest ('REFRESH_TOKEN_REQUEST', RefreshTokenSaga);
 }
 
 export default function* authrootSaga() {
