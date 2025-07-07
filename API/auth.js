@@ -1,5 +1,6 @@
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/apiservice';
+import Keychain from 'react-native-keychain'
 
 
 
@@ -97,12 +98,23 @@ export const logout = ()=>
   );
 
 
-export const refreshToken = () =>
+export const refreshToken = async () => {
+  // Get the refresh token from secure storage or your state
+  const credentials = await Keychain.getGenericPassword({ service: 'refreshToken' });
+  const refreshtoken =  credentials.password 
 
-  api.post('/users/refresh-token');
+  return api.post(
+    '/users/refresh-token',
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${refreshtoken}`,
+      },
+    }
+  );
+};
 
 
-  
 
 
 

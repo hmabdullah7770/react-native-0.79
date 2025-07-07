@@ -7,7 +7,7 @@ import { navigate } from '../../utils/rootNavigation';
 import authResponseInterceptor  from '../../services/authResponseInterceptor'
 import { error } from 'console';
 import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
-import { refreshTokenLogic } from '../../services/apiservice';
+import {RefreshtokenService } from '../../services/refreshtokenservice';
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
 
@@ -501,6 +501,14 @@ function* LogoutSaga() {
   //     yield call(api.logout);
 
   //   }
+    
+
+  else if(response.status === 401 && response.data.error === 'jwt expired'){
+    
+    yield call(RefreshTokenSaga);
+    yield call(api.logout);
+
+  }
 
 
   
@@ -530,7 +538,7 @@ function* LogoutSaga() {
 function*  RefreshTokenSaga(){
 
    try {
-    const response = yield call(api.refreshtoken);
+    const response = yield call(api.refreshToken);
 
     if (response.status === 200) {
       console.log('Response data:', response.data);
@@ -540,12 +548,20 @@ function*  RefreshTokenSaga(){
           'Please check your email',
         ]),
       );
+ 
+      yield call(RefreshtokenService);
+      //call the function there 
+
     } else {
       yield put(
         actions.refreshtokenfails({
-          error: `Unexpected response status: ${response.status}`,
+          error: `Unexpected response status: ${response.status} error  ${response.data.error}`,
         }),
       );
+        // Should be - CORRECT
+  yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
+  yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
+
     }
     yield put(actions.setloading(false));
   } catch (error) {
