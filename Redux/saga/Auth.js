@@ -7,7 +7,7 @@ import { navigate } from '../../utils/rootNavigation';
 import authResponseInterceptor  from '../../services/authResponseInterceptor'
 import { error } from 'console';
 import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
-import {RefreshtokenService } from '../../services/refreshtokenservice';
+// import {RefreshtokenService } from '../../services/refreshtokenservice';
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
 
@@ -479,40 +479,12 @@ function* LogoutSaga() {
       yield put(actions.clearstore());
     } 
     
-    // else if (response.status === 401 && response.data.error === 'jwt expired') {
-     
-    //       authResponseInterceptor();
-
-    // }
-
-
-// else if (response.status === 401 && response.data.error === 'jwt expired') {
-//       // Don't handle 401 jwt expired here - create an error to trigger the interceptor
-//       const error = new Error('JWT expired');
-//       error.response = response;
-//       error.config = response.config;
-//       throw error;
-//     }
-
-  //  else if(response.data.error === 'jwt expired'){
-
-  // //   // Refresh tokens and retry
-  //     yield call(refreshTokenLogic);
-  //     yield call(api.logout);
-
-  //   }
+  // else if(response.status === 401 && response.data.error === 'jwt expired'){
     
+  //   yield call(RefreshTokenSaga);
+  //   yield call(api.logout);
 
-  else if(response.status === 401 && response.data.error === 'jwt expired'){
-    
-    yield call(RefreshTokenSaga);
-    yield call(api.logout);
-
-  }
-
-
-  
-
+  // }
     else {
       yield put(
         actions.logoutfails({
@@ -535,42 +507,42 @@ function* LogoutSaga() {
 }
 
 
-function*  RefreshTokenSaga(){
+// function*  RefreshTokenSaga(){
 
-   try {
-    const response = yield call(api.refreshToken);
+//    try {
+//     const response = yield call(api.refreshToken);
 
-    if (response.status === 200) {
-      console.log('Response data:', response.data);
-      yield put(
-        actions.refreshtokensuccessful([
-          response.data,
-          'Please check your email',
-        ]),
-      );
+//     if (response.status === 200) {
+//       console.log('Response data:', response.data);
+//       yield put(
+//         actions.refreshtokensuccessful([
+//           response.data,
+//           'Please check your email',
+//         ]),
+//       );
  
-      yield call(RefreshtokenService);
-      //call the function there 
+//       yield call(RefreshtokenService);
+//       //call the function there 
 
-    } else {
-      yield put(
-        actions.refreshtokenfails({
-          error: `Unexpected response status: ${response.status} error  ${response.data.error}`,
-        }),
-      );
-        // Should be - CORRECT
-  yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
-  yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
+//     } else {
+//       yield put(
+//         actions.refreshtokenfails({
+//           error: `Unexpected response status: ${response.status} error  ${response.data.error}`,
+//         }),
+//       );
+//         // Should be - CORRECT
+//   yield call([Keychain, 'resetGenericPassword'], { service: 'accessToken' });
+//   yield call([Keychain, 'resetGenericPassword'], { service: 'refreshToken' });
 
-    }
-    yield put(actions.setloading(false));
-  } catch (error) {
-    yield put(actions.setloading(false));
+//     }
+//     yield put(actions.setloading(false));
+//   } catch (error) {
+//     yield put(actions.setloading(false));
 
 
 
-}
-}
+// }
+// }
 
 
 

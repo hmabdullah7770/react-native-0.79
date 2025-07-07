@@ -87,22 +87,3 @@ export const useFollowingCategoryDataInfinite = (category, limit) => {
     }
   );
 };
-
-
-
-// // In your React Query hook
-// export const useCategoryDataInfinite = (category, limit) => {
-//   return useInfiniteQuery({
-//     queryKey: ['categoryData', category, limit],
-//     queryFn: async ({ pageParam = 1 }) => {
-//       console.log('🔥 Calling getCategoryData API with params:', { category, limit, page: pageParam });
-//       const response = await getCategoryData(category, limit, pageParam);
-//       console.log('✅ getCategoryData response:', response);
-//       return response.data; // This should return the data object that contains messege.cards
-//     },
-//     getNextPageParam: (lastPage) => {
-//       const pagination = lastPage?.messege?.pagination;
-//       return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
-//     },
-//   });
-// };

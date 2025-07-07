@@ -18,25 +18,3 @@ export function* RefreshtokenService() {
   return { accessToken, refreshToken };
 }
 
-
-
-
-// import { select } from "react-redux";
-// import { select, call } from 'redux-saga/effects';
-// import keychain from "react-native-keychain";
-
-
-
-// export const RefreshtokenService = async() => {
-//         const accessToken = yield select((state) => state.auth.user.data.accessToken);
-//         const refreshToken = yield select((state) => state.auth.user.data.refreshToken);
-     
-//         await keychain.resetGenericPassword({ service: 'accessToken' });
-//         await keychain.resetGenericPassword({ service: 'refreshToken' });
-//         await keychain.setGenericPassword('accessToken', accessToken, { service: 'accessToken' });
-//         await keychain.setGenericPassword('refreshToken', refreshToken, { service: 'refreshToken' });
-     
-//         return { accessToken, refreshToken };
-//     };
-
-
