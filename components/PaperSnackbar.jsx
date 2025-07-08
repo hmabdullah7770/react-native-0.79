@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Button, Snackbar } from 'react-native-paper';
 import { StyleSheet, Text, TouchableOpacity} from 'react-native';
 
-import FontAwesome from 'react-native-vector-icons/FontAwesome5';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {SnackbarContext}  from '../context/Snackbar'
 import { useContext } from 'react';
 

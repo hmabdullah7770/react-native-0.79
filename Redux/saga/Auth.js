@@ -4,9 +4,9 @@ import * as actions from '../action/auth';
 import * as api from '../../API/auth';
 import * as Keychain from 'react-native-keychain';
 import { navigate } from '../../utils/rootNavigation';
-import authResponseInterceptor  from '../../services/authResponseInterceptor'
+// import authResponseInterceptor  from '../../services/authResponseInterceptor'
 import { error } from 'console';
-import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
+// import { triggerResponseInterceptor, shouldTriggerInterceptor } from '../utils/triggerInterceptor';
 // import {RefreshtokenService } from '../../services/refreshtokenservice';
 // import EncryptedStorage from 'react-native-encrypted-storage';
 
@@ -349,10 +349,12 @@ function* LoginSaga(payload) {
       } else {
         console.log('Login successful, data:', response.data);
         yield put(
-          actions.loginsuccessful(response.data, [
+          actions.loginsuccessful(response.data,
+           [
+
             'Login Successful',
             'you get access',
-          ]),
+      ]),
         );
       }
     } else {
@@ -707,7 +709,7 @@ export function* watchAuthSaga() {
   yield takeLatest('RESET_PASSWORD_REQUEST', ResetpasswordSaga);
   yield takeLatest('RESEND_OTP_REQUEST', ResendOtpSaga);
   yield takeLatest('CHANGE_AVATAR_REQUEST', ChangeAvatarSaga);
-  yield takeLatest ('REFRESH_TOKEN_REQUEST', RefreshTokenSaga);
+  // yield takeLatest ('REFRESH_TOKEN_REQUEST', RefreshTokenSaga);
 }
 
 export default function* authrootSaga() {

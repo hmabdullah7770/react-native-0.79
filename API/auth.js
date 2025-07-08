@@ -98,21 +98,21 @@ export const logout = ()=>
   );
 
 
-export const refreshToken = async () => {
-  // Get the refresh token from secure storage or your state
-  const credentials = await Keychain.getGenericPassword({ service: 'refreshToken' });
-  const refreshtoken =  credentials.password 
+// export const refreshToken = async () => {
+//   // Get the refresh token from secure storage or your state
+//   const credentials = await Keychain.getGenericPassword({ service: 'refreshToken' });
+//   const refreshtoken =  credentials.password 
 
-  return api.post(
-    '/users/refresh-token',
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${refreshtoken}`,
-      },
-    }
-  );
-};
+//   return api.post(
+//     '/users/refresh-token',
+//     {},
+//     {
+//       headers: {
+//         Authorization: `Bearer ${refreshtoken}`,
+//       },
+//     }
+//   );
+// };
 
 
 

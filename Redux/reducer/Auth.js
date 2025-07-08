@@ -38,22 +38,22 @@ const initialState = {
     switch (action.type) {
           
 
-      case 'REFRESH_TOKEN_SUCCESSFUL':
-        console.log('REFRESH_TOKEN_SUCCESSFUL : ', action.payload);
-        return {
-          ...state,
-          user: action.payload.data,
-          isAuthenticated: true,
-          error: null,
-        };
-      case 'REFRESH_TOKEN_FAIL':
-        console.log('REFRESH_TOKEN_FAIL : ', action.payload.error);
-        return {
-          ...state,
-          user: null,
-          isAuthenticated: false,
-          error: action.payload.error,
-        };
+      // case 'REFRESH_TOKEN_SUCCESSFUL':
+      //   console.log('REFRESH_TOKEN_SUCCESSFUL : ', action.payload);
+      //   return {
+      //     ...state,
+      //     user: action.payload.data,
+      //     isAuthenticated: true,
+      //     error: null,
+      //   };
+      // case 'REFRESH_TOKEN_FAIL':
+      //   console.log('REFRESH_TOKEN_FAIL : ', action.payload.error);
+      //   return {
+      //     ...state,
+      //     user: null,
+      //     isAuthenticated: false,
+      //     error: action.payload.error,
+      //   };
 
 
 
@@ -173,6 +173,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
       
       case 'LOGIN_SUCCESSFUL':
         console.log('LOGIN_SUCCESSFUL : ', action.payload.data);
+                console.log('LOGIN_SUCCESSFUL  messege: ', action.payload.messege);
         return {
           ...state,
           // screen: action.payload.data.buttons,
@@ -180,7 +181,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           isAuthenticated: true,
           error: null,
   
-          messege: action.payload.data,
+          messege: action.payload.messege,
         };
   
       case 'LOGIN_FAIL':

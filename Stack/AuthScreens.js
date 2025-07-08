@@ -25,7 +25,7 @@ const AuthScreens = () => {
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 
-  const  {loading, error, messege, clearerror, clearmessege}  = useSelector(state => state.auth);
+  const  {loading, error, messege}  = useSelector(state => state.auth);
 
   const dispatch = useDispatch();
   
@@ -34,7 +34,7 @@ const AuthScreens = () => {
   
   useEffect(() => {
       if (error) {
-        handleSnackbar(error);
+        handleSnackbar({error});
        dispatch (clearerror());
       } else if (messege) {
         handleSnackbar({ messege });

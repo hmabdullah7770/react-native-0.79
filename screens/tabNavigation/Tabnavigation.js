@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons'; // You'll need to install
 import HomeScreen from './HomeScreen';
 import OfferScreen from './OfferScreen';
 import CreatepostScreen from './CreatepostScreen';
-import Hoc from '../hoc/Hoc';
+// import Hoc from '../hoc/Hoc';
 import SettingScreen from './SettingScreen'; 
 import ProfileScreen from './profilescreen/ProfileScreen';  
 import FollowingScreen from './FollowingScreen';

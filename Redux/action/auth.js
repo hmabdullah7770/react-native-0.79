@@ -1,18 +1,18 @@
 //refreshtoken app
 
-export const refreshtokenrequest = () => ({
-  type: 'REFRESH_TOKEN_REQUEST',
-});
+// export const refreshtokenrequest = () => ({
+//   type: 'REFRESH_TOKEN_REQUEST',
+// });
 
-export const refreshtokensuccessful = data => ({
-  type: 'REFRESH_TOKEN_SUCCESSFUL',
-  payload: data,
-});
+// export const refreshtokensuccessful = data => ({
+//   type: 'REFRESH_TOKEN_SUCCESSFUL',
+//   payload: data,
+// });
 
-export const refreshtokenfail = error => ({
-  type: 'REFRESH_TOKEN_FAIL',
-  payload: error,
-});
+// export const refreshtokenfail = error => ({
+//   type: 'REFRESH_TOKEN_FAIL',
+//   payload: error,
+// });
 
 
 
