@@ -105,9 +105,10 @@ case 'MATCH_USERNAME_SUCCESSFUL':
   return {
     ...state,
     user: action.payload.data,
-  
+    messege: action.payload.messege,
+   
     // isAuthenticated: true,
-    error: null,
+    // error: null,
      
   }
 
@@ -129,12 +130,23 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           user: action.payload.data,
         
           // isAuthenticated: true,
-          error: null,
+          // error: null,
   
           messege: action.payload.messege,
         };
 
-     
+     case 'VERIFY_EMAIL_FAIL':
+        console.log('VERIFY_EMAIL_FAIL : ', action.payload.error);
+        return {
+          ...state,
+          user: null,
+         
+          // isAuthenticated: false,
+          error: action.payload.error,
+          messege: null,
+        };
+
+
      
       case 'SIGNUP_SUCCESSFUL':
         console.log('SIGNUP_SUCCESSFUL : ', action.payload);

@@ -38,6 +38,7 @@ const UsernamePassword = ({ navigation }) => {
   const {email,username,error ,isLoading, user} = useSelector(state => state.auth);
 
   
+console.log('error  ===================',error)
 
    const [showPassword, setShowPassword] = useState(true);
    const [apiError, setApiError] = useState({ email: '', username: '' });
@@ -107,7 +108,7 @@ const UsernamePassword = ({ navigation }) => {
           value={formik.values.username}
     />
 
-{(formik.errors.username && formik.touched.username)  || error?.includes('Username Already taken please chose another') ? (
+{(formik.errors.username && formik.touched.username)  || error?.includes('Username Already taken please chose another ') ? (
           <Text style={styles.errorText}>{formik.errors.username || (error && typeof error === 'string' && error)}</Text>
         ): null}
   <Textfield

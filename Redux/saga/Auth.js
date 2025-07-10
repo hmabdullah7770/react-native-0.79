@@ -17,6 +17,7 @@ function* MatchOtpSaga(payload) {
     const response = yield call(api.matchotp, payload.email, payload.otp);
 
     if (response.status === 200) {
+     
       if (!response.data || typeof response.data !== 'object') {
         yield put(
           actions.matchotpfail({
@@ -26,16 +27,22 @@ function* MatchOtpSaga(payload) {
             ],
           }),
         );
-      } else if (response.data.errorText) {
-        yield put(
-          actions.matchotpfail({
-            error: [
-              response.data.errorText,
-              response.data.errorDetail,
-            ],
-          }),
-        );
-      } else {
+      } 
+      
+      // else if (response.data.error) {
+      //   yield put(
+      //     actions.matchotpfail({
+      //       error: [
+      //         response.data.error,
+      //         response.data.error,
+      //       ],
+      //     }),
+      //   ); 
+      // }
+      
+      
+      
+      else {
         yield put(
           actions.matchotpsuccessful(response.data, [
             'OTP matched successfully',
@@ -48,7 +55,7 @@ function* MatchOtpSaga(payload) {
         actions.matchotpfail({
           error: [
             `Unexpected response status: ${response.status}`,
-            'please try again',
+              `${response.data.error}please try again`,
           ],
         }),
       );
@@ -80,20 +87,22 @@ function* MatchUsernameSaga(payload) {
             ],
           }),
         );
-      } else if (response.data.error) {
-        yield put(
-          actions.matchusernamefail({
-            error: [
+      } 
+      // else if (response.data.error) {
+      //   yield put(
+      //     actions.matchusernamefail({
+      //       error: [
            
-              response.data.error,
-            ],
-          }),
-        );
-      } else {
+      //         response.data.error,
+      //       ],
+      //     }),
+      //   );
+      // } 
+      else {
         yield put(
           actions.matchusernamesuccessful(response.data, [
-            'username matched successfully',
-            'now enter otp',
+            ' username is avaliable ',
+            'you can use this',
           ]),
         );
       }
@@ -101,8 +110,8 @@ function* MatchUsernameSaga(payload) {
       yield put(
         actions.matchusernamefail({
           error: [
-            `Unexpected response status: ${response.status} ${response.data.error}`,
-            'please try again',
+            `Unexpected response status: ${response.status} `,
+              `${response.data.error}please try again`,
           ],
         }),
       );
@@ -138,16 +147,20 @@ function* VerifyEmailSaga (payload) {
             ],
           }),
         );
-      } else if (response.data.errorText) {
-        yield put(
-          actions.verifyemailfail({
-            error: [
-              response.data.error,
+      } 
+      
+      // else if (response.data.errorText) {
+      //   yield put(
+      //     actions.verifyemailfail({
+      //       error: [
+      //         response.data.error,
             
-            ],
-          }),
-        );
-      } else {
+      //       ],
+      //     }),
+      //   );
+      // }
+      
+      else {
         yield put(
           actions.verifyemailsuccessful(response.data, [
             'Email verified successfully',
@@ -160,7 +173,7 @@ function* VerifyEmailSaga (payload) {
         actions.verifyemailfail({
           error: [
             `Unexpected response status: ${response.status}`,
-            'please try again',
+            `${response.data.error}please try again`,
           ],
         }),
       );

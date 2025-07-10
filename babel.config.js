@@ -25,5 +25,10 @@ module.exports = {
         verbose: false,
       },
     ],
+
+    // ['react-native-unistyles/plugin', 
+    //    // Includes all folders like screens/, components/, etc.
+     
+    //   ],
   ],
 };
