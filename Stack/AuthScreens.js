@@ -42,6 +42,7 @@ const AuthScreens = () => {
       }
     }, [error, messege]);
 
+     console.log('error in AuthScreens', error)
 
   return (
     <>

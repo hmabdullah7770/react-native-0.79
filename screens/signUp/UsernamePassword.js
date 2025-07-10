@@ -47,9 +47,11 @@ console.log('error  ===================',error)
        initialValues: { email:'' ,username: '', password: '' },
        validationSchema: schema,
        onSubmit: (values, { setSubmitting }) => {
-         dispatch(verifyemailrequest(values.email));
-         dispatch(matchusernamerequest(values.username));
-         setSubmitting(false);
+         
+        dispatch(verifyemailrequest(values.email));
+        if(!error){
+        dispatch(matchusernamerequest(values.username));
+        }setSubmitting(false);
        },
      }); 
 
@@ -63,7 +65,7 @@ console.log('error  ===================',error)
     !!formik.errors.email ||
     !!formik.errors.username ||
     !!formik.errors.password ||
-    !!error ||
+     error ||
     isLoading ||
     formik.isSubmitting;
 
