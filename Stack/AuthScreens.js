@@ -15,7 +15,7 @@ import Loader from '../components/Loader';
 import { useContext } from 'react';
 import { SnackbarContext } from '../context/Snackbar';
 import { useSelector } from 'react-redux';
-import { clearerror, clearmessege } from '../Redux/action/auth';
+import { clearerror, clearmessege,clearusernameerror,clearemailerror,clearemailmessege } from '../Redux/action/auth';
 import { useDispatch } from 'react-redux';
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
@@ -25,7 +25,7 @@ const AuthScreens = () => {
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 
-  const  {loading, error, messege}  = useSelector(state => state.auth);
+  const  {loading, error, messege,usernameerror,emailerror,emailmessege}  = useSelector(state => state.auth);
 
   const dispatch = useDispatch();
   
@@ -36,11 +36,31 @@ const AuthScreens = () => {
       if (error) {
         handleSnackbar({error});
        dispatch (clearerror());
-      } else if (messege) {
+      } 
+      else if (messege) {
         handleSnackbar({ messege });
         dispatch(clearmessege());
       }
-    }, [error, messege]);
+
+      
+    else if (usernameerror) {
+      handleSnackbar({usernameerror});
+      // dispatch(clearusernameerror())
+    }
+
+   else if(emailmessege){
+
+    handleSnackbar({emailmessege});
+     dispatch(clearemailmessege())
+   }
+
+    else if(emailerror){
+      handleSnackbar({emailerror});
+      dispatch(clearemailerror())
+    }
+
+
+    }, [error, messege,emailmessege,emailerror, usernameerror]);
 
      console.log('error in AuthScreens', error)
 

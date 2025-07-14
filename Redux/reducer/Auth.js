@@ -15,6 +15,11 @@ const initialState = {
     // partnerlist: null,
     // setuserstate: null,
     cleanUsername: null,
+  
+    usernameerror:null,
+    emailerror:null,
+    usernamemessege:null,
+    emailmessege:null,
   };
 
 
@@ -105,7 +110,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
   return {
     ...state,
     user: action.payload.data,
-    messege: action.payload.messege,
+    usernamemessege: action.payload.usernamemessege,
    
     // isAuthenticated: true,
     // error: null,
@@ -119,7 +124,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
     user: null,
     screen: null,
     isAuthenticated: false,
-    error: action.payload.error,
+    usernameerror: action.payload.usernameerror,
     messege: null,
   };
 
@@ -132,7 +137,7 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           // isAuthenticated: true,
           // error: null,
   
-          messege: action.payload.messege,
+          emailmessege: action.payload.emailmessege,
         };
 
      case 'VERIFY_EMAIL_FAIL':
@@ -142,11 +147,18 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           user: null,
          
           // isAuthenticated: false,
-          error: action.payload.error,
+          emailerror: action.payload.emailerror,
           messege: null,
         };
 
 
+        case 'CLEAR_EMAIL_DATA':
+          console.log('CLEAR_EMAIL_DATA in reducer');
+          return {
+            ...state,
+             user: null,
+           
+          };
      
       case 'SIGNUP_SUCCESSFUL':
         console.log('SIGNUP_SUCCESSFUL : ', action.payload);
@@ -206,6 +218,31 @@ case 'MATCH_USERNAME_SUCCESSFUL':
           messege: null,
         };
   
+
+       case 'CLEAR_USERNAME_ERROR': return {
+         ...state,
+         usernameerror:null,
+
+       };
+
+       case 'CLEAR_EMAIL_ERROR': return{
+            ...state,
+            emailerror:null,
+
+       }
+
+       case 'CLEAR_EMAIL_MESSEGE': return{
+          ...state,
+          emailmessege:null,
+       }
+        
+case 'CLEAR_USERNAME_MESSEGE': 
+console.log('inside clearusernamemessege');
+return{
+          ...state,
+          usernamemessege:null
+        }
+
       case 'CLEAR_ERROR':
         return {
           ...state,

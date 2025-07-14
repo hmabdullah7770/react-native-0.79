@@ -48,16 +48,19 @@ export const verifyemailrequest = (email) => {
 }};
 
 
-export const verifyemailsuccessful = (data, messege) => ({
+export const verifyemailsuccessful = (data, emailmessege) => ({
   type: 'VERIFY_EMAIL_SUCCESSFUL',
-  payload: { data, messege },
+  payload: { data, emailmessege },
 });
 
-export const verifyemailfail = error => ({
+export const verifyemailfail = emailerror => ({
   type: 'VERIFY_EMAIL_FAIL',
-  payload: error,
+  payload: emailerror,
 });
 
+export const clearemaildata = () => ({
+  type: 'CLEAR_EMAIL_DATA',
+});
 
 
 //validations
@@ -66,7 +69,7 @@ export const verifyemailfail = error => ({
 //matchusename
 
 export const matchusernamerequest = (username) => {
-   console.log("Inside username ", username);
+   console.log("Inside username verfiy action ", username);
  return {
   type: 'MATCH_USERNAME_REQUEST',
  username,
@@ -75,20 +78,41 @@ export const matchusernamerequest = (username) => {
 }};
 
 
-export const matchusernamesuccessful = (data, messege) => ({
+export const matchusernamesuccessful = (data, usernamemessege) => ({
   type: 'MATCH_USERNAME_SUCCESSFUL',
-  payload: { data, messege },
+  payload: { data, usernamemessege },
 });
 
-export const matchusernamefail = error => ({
+export const matchusernamefail = usernameerror => ({
   type: 'MATCH_USERNAME_FAIL',
-  payload: error,
+  payload: usernameerror,
 });
 
 
+export const clearusernameerror =()=>({
+
+  type:"CLEAR_USERNAME_ERROR"
+
+})
+
+export const clearemailerror =()=>({
+  
+  type:"CLEAR_EMAIL_ERROR"
+
+})
 
 
+export const clearemailmessege=()=>({
+
+  type: 'CLEAR_EMAIL_MESSEGE'
+})
 //matchotp
+
+
+export const clearusernamemessege =()=>({
+
+  type: 'CLEAR_USERNAME_MESSEGE'
+})
 
 
 

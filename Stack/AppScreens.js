@@ -14,7 +14,7 @@ const AppScreens = () => {
   const App = createStackNavigator();
 
   // Access the loading state and the user object from Redux
-  const { loading, user,error, messege} = useSelector(state => state.auth);
+  const { loading, user,error, messege,usernameerror,emailerror} = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   const { handleSnackbar } = useContext(SnackbarContext);
@@ -28,6 +28,7 @@ const AppScreens = () => {
       handleSnackbar({ messege });
      dispatch(clearmessege());
     }
+   
   }, [error, messege]);
 
 

@@ -81,7 +81,7 @@ function* MatchUsernameSaga(payload) {
       if (!response.data || typeof response.data !== 'object') {
         yield put(
           actions.matchusernamefail({
-            error: [
+            usernameerror: [
               'Unexpected error occurred',
               'Response format is invalid or empty.',
             ],
@@ -109,9 +109,9 @@ function* MatchUsernameSaga(payload) {
     } else {
       yield put(
         actions.matchusernamefail({
-          error: [
+          usernameerror: [
             `Unexpected response status: ${response.status} `,
-              `${response.data.error}please try again`,
+              `${response.data.error} please try again`,
           ],
         }),
       );
@@ -122,7 +122,7 @@ function* MatchUsernameSaga(payload) {
 
     yield put(
       actions.matchusernamefail({
-        error: ['An error occurred', error.message || 'Unknown error'],
+         usernameerror: ['An error occurred', error.message || 'Unknown error'],
       }),
     );
   }
@@ -141,7 +141,7 @@ function* VerifyEmailSaga (payload) {
       if (!response.data || typeof response.data !== 'object') {
         yield put(
           actions.verifyemailfail({
-            error: [
+            emailerror: [
               'Unexpected error occurred',
               'Response format is invalid or empty.',
             ],
@@ -171,7 +171,7 @@ function* VerifyEmailSaga (payload) {
     } else {
       yield put(
         actions.verifyemailfail({
-          error: [
+          emailerror: [
             `Unexpected response status: ${response.status}`,
             `${response.data.error}please try again`,
           ],
@@ -184,7 +184,7 @@ function* VerifyEmailSaga (payload) {
 
     yield put(
       actions.verifyemailfail({
-        error: ['An error occurred', error.message || 'Unknown error'],
+       emailerror: ['An error occurred', error.message || 'Unknown error'],
       }),
     );
   }

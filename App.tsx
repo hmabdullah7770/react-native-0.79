@@ -1,6 +1,3 @@
-
-
-
 import 'react-native-gesture-handler';
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
@@ -18,8 +15,9 @@ import * as Keychain from 'react-native-keychain';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PaperSnackbar from './components/PaperSnackbar';
-import {
-  QueryClient,
+import { useContext } from 'react';
+import {SnackbarContext} from './context/Snackbar'
+  import {QueryClient,
   QueryClientProvider,
   useQuery,
 } from '@tanstack/react-query'
@@ -38,7 +36,10 @@ export const navigationRef = createNavigationContainerRef();
 interface RootState {
   auth: {
     isAuthenticated: boolean;
-    user:Object | null; // Replace with your actual user type
+    user:Object | null; 
+    error: string | null; // Replace with your actual error type
+    // messege: string | null; // Replace with your actual message type
+    // Replace with your actual user type
     // Add other properties of your auth state here
   };
   // Add other slices of your state here
@@ -49,6 +50,8 @@ const queryClient = new QueryClient()
 
 
 const App = () => {
+
+    const {show, setShow, messege, explain,type} = useContext(SnackbarContext)
 
   const dispatch = useDispatch();
 
@@ -119,7 +122,7 @@ const App = () => {
 
 
 
-const {isAuthenticated,user} = useSelector((state: RootState) => state.auth);
+const {isAuthenticated,user, error} = useSelector((state: RootState) => state.auth);
 console.log('Is authenticated:',isAuthenticated)
 
 
@@ -143,8 +146,17 @@ console.log('User in App.tsx :', user)
     ) : (
       <AuthScreens/>
     )}
-  <PaperSnackbar />
-  </NavigationContainer>
+ 
+ 
+<PaperSnackbar/>
+ 
+ {/* {(Array.isArray(messege) && messege.length > 0) ||
+         (Array.isArray(error) && error.length > 0)
+          ? <PaperSnackbar />
+          : null} */}
+
+
+</NavigationContainer>
   </GestureHandlerRootView>
 );
 };

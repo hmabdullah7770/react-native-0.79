@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch ,useSelector} from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import * as Yup from 'yup';
 import LinearGradient from 'react-native-linear-gradient';
-import { verifyemailrequest, signuprequest } from '../../Redux/action/auth';
+import { verifyemailrequest, signuprequest,clearemaildata } from '../../Redux/action/auth';
 import NextButton from './components/NextButton';
+
 // Get screen dimensions for responsive design
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -21,6 +22,18 @@ const otpSchema = Yup.string()
 
 const EmailVerification = ({ route, navigation }) => {
   const { email, username, password, otp: expectedOtp } = route?.params || {};
+
+
+  const {user,emailerror} = useSelector(state => state.auth);
+
+  // console.log('user from params:', user.data.otp);
+
+  console.log('otp from params:', expectedOtp);
+  console.log('email from params:', email);
+  console.log('Email error =======:',emailerror)
+   const [resendRequested, setResendRequested] = useState(false);
+
+
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(false);
@@ -72,33 +85,30 @@ const EmailVerification = ({ route, navigation }) => {
   }, [otp, expectedOtp]);
 
   // Handle OTP verification and navigation
+  
+  // Listen for changes in emailerror after resend
+useEffect(() => {
+  if (resendRequested) {
+    if (emailerror) {
+     console.log('emailerror:', emailerror);
+      navigation.navigate('SignupScreens', { screen: 'UsernamePassword' });
+      setResendRequested(false);
+    } else if (user?.data?.otp) {
+      setOtp(user.data.otp);
+      setResendRequested(false);
+    }
+  }
+}, [emailerror, user, resendRequested, navigation]);
+
+  
+  
   const handleVerify = async () => {
    
-   navigation.navigate('SignupScreens',{screen:'ProfileImage2'});
-    // if (!isValid) return;
-    
-    // setLoading(true);
-    
-    // try {
-    //   // Replace this with your actual API verification logic
-    //   // const response = await dispatch(matchotprequest({ 
-    //   //   email: email, 
-    //   //   otp: otp 
-    //   // }));
-      
-    //   // Check if verification was successful
-    //   if (response && response.success) {
-    //     navigation.navigate('ProfileImage'); // Navigate to profile image screen
-    //   } else {
-    //     // Handle verification failure
-    //     setError('Invalid OTP. Please try again.');
-    //   }
-    // } catch (err) {
-    //   setError('Verification failed. Please try again.');
-    //   Alert.alert('Verification Failed', 'Please check your OTP and try again.');
-    // } finally {
-    //   setLoading(false);
-    // }
+   navigation.navigate('SignupScreens',{screen:'ProfileImage2',
+     params: { email, username, password, otp }
+
+   });
+   
   };
 
   // Calculate dynamic styles based on screen orientation
@@ -159,15 +169,44 @@ const EmailVerification = ({ route, navigation }) => {
 
       <View style={styles.resendContainer}>
         <Text style={styles.resendText}>Didn't receive code? </Text>
-        <TouchableOpacity><Text  style={styles.resendLink}>Resend</Text></TouchableOpacity>
+        <TouchableOpacity
+          onPress={
+            async() => {
+          dispatch(clearemaildata());
+          await dispatch(verifyemailrequest(email));
+        // console.log('emailerror)))))))))))')
+       
+            // await emailerror
+        //  if(emailerror){
+
+        //   navigation.navigate('SignupScreens', {
+        //     screen: 'UsernamePassword'})
+        //  } 
+         
+        //  console.log('user from params:', user.data.otp);
+
+          setOtp(''); // Clear OTP input
+      
+        setResendRequested(true); // trigger useEffect to handle response
+        //   if(user.data.otp){
+            
+        //  setOtp(user.data.otp);
+
+        //  setTimeout(()=>{setOtp('')},[200000])
+
+          // }
+        }}
+          
+        
+        ><Text  style={styles.resendLink}>Resend</Text></TouchableOpacity>
       </View>
-       <NextButton
+       {/* <NextButton
        onPress={() => navigation.navigate('SignupScreens', {
          screen: 'ProfileImage2',
          params: { email, username, password, otp }
        })}
        disabled={!isValid}
-      />  
+      />   */}
     </View>
   );
 };
