@@ -1,5 +1,5 @@
 // TanStack Query Hooks (hooks/useCategories.js)
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery,queryOptions } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { getCategoryNamesList, getCategoryData, getfollowingCategoryData } from '../../API/categoury';
 import { setLoading, setError, clearError } from '../../Redux/action/categoury';
@@ -32,6 +32,41 @@ export const useCategoryNames = () => {
     }
   });
 };
+
+
+//optimized
+
+// export const useCategoryNames = () => queryOptions({
+ 
+//   // const dispatch = useDispatch();
+
+  
+//     queryKey: ['categoryNames'],
+//     queryFn: async () => {
+     
+//       const response = await getCategoryNamesList();
+   
+//       return response;
+//     },
+//     staleTime: 5 * 60 * 1000, // 5 minutes
+//     gcTime: 10 * 60 * 1000, // Replaced cacheTime with gcTime (new TanStack Query)
+//     retry: 2,
+//     refetchOnWindowFocus: true,
+//     refetchOnReconnect: true, // ✅ Refetch when network reconnects
+//     refetchOnMount: true, // ✅ Refetch on mount if data is stale
+    
+    
+//     // onSuccess: (data) => {
+    
+//     //   dispatch(clearError());
+//     // },
+//     // onError: (error) => {
+   
+//     //   dispatch(setError(error.message));
+//     // }
+//   });
+
+
 
 
 

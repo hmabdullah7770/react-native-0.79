@@ -18,7 +18,11 @@ const CategoryList = () => {
   
   const { data: categoryResponse, isLoading, error: queryError } = useCategoryNames();
 
-  // Keep useMemo for expensive data transformation
+
+//  const {data, isPending, isError, refetch} = useQuery({useCategoryNames, select:(data)=>data.categouryname }}
+
+
+// Keep useMemo for expensive data transformation
   const categoriesWithAll = useMemo(() => {
     if (!categoryResponse?.data?.messege) {
       return [];
