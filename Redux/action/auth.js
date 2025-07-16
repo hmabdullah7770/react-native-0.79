@@ -126,14 +126,14 @@ export const matchotprequest = (otp,email) => ({
 });
 
 
-export const matchotpsuccessful = (data, messege) => ({
+export const matchotpsuccessful = (data, matchotpmessege) => ({
   type: 'MATCH_OTP_SUCCESSFUL',
-  payload: { data, messege },
+  payload: { data, matchotpmessege },
 });
 
-export const matchotpfail = error => ({
+export const matchotpfail = matchotperror => ({
   type: 'MATCH_OTP_FAIL',
-  payload: error,
+  payload: matchotperror,
 });
 
 

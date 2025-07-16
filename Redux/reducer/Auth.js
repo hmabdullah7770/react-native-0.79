@@ -1,4 +1,5 @@
 import * as Keychain from 'react-native-keychain'
+import { matchotp } from '../../API/auth';
 
 const initialState = {
    
@@ -20,6 +21,8 @@ const initialState = {
     emailerror:null,
     usernamemessege:null,
     emailmessege:null,
+    matchotperror: null,
+    matchotpmessege: null,
   };
 
 
@@ -89,19 +92,21 @@ const initialState = {
           
           // isAuthenticated: true,
           error: null,
+          matchotperror: null,
   
-          messege: action.payload.messege,
+          matchotpmessege: action.payload.matchotpmessege,
         };
 
   case 'MATCH_OTP_FAIL':
-  console.log('MATCH_OTP_FAIL : ', action.payload.error);
+  console.log('MATCH_OTP_FAIL : ', action.payload.matchotperror);
   return {
     ...state,
     user: null,
     screen: null,
     isAuthenticated: false,
-    error: action.payload.error,
+    matchotperror: action.payload.matchotperror,
     messege: null,
+    matchotpmessege:null,
   };
 
       
@@ -222,13 +227,14 @@ case 'MATCH_USERNAME_SUCCESSFUL':
        case 'CLEAR_USERNAME_ERROR': return {
          ...state,
          usernameerror:null,
+         matchotperror:null,
 
        };
 
        case 'CLEAR_EMAIL_ERROR': return{
             ...state,
             emailerror:null,
-
+  
        }
 
        case 'CLEAR_EMAIL_MESSEGE': return{
@@ -240,19 +246,22 @@ case 'CLEAR_USERNAME_MESSEGE':
 console.log('inside clearusernamemessege');
 return{
           ...state,
-          usernamemessege:null
+          usernamemessege:null,
+          matchotpmessege:null,
         }
 
       case 'CLEAR_ERROR':
         return {
           ...state,
           error: null,
+          
         };
   
       case 'CLEAR_MESSEGE':
         return {
           ...state,
           messege: null,
+          
         };
   
       case 'LOADING':

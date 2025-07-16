@@ -25,7 +25,7 @@ const AuthScreens = () => {
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 
-  const  {loading, error, messege,usernameerror,emailerror,emailmessege}  = useSelector(state => state.auth);
+  const  {loading, error, messege,usernameerror,emailerror,emailmessege,matchotperror,matchotpmessege}  = useSelector(state => state.auth);
 
   const dispatch = useDispatch();
   
@@ -59,8 +59,20 @@ const AuthScreens = () => {
       dispatch(clearemailerror())
     }
 
+    else if(matchotperror){
+      handleSnackbar({matchotperror});
+      dispatch(clearusernameerror())
 
-    }, [error, messege,emailmessege,emailerror, usernameerror]);
+    }
+
+    else if(matchotpmessege){
+      handleSnackbar({matchotpmessege})
+      dispatch(clearusernamemessege())
+
+    }
+
+
+    }, [error, messege,emailmessege,emailerror, usernameerror,matchotperror,matchotpmessege]);
 
      console.log('error in AuthScreens', error)
 

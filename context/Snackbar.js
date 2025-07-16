@@ -14,7 +14,7 @@ export const SnackProvider = ({children}) => {
   const [explain, setExplain] = useState('');
   const [type, setType] = useState('info');
 
- const handleSnackbar = ({error,messege,usernameerror,emailerror,emailmessege}) => {
+ const handleSnackbar = ({error,messege,usernameerror,emailerror,emailmessege,matchotperror,matchotpmessege}) => {
     if (error) {
       setShow(true);
       setMessege(error[0]);
@@ -43,6 +43,9 @@ export const SnackProvider = ({children}) => {
 
 
     }
+
+
+
 
     else if(emailmessege){
       setShow(true);
@@ -93,7 +96,44 @@ export const SnackProvider = ({children}) => {
         console.log('Cannot play ding2 sound', e);
       }
     
-    } else {
+
+
+
+
+
+    } 
+    else if(matchotperror){
+
+   setShow(true);
+      setMessege(matchotperror[0]);
+      setExplain(matchotperror[1]);
+      setType('error');
+
+
+         try {
+        SoundPlayer.playSoundFile('error', 'mp3');
+      } catch (e) {
+        console.log('Cannot play beep sound', e);
+      }
+
+    }
+
+    else if(matchotpmessege){
+       setShow(true);
+      setMessege(matchotpmessege[0]);
+      setExplain(matchotpmessege[1]);
+      setType('success');
+     
+      try {
+        SoundPlayer.playSoundFile('ding2', 'mp3');
+      } catch (e) {
+        console.log('Cannot play ding2 sound', e);
+      }
+
+
+    }
+    
+    else {
     
       setShow(false);
     

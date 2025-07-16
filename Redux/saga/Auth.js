@@ -21,7 +21,7 @@ function* MatchOtpSaga(payload) {
       if (!response.data || typeof response.data !== 'object') {
         yield put(
           actions.matchotpfail({
-            error: [
+            matchotperror: [
               'Unexpected error occurred',
               'Response format is invalid or empty.',
             ],
@@ -53,7 +53,7 @@ function* MatchOtpSaga(payload) {
     } else {
       yield put(
         actions.matchotpfail({
-          error: [
+           matchotperror: [
             `Unexpected response status: ${response.status}`,
               `${response.data.error}please try again`,
           ],
@@ -66,7 +66,7 @@ function* MatchOtpSaga(payload) {
 
     yield put(
       actions.matchotpfail({
-        error: ['An error occurred', error.message || 'Unknown error'],
+         matchotperror: ['An error occurred', error.message || 'Unknown error'],
       }),
     );
   }
@@ -232,6 +232,7 @@ function* SignUpSaga(payload) {
           actions.signupsuccessful(response.data, [
             'signup Successful',
             'now login',
+            navigate('SigninScreens',{screen:'EmailPassword'}),
           ]),
         );
       }
@@ -614,6 +615,7 @@ function* ResetpasswordSaga() {
         actions.resetpasswordsuccessful([
           response.data,
           'Please check your email',
+          navigate('SigninScreens', { screen: 'EmailPassword' }),
         ]),
       );
     } else {

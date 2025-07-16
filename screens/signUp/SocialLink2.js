@@ -108,7 +108,7 @@ const SocialLink2 = ({ route, navigation }) => {
         email,
         image, // you may need to extract uri/fileName/type as per your backend
         otp,
-        null, // phone (if any)
+        // null, // phone (if any)
         socialLinks.whatsapp,
         socialLinks.facebook,
         socialLinks.instagram,
@@ -120,13 +120,7 @@ const SocialLink2 = ({ route, navigation }) => {
     // On success, navigate to login (handle this in a useEffect watching for success in Redux)
   };
 
-  // Watch for signup success (assuming you set a flag in Redux)
-  const { user } = useSelector(state => state.auth);
-  React.useEffect(() => {
-    if (user && !error) {
-      navigation.navigate('Login');
-    }
-  }, [user, error]);
+  
 
   const platformLabels = {
     whatsapp: 'WhatsApp Number',
