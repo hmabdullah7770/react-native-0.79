@@ -84,18 +84,18 @@ const EmailVerification = ({ navigation, route }) => {
   
   // Listen for changes in emailerror after resend
 
-  useEffect(() => {
-  if (resendRequested) {
-    if (error) {
-     console.log('emailerror:', error);
-      navigation.navigate('SigninScreens', { screen: 'SigninScreens' });
-      setResendRequested(false);
-    } else if (user?.data?.otp) {
-      setOtp(user.data.otp);
-      setResendRequested(false);
-    }
-  }
-}, [error, user, resendRequested, navigation]);
+//   useEffect(() => {
+//   if (resendRequested) {
+//     if (error) {
+//      console.log('emailerror:', error);
+//       navigation.navigate('SigninScreens', { screen: 'SigninScreens' });
+//       setResendRequested(false);
+//     } else if (user?.data?.otp) {
+//       setOtp(user.data.otp);
+//       setResendRequested(false);
+//     }
+//   }
+// }, [error, user, resendRequested, navigation]);
 
   
   
@@ -116,6 +116,7 @@ const EmailVerification = ({ navigation, route }) => {
       });
     } else if (matchotperror) {
       // There is an error, show it
+      navigation.navigate('SigninScreens',{screen:'EmailPassword'})
       setError('OTP does not match or is invalid.');
     }
   }, [matchotperror]);
