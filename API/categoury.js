@@ -34,6 +34,39 @@ export const getfollowingCategoryData = (categoury, limit, page) =>
 
 
 
+//new api for unified feed   
+
+
+
+// Get category data with pagination
+export const getunifiedfeed = (categoury, limit, page) =>
+  api.get('/categouries/unified-feed', {
+    params: {  
+      categoury,
+      adminpassword: "(Bunny)tota#34#",
+      limit,
+      page,
+    }
+  });
+
+
+
+
+  // Get category data with pagination
+export const getunifiedfollowingfeed = (categoury, limit, page) =>
+  api.get('/categouries/following-unified-feed', {
+    params: {  
+      categoury,
+      limit,
+      page,
+    }
+  });
+
+
+
+
+
+
 
 // Legacy function names for backward compatibility
 export const getcategourynameslist = getCategoryNamesList;

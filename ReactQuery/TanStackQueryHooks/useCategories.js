@@ -1,7 +1,7 @@
 // TanStack Query Hooks (hooks/useCategories.js)
 import { useQuery, useInfiniteQuery,queryOptions } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { getCategoryNamesList, getCategoryData, getfollowingCategoryData } from '../../API/categoury';
+import { getCategoryNamesList, getCategoryData, getfollowingCategoryData,getunifiedfeed,getunifiedfollowingfeed  } from '../../API/categoury';
 import { setLoading, setError, clearError } from '../../Redux/action/categoury';
 
 export const useCategoryNames = () => {
@@ -122,3 +122,13 @@ export const useFollowingCategoryDataInfinite = (category, limit) => {
     }
   );
 };
+
+
+
+
+
+//new for unified feed 
+
+
+// getunifiedfeed 
+//getunifiedfollowingfeed

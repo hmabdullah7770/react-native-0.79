@@ -27,7 +27,7 @@ const ResetPassword = ({navigation,route}) => {
 
   const dispatch = useDispatch();
   
-  const {error } = useSelector(state => state.auth);
+  // const {error } = useSelector(state => state.auth);
 
   const { handleSnackbar } = useContext(SnackbarContext);
   const { email, otp } = route?.params || {};
