@@ -1,4 +1,3 @@
-
 import api from '../services/apiservice';
 
 
@@ -25,14 +24,20 @@ storeId,items,customerName,customerEmail,customerPhone,customerAddress,paymentMe
 
 //get all the stores for authenticated user
 
-//costumer see his order
+//costumer see his order from every store
 
-export const getstorecustomerorder = (storeId) =>
+export const getstorecustomerorder = () =>
   api.get(`/stores/orders/my-orders`, {
    
 
     
   });
+
+//costumer see his order from one store
+
+ export const getstorecustomerorderbyid = (storeId) =>
+  api.get(`/orders/my-orders/:storeId/${encodeURIComponent(storeId)}`)
+
 
 
 //delete order by customers
