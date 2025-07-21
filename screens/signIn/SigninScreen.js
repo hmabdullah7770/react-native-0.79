@@ -12,12 +12,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ForgetEmailVerify from './ForgetEmailVerify';
 import EmailPassword from './EmailPassword';
 import ResetPassword from './ResetPassword';
-import ProfileImage2 from './ProfileImage2';
+// import ProfileImage2 from './ProfileImage2';
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
 
 const SigninScreens = () => {
-  const Signup = createStackNavigator();
+  const Signin = createStackNavigator();
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 

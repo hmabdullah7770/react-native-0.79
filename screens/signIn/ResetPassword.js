@@ -7,7 +7,7 @@ import * as yup from 'yup';
 import { useDispatch,useSelector } from 'react-redux' 
 // import { Button } from 'react-native-paper'
 import { useContext } from 'react';
-import { SnackbarContext } from '../context/Snackbar';
+import { SnackbarContext } from '../../context/Snackbar';
 
 
 const schema = yup.object().shape({

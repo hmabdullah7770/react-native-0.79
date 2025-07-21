@@ -6,7 +6,7 @@ import OTPInputView from '@twotalltotems/react-native-otp-input';
 import * as Yup from 'yup';
 import LinearGradient from 'react-native-linear-gradient';
 import {matchotprequest,forgetpasswordrequest} from '../../Redux/action/auth';
-import NextButton from './components/NextButton';
+// import NextButton from './components/NextButton';
 
 // Get screen dimensions for responsive design
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
