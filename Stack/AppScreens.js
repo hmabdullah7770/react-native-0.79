@@ -35,6 +35,11 @@ const AppScreens = () => {
   console.log('error in AppScreens', error)
 console.log("user tokenin: ",user?.data?.data?.accessToken);
 
+//verfiy the user have store or not
+const stores = user?.data?.data?.user?.stores || [];
+const storeId = stores.length > 0 ? stores[0].storeId : null;
+
+
 
   // State to track if tokens have been stored to prevent repeated storage attempts
   const [tokensStored, setTokensStored] = useState(false);
@@ -60,6 +65,16 @@ console.log("user tokenin: ",user?.data?.data?.accessToken);
           await Keychain.setGenericPassword('refreshToken', user?.data?.data?.refreshToken,{service:'refreshToken'});
           
           console.log('Tokens stored successfully!');
+        
+        //verfiy the user have store or not
+        
+        if (storeId) {
+          await Keychain.setGenericPassword('storeId', storeId, { service: 'storeId' });
+          console.log('StoreId stored successfully!');
+        } else {
+          console.log('No storeId to store.');
+        }
+        
           // Mark tokens as stored to prevent re-storing on subsequent state changes
             // api.defaults.headers.common['Authorization'] = `Bearer ${user?.data?.data?.accessToken}`;
           setTokensStored(true);
@@ -89,6 +104,8 @@ console.log("user tokenin: ",user?.data?.data?.accessToken);
         {/* Define your screens */}
         <App.Screen name="Tabnavigation" component={Tabnavigation} headerShown={false} />
         <App.Screen name="TestingScreen" component={TestingScreen} />
+        
+        
         {/* Add other screens here, e.g.: */}
         {/* <App.Screen name="Home" component={HomeScreen} /> */}
         {/* <App.Screen name="Dispatch" component={DispatchScreen} /> */}

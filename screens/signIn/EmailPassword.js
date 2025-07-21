@@ -128,6 +128,14 @@ const EmailPassword= ({ navigation }) => {
 style={styles.signupView}
 >
 
+<TouchableOpacity
+onPress={() => navigation.navigate('SignupScreens',{screen:'EnterEmail'})}
+
+>
+  forget password?
+</TouchableOpacity>
+
+
   <Text>don't have the account then? </Text>
 
       <TouchableOpacity

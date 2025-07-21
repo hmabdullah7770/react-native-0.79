@@ -3,9 +3,15 @@ import React, { useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import TextInput from '../../../../components/TextField'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { launchImageLibrary } from 'react-native-image-picker'
 import Icon from 'react-native-vector-icons/MaterialIcons'
+import { navigation} from '@react-navigation/native'
+
+//navigate to dummy store after pressing create store button
+
+
+
 
 // Validation Schema
 const validationSchema = Yup.object().shape({
@@ -31,8 +37,18 @@ const categories = [
   'Other'
 ]
 
-const Name_Store = () => {
+const Name_Store = ({ navigation }) => {
   const dispatch = useDispatch()
+
+  const error = useSelector(state => state.store)
+
+  // Navigate on successful store creation
+  useEffect(() => {
+    if (!error) {
+      navigation.navigate('Dummy_Store');
+    }
+  }, [error, navigation]);
+
   const [modalVisible, setModalVisible] = useState(false)
   const [storeLogo, setStoreLogo] = useState(null)
 

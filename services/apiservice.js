@@ -46,6 +46,7 @@ const setTokens = async (accessToken, refreshToken) => {
 const removeTokens = async () => {
   await Keychain.resetGenericPassword({service: 'accessToken'});
   await Keychain.resetGenericPassword({service: 'refreshToken'});
+  await Keychain.resetGenericPassword({service: 'storeId'});
 };
 
 const handleLogout = async () => {
