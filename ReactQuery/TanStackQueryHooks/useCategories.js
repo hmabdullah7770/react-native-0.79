@@ -1,5 +1,6 @@
 // TanStack Query Hooks (hooks/useCategories.js)
-import { useQuery, useInfiniteQuery,queryOptions } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { getCategoryNamesList, getCategoryData, getfollowingCategoryData,getunifiedfeed,getunifiedfollowingfeed  } from '../../API/categoury';
 
 export const useCategoryNames = () => {
@@ -130,3 +131,31 @@ export const useFollowingCategoryDataInfinite = (category, limit) => {
 
 // getunifiedfeed 
 //getunifiedfollowingfeed
+
+// Prefetch all category data for each category name, with a 1s delay between each
+export const usePrefetchAllCategoryData = (limit = 5) => {
+  const queryClient = useQueryClient();
+  const { data } = useCategoryNames();
+  const categories = data?.list || [];
+
+  useEffect(() => {
+    if (!categories.length) return;
+    let cancelled = false;
+    async function prefetchAll() {
+      for (let i = 0; i < categories.length; i++) {
+        if (cancelled) break;
+        const categoryName = categories[i].name;
+        await queryClient.prefetchInfiniteQuery({
+          queryKey: ['categoryData', categoryName, limit],
+          queryFn: ({ pageParam = 1 }) =>
+            getCategoryData(categoryName, limit, pageParam).then(res => res.data),
+        });
+        await new Promise(res => setTimeout(res, 1000));
+      }
+    }
+    prefetchAll();
+    return () => {
+      cancelled = true;
+    };
+  }, [categories, queryClient, limit]);
+};
