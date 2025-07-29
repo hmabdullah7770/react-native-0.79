@@ -1,35 +1,31 @@
 // TanStack Query Hooks (hooks/useCategories.js)
 import { useQuery, useInfiniteQuery,queryOptions } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
 import { getCategoryNamesList, getCategoryData, getfollowingCategoryData,getunifiedfeed,getunifiedfollowingfeed  } from '../../API/categoury';
-import { setLoading, setError, clearError } from '../../Redux/action/categoury';
 
 export const useCategoryNames = () => {
-  const dispatch = useDispatch();
-
   return useQuery({
     queryKey: ['categoryNames'],
     queryFn: async () => {
-     
       const response = await getCategoryNamesList();
-   
       return response;
+    },
+    select: (data) => {
+      // Extract only the categouryname values from the response
+      if (data?.data?.messege && Array.isArray(data.data.messege)) {
+        return data.data.messege.map(category => ({
+          _id: category._id,
+          categouryname: category.categouryname,
+          length:category.data
+        }));
+      }
+      return [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // Replaced cacheTime with gcTime (new TanStack Query)
     retry: 2,
     refetchOnWindowFocus: true,
-
-       refetchOnReconnect: true, // ✅ Refetch when network reconnects
+    refetchOnReconnect: true, // ✅ Refetch when network reconnects
     refetchOnMount: true, // ✅ Refetch on mount if data is stale
-    onSuccess: (data) => {
-    
-      dispatch(clearError());
-    },
-    onError: (error) => {
-   
-      dispatch(setError(error.message));
-    }
   });
 };
 
