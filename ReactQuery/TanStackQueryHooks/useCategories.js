@@ -7,19 +7,15 @@ export const useCategoryNames = () => {
     queryKey: ['categoryNames'],
     queryFn: async () => {
       const response = await getCategoryNamesList();
-      return response;
+      return response.data; // return the data object directly
     },
-    select: (data) => {
-      // Extract only the categouryname values from the response
-      if (data?.data?.messege && Array.isArray(data.data.messege)) {
-        return data.data.messege.map(category => ({
-          _id: category._id,
-          categouryname: category.categouryname,
-          length:category.data
-        }));
-      }
-      return [];
-    },
+    select: (data) => ({
+      list: (data?.messege || []).map(item => ({
+        id: item._id,
+        name: item.categouryname || item.categoryname,
+      })),
+      total: data?.messege?.length || 0
+    }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // Replaced cacheTime with gcTime (new TanStack Query)
     retry: 2,
@@ -71,16 +67,22 @@ export const useCategoryDataInfinite = (category, limit) => {
   return useInfiniteQuery({
     queryKey: ['categoryData', category, limit],
     queryFn: async ({ pageParam = 1 }) => {
-      console.log('🔥 Calling getCategoryData API with params:', { category, limit, page: pageParam });
       const response = await getCategoryData(category, limit, pageParam);
-      console.log('✅ getCategoryData response:', response);
       return response.data; // This should return the data object that contains messege.cards
     },
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.messege?.pagination;
       return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
     },
-    // Added stale time configuration
+    select: (data) => {
+      // Flatten all cards from all pages into a single array
+      return data.pages.flatMap(page => {
+        if (page?.messege?.cards) return page.messege.cards;
+        if (page?.data?.messege?.cards) return page.data.messege.cards;
+        if (page?.cards) return page.cards;
+        return [];
+      });
+    },
     staleTime: 2 * 1000, // 2 seconds - data stays fresh for 2 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes - cache retention time
     retry: 2, // Retry failed requests twice

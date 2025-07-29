@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCategoryNames } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
@@ -15,37 +15,29 @@ const CategoryList = () => {
 
   const dispatch = useDispatch();
   const { selectedCategoryIndex } = useSelector(state => state.category);
-  
-  const { data: categories, isLoading, error: queryError } = useCategoryNames();
 
-  // Keep useMemo for expensive data transformation
+  // Use the new query structure
+  const { data, isLoading, error } = useCategoryNames();
+  const categories = data?.list || [];
+  const total = data?.total || 0;
+
+  // Memoize the categories with 'All' at the top
   const categoriesWithAll = useMemo(() => {
-    if (!categories || !Array.isArray(categories)) {
-      return [];
-    }
-    
-    const filteredList = categories.filter(cat => {
-      return cat.categouryname?.toLowerCase() !== 'all';
-    });
-    
-    const result = [
-      { _id: '6834c7f5632a2871571413f7', categouryname: 'All' },
+    if (!categories.length) return [];
+    const filteredList = categories.filter(cat => cat.name?.toLowerCase() !== 'all');
+    return [
+      { id: '6834c7f5632a2871571413f7', name: 'All' },
       ...filteredList,
     ];
-    
-    return result;
   }, [categories]);
 
   const handleCategorySelect = (index) => {
-    if (index === selectedCategoryIndex) {
-      return;
-    }
+    if (index === selectedCategoryIndex) return;
     dispatch(setSelectedCategory(index));
   };
 
   const renderItem = ({ item, index }) => {
-    const displayName = item.categouryname?.charAt(0).toUpperCase() + item.categouryname?.slice(1);
-    
+    const displayName = item.name?.charAt(0).toUpperCase() + item.name?.slice(1);
     return (
       <TouchableOpacity
         style={[
@@ -65,13 +57,10 @@ const CategoryList = () => {
     );
   };
 
-  // Debug checks
+  // Debug checks (optional)
   const wasRecreated = prevHandleCategorySelect.current !== handleCategorySelect;
-  console.log(`handleCategorySelect recreated: ${wasRecreated}`);
   prevHandleCategorySelect.current = handleCategorySelect;
-
   const renderItemRecreated = prevRenderItem.current !== renderItem;
-  console.log(`renderItem recreated: ${renderItemRecreated}`);
   prevRenderItem.current = renderItem;
 
   if (isLoading) {
@@ -82,20 +71,20 @@ const CategoryList = () => {
     );
   }
 
-  if (queryError) {
+  if (error) {
     return (
       <View style={styles.container}>
-        <Text>Error: {queryError.message}</Text>
+        <Text>Error: {error.message}</Text>
       </View>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       <FlatList
         data={categoriesWithAll}
         renderItem={renderItem}
-        keyExtractor={item => item._id}
+        keyExtractor={item => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}

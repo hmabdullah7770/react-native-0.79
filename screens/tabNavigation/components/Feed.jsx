@@ -14,27 +14,22 @@ const Feed = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: categories } = useCategoryNames();
+  // Use the new normalized structure
+  const { data, isLoading: isLoadingCategories, error: errorCategories } = useCategoryNames();
+  const categories = data?.list || [];
+  const total = data?.total || 0;
 
-  // Keep useMemo for expensive category calculation
-  const selectedCategoryName = useMemo(() => {
-    if (!categories || !Array.isArray(categories)) return null;
-    
-    const filteredCategories = categories.filter(cat => {
-      return cat.categouryname?.toLowerCase() !== 'all';
-    });
-    
-    const categoriesWithAll = [
-      { _id: '6834c7f5632a2871571413f7', categouryname: 'All' },
-      ...filteredCategories,
-    ];
-    
-    const selectedCategory = categoriesWithAll[selectedCategoryIndex];
-    return selectedCategory?.categouryname;
-  }, [categories, selectedCategoryIndex]);
+  // Memoize categories with 'All' at the top
+  const categoriesWithAll = useMemo(() => [
+    { id: '6834c7f5632a2871571413f7', name: 'All' },
+    ...categories.filter(cat => cat.name?.toLowerCase() !== 'all')
+  ], [categories]);
 
+  const selectedCategoryName = categoriesWithAll[selectedCategoryIndex]?.name;
+
+  // useCategoryDataInfinite now returns a flat array of cards as data
   const {
-    data,
+    data: allItems,
     isLoading,
     error,
     fetchNextPage,
@@ -42,25 +37,6 @@ const Feed = () => {
     isFetchingNextPage,
     refetch,
   } = useCategoryDataInfinite(selectedCategoryName, LIMIT);
-
-  // Keep useMemo for expensive data transformation
-  const allItems = useMemo(() => {
-    if (!data?.pages) return [];
-    
-    return data.pages.reduce((acc, page) => {
-      let cards = [];
-      
-      if (page?.data?.messege?.cards) {
-        cards = page.data.messege.cards;
-      } else if (page?.messege?.cards) {
-        cards = page.messege.cards;
-      } else if (page?.cards) {
-        cards = page.cards;
-      }
-      
-      return [...acc, ...(cards || [])];
-    }, []);
-  }, [data]);
 
   useEffect(() => {
     if (selectedCategoryName && flashListRef.current) {
@@ -83,7 +59,6 @@ const Feed = () => {
     if (!hasNextPage || isLoadingMore || isFetchingNextPage || refreshing) {
       return;
     }
-    
     setIsLoadingMore(true);
     try {
       await fetchNextPage();
@@ -98,16 +73,13 @@ const Feed = () => {
     if (!hasNextPage || isLoadingMore || isFetchingNextPage || refreshing || !viewableItems?.length) {
       return;
     }
-    
     const lastVisibleIndex = Math.max(...viewableItems.map(item => item.index || 0));
-    const totalItems = allItems.length;
-    
+    const totalItems = allItems?.length || 0;
     if (totalItems > 0 && lastVisibleIndex >= totalItems - PRELOAD_THRESHOLD) {
       loadMoreData();
     }
   };
 
-  // Keep useMemo for viewability config (object creation)
   const viewabilityConfig = useMemo(() => ({
     itemVisiblePercentThreshold: 30,
     minimumViewTime: 50,
@@ -125,7 +97,6 @@ const Feed = () => {
     }
   };
 
-  // Keep useMemo for RefreshControl (component creation)
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -137,7 +108,7 @@ const Feed = () => {
     />
   ), [refreshing]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingCategories) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.loadingText}>Loading feed...</Text>
@@ -145,11 +116,11 @@ const Feed = () => {
     );
   }
 
-  if (error) {
+  if (error || errorCategories) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>
-          Error loading feed data: {error.message}
+          Error loading feed data: {(error || errorCategories).message}
         </Text>
       </View>
     );
@@ -177,7 +148,6 @@ const Feed = () => {
         contentContainerStyle={styles.contentContainer}
         refreshControl={refreshControl}
       />
-      
       {(isFetchingNextPage || isLoadingMore) && (
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingMoreText}>Loading more...</Text>
