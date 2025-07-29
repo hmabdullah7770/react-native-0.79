@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useCategoryNames, useCategoryDataInfinite } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
 import Card from './Card';
+import Comments from './Comments'
 
 const LIMIT = 5;
 const PRELOAD_THRESHOLD = 2;

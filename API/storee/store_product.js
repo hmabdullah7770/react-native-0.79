@@ -12,7 +12,7 @@ export const addproduct = (storeId,productName,description,productPrice,warnings
     ) =>
   api.post(`/stores/:storeId/products${encodeURIComponent(storeId)}`, {
        
-    productName,
+        productName,
         description,
         productPrice,
         warnings,    

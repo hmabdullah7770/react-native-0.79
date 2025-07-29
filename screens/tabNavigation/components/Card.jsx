@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { format } from 'date-fns';
 import CardSideBar from './CardSideBar';
+import CardBottomBar from './CardBottomBar';
 
 const Card = memo(({ item, index }) => {
   const formatDate = (dateString) => {
