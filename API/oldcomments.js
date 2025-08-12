@@ -1,8 +1,8 @@
 import api from '../services/apiservice';
 
 // Get category names list
-export const getComments = (page,limit,postId) =>
-  api.get(`/newcomments/:postId/${encodeURIComponent(postId)}}`, {
+export const getComments = (page,limit,contentId,contentType) =>
+  api.get(`/:contentType/:contentId${encodeURIComponent(contentId)}${encodeURIComponent(contentType)}`, {
   
      params: {
         page,
@@ -22,14 +22,12 @@ export const getComments = (page,limit,postId) =>
 
 
 // Get category names list
-export const addComment = (postId,content,audioComment,videoComment,sticker) =>
-  api.post(`/newcomments/:postId/${encodeURIComponent(postId)}`, {
+export const addComment = (contentType,content,contentId) =>
+  api.post(`/:contentId${encodeURIComponent(contentId)}`, {
   
-      
-     content
-    ,audioComment
-    ,videoComment
-    ,sticker
+      content,
+      contentType
+
 
     // params: {
     //   adminpassword: "(Bunny)tota#34#"
@@ -38,18 +36,18 @@ export const addComment = (postId,content,audioComment,videoComment,sticker) =>
 
 
 export const updateComment =()=>
-  api.patch('/newcomments/:commentId', {
+  api.patch('/:commentId', {
   
     // params: {
     //   adminpassword: "(
   })
 
 
-  export const deleteComment = (contentId,commentId) =>
-  api.delete(`/newcomments/:commentId/${encodeURIComponent(commentId)}` , { 
+  export const deleteComment = (contentType,contentId,commentId) =>
+  api.delete(`/:commentId${encodeURIComponent(commentId)}` , { 
 
       
-        //  contentType, 
+         contentType, 
          contentId
     //contentType,
     // params: {
@@ -58,13 +56,11 @@ export const updateComment =()=>
   })
 
 
-export const  addReply =(commentId,content,audioComment,videoComment,sticker) =>
-  api.post(`/newcomments/:commentId/reply/${encodeURIComponent(commentId)}`  , {
+export const  addReply =(commentId,content) =>
+  api.post(`/:commentId/reply/${encodeURIComponent(commentId)}`  , {
   
     content,
-    audioComment,
-    videoComment,
-    sticker
+    
     // params:{
     // commentId
     // }
@@ -78,7 +74,7 @@ export const  addReply =(commentId,content,audioComment,videoComment,sticker) =>
 })
 
 export const getReplies = (commentId,page,limit) =>
-  api.get(`/newcomments/:commentId/replies/${encodeURIComponent(commentId)}`, {
+  api.get(`/:commentId/replies/${encodeURIComponent(commentId)}`, {
 
  params: {
     // commentId,

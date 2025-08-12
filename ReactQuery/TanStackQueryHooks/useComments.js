@@ -1,43 +1,183 @@
-import { useQuery } from "@tanstack/react-query";
-import { getComments,addComment, } from "../../API/comment";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getComments, addComment,getReplies, addReply } from "../../API/comment";
 
-// export const useComments = (postId) => {
-//   return useQuery({
-//     queryKey: ["comments", postId],
-//     queryFn: () => getComments(postId),
-//   });
-// };
+export const usegetComments = (page,limit,postId) => {
+  return useInfiniteQuery({
+    queryKey: ['comments', contentId, contentType],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await getComments(pageParam, limit, postId);
+      return response.data;
+    },
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.messege?.pagination;
+      return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
+    },
+    staleTime: 2 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+};
+
+export const useAddComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ postId,content,audioComment,videoComment,sticker }) => 
+      addComment(postId,content,audioComment,videoComment,sticker ),
+    
+    onMutate: async ({ postId,content,audioComment,videoComment,sticker  }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: ['comments', postId,content,audioComment,videoComment,sticker ] 
+      });
+
+      // Get current comments
+      const previousComments = queryClient.getQueryData([
+        'comments', 
+        postId,content,audioComment,videoComment,sticker 
+      ]);
+
+      // Create optimistic comment
+      const optimisticComment = {
+        _id: Date.now().toString(),
+        postId,
+        content,
+        audioComment,
+        videoComment,
+        sticker ,
+        createdAt: new Date().toISOString(),
+        user: {
+          // Get current user details from auth state or local storage
+          _id: 'temp-id',
+          username: 'You',
+          avatar: 'default-avatar-url'
+        },
+        isOptimistic: true
+      };
+
+      // Optimistically update comments list
+      queryClient.setQueryData(
+        ['comments', postId,content,audioComment,videoComment,sticker ],
+        (old) => ({
+          pages: [
+            {
+              ...old.pages[0],
+              data: [optimisticComment, ...old.pages[0].data]
+            },
+            ...old.pages.slice(1)
+          ],
+          pageParams: old.pageParams
+        })
+      );
+
+      return { previousComments };
+    },
+
+    onError: (err, variables, context) => {
+      // Rollback on error
+      queryClient.setQueryData(
+        ['comments', variables.postId,variables.content,variables.audioComment,variables.videoComment,variables.sticker ],
+        context.previousComments
+      );
+    },
+
+    onSettled: (data, error, { postId,content,audioComment,videoComment,sticker  }) => {
+      // Refetch comments to sync with server
+      queryClient.invalidateQueries({
+        queryKey: ['comments', postId,content,audioComment,videoComment,sticker]
+      });
+    },
+  });
+};
 
 
 
 
-export const usegetComments = (limit,contentId,contentType) => {
-    return useInfiniteQuery({
-      queryKey: ['getcomments', contentId,contentType, limit],
-      queryFn: async ({ pageParam = 1 }) => {
-        const response = await getCommentsData(contentId,contentType,limit,pageParam);
-        return response.data; // This should return the data object that contains messege.cards
-      },
-      getNextPageParam: (lastPage) => {
-        const pagination = lastPage?.messege?.pagination;
-        return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
-      },
-      select: (data) => {
-        // Flatten all cards from all pages into a single array
-        return data.pages.flatMap(page => {
-          if (page?.messege?.cards) return page.messege.cards;
-          if (page?.data?.messege?.cards) return page.data.messege.cards;
-          if (page?.cards) return page.cards;
-          return [];
-        });
-      },
-      staleTime: 2 * 1000, // 2 seconds - data stays fresh for 2 seconds
-      gcTime: 5 * 60 * 1000, // 5 minutes - cache retention time
-      retry: 2, // Retry failed requests twice
-      refetchOnWindowFocus: false, // Don't refetch when window gains focus
-      refetchOnReconnect: true, // Refetch when network reconnects
-      // Optional: Add these for better UX
-      refetchOnMount: 'always', // Always refetch on component mount
-      networkMode: 'online', // Only run queries when online
-    });
-  };
+
+// ...existing imports and usegetComments code...
+
+export const useGetReplies = (commentId, limit) => {
+  return useInfiniteQuery({
+    queryKey: ['replies', commentId],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await getReplies(commentId, pageParam, limit);
+      return response.data;
+    },
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.messege?.pagination;
+      return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
+    },
+    staleTime: 2 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+};
+
+export const useAddReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ commentId,content,audioComment,videoComment,sticker }) => 
+      addReply(commentId,content,audioComment,videoComment,sticker),
+    
+    onMutate: async ({commentId,content,audioComment,videoComment,sticker }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: ['replies', commentId] 
+      });
+
+      // Get current replies
+      const previousReplies = queryClient.getQueryData([
+        'replies', 
+        commentId
+      ]);
+
+      // Create optimistic reply
+      const optimisticReply = {
+        _id: Date.now().toString(),
+        commentId,
+        content,audioComment,videoComment,
+        sticker,
+        createdAt: new Date().toISOString(),
+        user: {
+          _id: 'temp-id',
+          username: 'You',
+          avatar: 'default-avatar-url'
+        },
+        isOptimistic: true
+      };
+
+      // Optimistically update replies list
+      queryClient.setQueryData(
+        ['replies', commentId],
+        (old) => ({
+          pages: [
+            {
+              ...old.pages[0],
+              data: [optimisticReply, ...old.pages[0].data]
+            },
+            ...old.pages.slice(1)
+          ],
+          pageParams: old.pageParams
+        })
+      );
+
+      return { previousReplies };
+    },
+
+    onError: (err, variables, context) => {
+      // Rollback on error
+      queryClient.setQueryData(
+        ['replies', variables.commentId],
+        context.previousReplies
+      );
+    },
+
+    onSettled: (data, error, { commentId }) => {
+      // Refetch replies to sync with server
+      queryClient.invalidateQueries({
+        queryKey: ['replies', commentId]
+      });
+    },
+  });
+};
+
+// ...existing useAddComment code...

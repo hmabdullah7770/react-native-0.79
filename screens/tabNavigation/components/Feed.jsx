@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import { useCategoryNames, useCategoryDataInfinite } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
+import { useCategoryNames, useCategoryDataInfinite, usegetPostsByCategory  } from '../../../ReactQuery/TanStackQueryHooks/useCategories';
 import Card from './Card';
 import Comments from './Comments'
 
@@ -36,8 +36,10 @@ const Feed = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
-  } = useCategoryDataInfinite(selectedCategoryName, LIMIT);
+    refetch}= 
+    usegetPostsByCategory(selectedCategoryName,LIMIT) 
+
+  // } = useCategoryDataInfinite(selectedCategoryName, LIMIT);
 
   useEffect(() => {
     if (selectedCategoryName && flashListRef.current) {

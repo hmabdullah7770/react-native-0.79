@@ -2,6 +2,8 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 
+
+
 const CardSideBar = ({ item }) => {
   // Get social links directly from the item prop instead of Redux store
   const socialIcons = []
@@ -34,7 +36,9 @@ const CardSideBar = ({ item }) => {
   return (
     <View style={styles.sidebar}>
       {socialIcons.map((icon, index) => (
-        <TouchableOpacity 
+       
+       
+       <TouchableOpacity 
           key={`${icon.name}-${index}`} 
           style={styles.iconButton} 
           activeOpacity={0.7}

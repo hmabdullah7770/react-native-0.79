@@ -3,8 +3,53 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions } from 'rea
 import { format } from 'date-fns';
 import CardSideBar from './CardSideBar';
 import CardBottomBar from './CardBottomBar';
+import { useDispatch,useSelector } from 'react-redux';
+// import store
+//import cart 
 
-const Card = memo(({ item, index }) => {
+
+
+
+
+
+const Card = memo(({ item, index ,navigation}) => {
+
+  const dispatch = useDispatch();
+
+
+  const handleStorePress =()=>{
+
+     dispatch(storeRequest(item._id));
+
+     navigation.navigate('StoreScreens', {
+      screen: 'Store_HomeScreen',
+      params: { storeId: item._id }
+    });
+  }
+
+
+  const handleCartPress =()=>{
+
+
+    if(productId){
+     dispatch(ProductRequest(item._id));
+
+    
+     navigation.navigate('StoreScreens', {
+      screen: 'Store_ProductScreen',
+      params: { storeId: item._id }
+    });
+  }
+
+  else{
+
+    console.log('go to web url of product')
+  }
+
+
+}
+
+
   const formatDate = (dateString) => {
     try {
       return format(new Date(dateString), 'MMM dd, yyyy');
@@ -21,21 +66,8 @@ const Card = memo(({ item, index }) => {
   return (
     <View style={styles.wrapper}>
       <CardSideBar item={item} />
-      <TouchableOpacity 
-        style={styles.container}
-        onPress={handlePress}
-        activeOpacity={0.9}
-      >
-        {/* Thumbnail */}
-        <Image 
-          source={{ uri: item.thumbnail }}
-          style={styles.thumbnail}
-          resizeMode="cover"
-          loadingIndicatorSource={{ uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' }}
-        />
-        
-        {/* Bottom Content */}
-        <View style={styles.bottomContainer}>
+     
+      <View style={styles.bottomContainer}>
           {/* Profile Section */}
           <View style={styles.profileSection}>
             <Image 
@@ -68,12 +100,68 @@ const Card = memo(({ item, index }) => {
             </View>
           </View>
 
-          {/* Description */}
+          
+        </View>
+     
+      <TouchableOpacity 
+        style={styles.container}
+        onPress={handlePress}
+        activeOpacity={0.9}
+      >
+        {/* Thumbnail */}
+        <Image 
+          source={{ uri: item.thumbnail }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+          loadingIndicatorSource={{ uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' }}
+        />
+
+
+
+  
+
+      {item.store==true && (
+  <TouchableOpacity 
+    style={styles.storeButton}
+    
+    // onPress={() => navigation.navigate('StoreScreens', {
+    //   screen: 'Store_HomeScreen', 
+    //   params: { storeId: item._id }
+    // }
+    // )}
+    onPress={handleStorePress}
+
+  >
+    <Text style={styles.storeButtonText}>Store</Text>
+  </TouchableOpacity>
+)}
+
+
+ {item.productLink || item.productId && (
+
+<TouchableOpacity
+//also provide web url of the product if the user provide product link  
+
+//  onPress={() => navigation.navigate('StoreScreens',{screen:'Store_ProductScreen', params: { productId: item._id }})}
+
+onPress={handleCartPress}
+>
+
+  <Text>cart</Text>
+</TouchableOpacity>
+)}
+
+      </TouchableOpacity>
+    {/* Description */}
           <Text style={styles.description} numberOfLines={2}>
             {item.description}
           </Text>
-        </View>
-      </TouchableOpacity>
+    
+<View>
+
+      <CardBottomBar item={item} />
+</View>
+
     </View>
   );
 }, (prevProps, nextProps) => {

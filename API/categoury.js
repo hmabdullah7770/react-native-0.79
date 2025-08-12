@@ -20,47 +20,79 @@ export const getCategoryData = (categoury, limit, page) =>
   });
 
 
+export const  getPostsByCategory  =(categoury,limit,page)=>
+
+  api.get ('/categouries/getpostsbycategory',{
 
 
-  // Get category data with pagination
-export const getfollowingCategoryData = (categoury, limit, page) =>
-  api.get('/categouries/getfollowinguserscategoury', {
-    params: {  
-      categoury,
-      limit,
-      page,
-    }
-  });
-
-
-
-//new api for unified feed   
-
-
-
-// Get category data with pagination
-export const getunifiedfeed = (categoury, limit, page) =>
-  api.get('/categouries/unified-feed', {
-    params: {  
+     params: {  
       categoury,
       adminpassword: "(Bunny)tota#34#",
       limit,
       page,
     }
-  });
+  })
 
 
 
 
-  // Get category data with pagination
-export const getunifiedfollowingfeed = (categoury, limit, page) =>
-  api.get('/categouries/following-unified-feed', {
-    params: {  
+export const getFollowingUsersPosts =(categoury,limit,page)=>
+  
+  
+  api.get('/categouries/getfollowingusersposts',{
+
+       params: {  
       categoury,
+      adminpassword: "(Bunny)tota#34#",
       limit,
       page,
     }
-  });
+  })
+
+
+
+
+
+
+//   // Get category data with pagination
+// export const getfollowingCategoryData = (categoury, limit, page) =>
+//   api.get('/categouries/getfollowinguserscategoury', {
+//     params: {  
+//       categoury,
+//       limit,
+//       page,
+//     }
+//   });
+
+
+
+// //new api for unified feed   
+
+
+
+// // Get category data with pagination
+// export const getunifiedfeed = (categoury, limit, page) =>
+//   api.get('/categouries/unified-feed', {
+//     params: {  
+//       categoury,
+//       adminpassword: "(Bunny)tota#34#",
+//       limit,
+//       page,
+//     }
+//   });
+
+
+
+
+//   // Get category data with pagination
+// export const getunifiedfollowingfeed = (categoury, limit, page) =>
+//   api.get('/categouries/following-unified-feed', {
+//     params: {  
+//       categoury,
+//       limit,
+//       page,
+//     }
+//   });
 
 
 
@@ -71,4 +103,4 @@ export const getunifiedfollowingfeed = (categoury, limit, page) =>
 // Legacy function names for backward compatibility
 export const getcategourynameslist = getCategoryNamesList;
 export const getcategourydata = getCategoryData;
-export const getfollowingcategourydata = getfollowingCategoryData;
+// export const getfollowingcategourydata = getfollowingCategoryData;
