@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "TestSprite": {
-      "command": "uvx",
+      "command": "npx",
       "args": ["@testsprite/testsprite-mcp@0.0.12"],
       "env": {
         "API_KEY": "sk-user-_GfNpxCvg2nyZVsYAgvoLP7fbNx84OhLgjMDEMGrKo2JNGQUGa-E9050QesGYOQQacWuBK889xLmoXo_LIj6i9d0eYwvrV5fr0dctCKWIaidA5ENaSwQfU_kzVS3rqVhVm8"

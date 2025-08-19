@@ -1,1 +1,544 @@
 i want to update the card because the  compnent because now we have diffrent fields  as we have imagefiles and video files if the  we have imagecount and videocount  if the imagecount is one   and video count is zero then then card should be the same as this styling and for for video if video count is one and image count is zero then istead of image show the video with same styling there is thumbnail which should be show before the video is played if there is no tuhumbnaail pick automativcally any part of the  video to show  and if the user stop  more than one second while scrolling the video automatically play there is a song it comes with some card if the user have not  upload the song you dont see in response int the latest post you see there is no song empty array because we updated the api so song not comes in response if it not exist and also there is audioUrl if audio file is upoladed  then i  see aplay button to run audio file if  audiocount =0 then there is no audio file and also if user only write description means videocount,audiocount,imagecount is zero this means text post as in linkedin use can and if store =true then show store button  and there is a pattren in which style the user upload the post mean like grid layout i provide you image in which way you chck how the user upload the post with every imagefiles or videofile there is size with ever y url  for patterns i prvide you post layouts post should have mixed data also meas some videos and images like if grid 1_3 i provide postion in the response and also prvide you images of layout with position numbering acording to the numbering you set the images or videos   create a cardlayout in which we have the layouts of the cards by default single and  after in single we either have one video or one image videocount =1 and imagecount=0 means video card or vise versa for image  single post   then comes  'grid_1_1'   the check imagecount if 2 then both are images if one then one of the image in imagecount =0 then both are video then  check also adjest the image and video according to the postion for opstion i provide you picture so you can usnderstand on which positoion you put them  chose the layout for according to the pattren for post  firest check card layout which is pattren   then check imagecount and video count then postion hten pase them according to the postion if store true show store  icon nad if audiofile exist then show audio icon  if song exist then play the song automitically there is a mmute button to mute the song then in photo i give you that   auto play the video  check with video also to identifiy to play video automatically use best libeary for audio and video player in react native 
+
+
+
+response api  category ==>{
+    "statusCode": 200,
+    "data": "All categories posts fetched successfully",
+    "messege": {
+        "posts": [
+            {
+                "_id": "68a4605cf945300677594731",
+                "store": true,
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755603019/ooi5sipshvllaxq3cgmd.avif",
+                        "Imageposition": 2,
+                        "_id": "68a4605cf945300677594732"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755603034/vpofp15facws6qcmx0ja.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "_id": "68a4605cf945300677594733"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755603033/fu7ojyeumeainqwtjzbx.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68a4605cf945300677594734"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755603023/frm7hgbtwzefkzlnrvem.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "createdAt": "2025-08-19T11:30:36.959Z",
+                "updatedAt": "2025-08-19T11:30:36.959Z"
+            },
+            {
+                "_id": "68a37ef52b394101e09aade9",
+                "store": true,
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755545326/flo7fad7fooa27qqg0fs.avif",
+                        "Imageposition": 2,
+                        "_id": "68a37ef52b394101e09aadea"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755545334/gfqmzdfkrcbpynkr3liq.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "_id": "68a37ef52b394101e09aadeb"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755545331/xgexxluav521totnwi3p.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68a37ef52b394101e09aadec"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755545327/vawlclswpothslk7mbze.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "createdAt": "2025-08-18T19:28:53.982Z",
+                "updatedAt": "2025-08-18T19:28:53.982Z"
+            },
+            {
+                "_id": "68a37e5a2b394101e09aaddf",
+                "store": true,
+                "videocount": 1,
+                "imagecount": 0,
+                "audiocount": 1,
+                "title": "video post with song and audio and autoplay check",
+                "description": "video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755545177/bveftgalzqq2odjm32nr.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "_id": "68a37e5a2b394101e09aade0"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755545174/ofguag2k4gzedrus1uuq.mp3"
+                ],
+                "pattern": "single",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "imageFiles": [],
+                "createdAt": "2025-08-18T19:26:18.864Z",
+                "updatedAt": "2025-08-18T19:26:18.864Z"
+            },
+            {
+                "_id": "68a1f607f184495b2b42a4ec",
+                "store": true,
+                "videocount": 0,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "image post with song and audio",
+                "description": "image post with song and audio",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755444736/oiko4rdsufizbjkgwz2s.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1f607f184495b2b42a4ed"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755444742/joc94jcipon5pxys41rg.mp3"
+                ],
+                "pattern": "single",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "videoFiles": [],
+                "createdAt": "2025-08-17T15:32:23.562Z",
+                "updatedAt": "2025-08-17T15:32:23.562Z"
+            },
+            {
+                "_id": "68a1f533511101380c36b645",
+                "store": true,
+                "videocount": 1,
+                "imagecount": 0,
+                "audiocount": 0,
+                "title": "video  post",
+                "description": "video  post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755444494/gwcc08of3w3oh5l7vicq.jpg",
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755444528/m9uv3zs687b1eyzuf3da.mp4",
+                        "Videoposition": 1,
+                        "_id": "68a1f533511101380c36b646"
+                    }
+                ],
+                "song": [],
+                "pattern": "single",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "imageFiles": [],
+                "createdAt": "2025-08-17T15:28:51.374Z",
+                "updatedAt": "2025-08-17T15:28:51.374Z"
+            },
+            {
+                "_id": "68a1f3d6124c9ccf296d6a49",
+                "store": true,
+                "videocount": 2,
+                "imagecount": 2,
+                "audiocount": 0,
+                "title": "4 digonal Image and video  post",
+                "description": "4   digonal Image and video  post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755444127/qzqweaur45yx9b8ciccd.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1f3d6124c9ccf296d6a4a"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755444126/iye7xkyy0e0krwv4gwgf.jpg",
+                        "Imageposition": 4,
+                        "_id": "68a1f3d6124c9ccf296d6a4b"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755444180/xkenkd4awuvwiqbzx61w.mp4",
+                        "Videoposition": 2,
+                        "_id": "68a1f3d6124c9ccf296d6a4c"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755444141/hbdhiuwktklw3r8vxcwa.mp4",
+                        "Videoposition": 3,
+                        "_id": "68a1f3d6124c9ccf296d6a4d"
+                    }
+                ],
+                "song": [],
+                "pattern": "grid_2x2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "createdAt": "2025-08-17T15:23:02.930Z",
+                "updatedAt": "2025-08-17T15:23:02.930Z"
+            },
+            {
+                "_id": "68a1ee47124c9ccf296d6a3b",
+                "store": true,
+                "videocount": 2,
+                "imagecount": 2,
+                "audiocount": 0,
+                "title": "4 Image and video  post",
+                "description": "4 Image and video  post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442715/to7k2f92nc9nztdvv6ie.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1ee47124c9ccf296d6a3c"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442715/vhrz172mnsndgbfxmire.avif",
+                        "Imageposition": 2,
+                        "_id": "68a1ee47124c9ccf296d6a3d"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755442752/kv44qwkirw0tnmnqpjlj.mp4",
+                        "Videoposition": 3,
+                        "_id": "68a1ee47124c9ccf296d6a3e"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755442757/nbbwlanjfatoaqeubqhi.mp4",
+                        "Videoposition": 4,
+                        "_id": "68a1ee47124c9ccf296d6a3f"
+                    }
+                ],
+                "song": [],
+                "pattern": "grid_2x2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "createdAt": "2025-08-17T14:59:19.910Z",
+                "updatedAt": "2025-08-17T14:59:19.910Z"
+            },
+            {
+                "_id": "68a1ed50124c9ccf296d6a2e",
+                "store": true,
+                "videocount": 0,
+                "imagecount": 4,
+                "audiocount": 0,
+                "title": "4 Image  post",
+                "description": "4 Image post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442511/rzb3rrqxo6udvlw75s5r.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1ed50124c9ccf296d6a2f"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442510/ysawmcqgjusvw3ownd5h.avif",
+                        "Imageposition": 2,
+                        "_id": "68a1ed50124c9ccf296d6a30"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442510/pzs6ou8mjk9gkov8o9c6.webp",
+                        "Imageposition": 3,
+                        "_id": "68a1ed50124c9ccf296d6a31"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442510/n2now3yglfhxajisiuzn.jpg",
+                        "Imageposition": 4,
+                        "_id": "68a1ed50124c9ccf296d6a32"
+                    }
+                ],
+                "song": [],
+                "pattern": "grid_2x2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "videoFiles": [],
+                "createdAt": "2025-08-17T14:55:12.313Z",
+                "updatedAt": "2025-08-17T14:55:12.313Z"
+            },
+            {
+                "_id": "68a1ec5f124c9ccf296d6a21",
+                "store": true,
+                "videocount": 0,
+                "imagecount": 4,
+                "audiocount": 0,
+                "title": "carousel Image  post",
+                "description": "carousel Image post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442269/ntpbtg5h12pzutkljea0.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1ec5f124c9ccf296d6a22"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442270/igbxkya2wxsb871goxgu.avif",
+                        "Imageposition": 2,
+                        "_id": "68a1ec5f124c9ccf296d6a23"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442269/gzfgmz093kb82ruw6fov.webp",
+                        "Imageposition": 3,
+                        "_id": "68a1ec5f124c9ccf296d6a24"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442269/jrxhzqu4kmhksjhzaghx.jpg",
+                        "Imageposition": 4,
+                        "_id": "68a1ec5f124c9ccf296d6a25"
+                    }
+                ],
+                "song": [],
+                "pattern": "carousel",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "videoFiles": [],
+                "createdAt": "2025-08-17T14:51:11.312Z",
+                "updatedAt": "2025-08-17T14:51:11.312Z"
+            },
+            {
+                "_id": "68a1ec15124c9ccf296d6a14",
+                "store": true,
+                "videocount": 1,
+                "imagecount": 3,
+                "audiocount": 0,
+                "title": "carousel Image  and video post",
+                "description": "carousel Image and video  post",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442180/yksglh5qqx1snj8pclbu.jpg",
+                        "Imageposition": 1,
+                        "_id": "68a1ec15124c9ccf296d6a15"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442179/r3xhxwrb2emfiwl9ggmv.avif",
+                        "Imageposition": 2,
+                        "_id": "68a1ec15124c9ccf296d6a16"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1755442180/lxshmdwevbfsrtmb9km2.webp",
+                        "Imageposition": 3,
+                        "_id": "68a1ec15124c9ccf296d6a17"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1755442195/teejnw9inyfo34ujvyz4.mp4",
+                        "Videoposition": 4,
+                        "_id": "68a1ec15124c9ccf296d6a18"
+                    }
+                ],
+                "song": [],
+                "pattern": "carousel",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "createdAt": "2025-08-17T14:49:57.848Z",
+                "updatedAt": "2025-08-17T14:49:57.848Z"
+            }
+        ],
+        "pagination": {
+            "currentPage": 1,
+            "itemsPerPage": 10,
+            "totalSkip": 0,
+            "hasNextPage": true,
+            "hasPrevPage": false
+        }
+    },
+    "success": true
+}
