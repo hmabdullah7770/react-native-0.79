@@ -32,12 +32,13 @@ const EmailVerification = ({ navigation, route }) => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(false);
-  // const [loading, setLoading] = useState(false);
+const [loading, setLoading] = useState(false);
   const [screenDimensions, setScreenDimensions] = useState({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     isLandscape: SCREEN_WIDTH > SCREEN_HEIGHT
   });
+  const [resendRequested, setResendRequested] = useState(false);
   
   const dispatch = useDispatch();
 
@@ -108,16 +109,15 @@ const EmailVerification = ({ navigation, route }) => {
 
   // Listen for matchotperror changes and navigate if no error
   useEffect(() => {
-    if (matchotperror === false || matchotperror === null || matchotperror === undefined) {
-      // No error, navigate
-      navigation.navigate('SigninScreens', {
-        screen: 'ResetPassword',
-        params: { email, otp }
-      });
-    } else if (matchotperror) {
-      // There is an error, show it
-      navigation.navigate('SigninScreens',{screen:'EmailPassword'})
+    // Only navigate after a verification attempt — avoid navigating on initial undefined state
+    if (matchotperror === false) {
+      // verification success -> navigate to ResetPassword within same stack
+      navigation.navigate('ResetPassword', { email, otp });
+    } else if (matchotperror === true) {
+      // verification failed
       setError('OTP does not match or is invalid.');
+      // optionally navigate back to the email/password screen by name:
+      // navigation.navigate('EmailPassword');
     }
   }, [matchotperror]);
 

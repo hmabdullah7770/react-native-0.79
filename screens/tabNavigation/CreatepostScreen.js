@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import createpostrequest from '../../redux/actions/createpostrequest'
+// import createpostrequest from '../../redux/actions/createpostrequest'
 
 const CreatepostScreen = () => {
   

@@ -46,6 +46,7 @@
     "react-native-sound-player": "^0.14.5",
     "react-native-splash-screen": "^3.3.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-video": "^6.16.1",
     "react-native-vision-camera": "^4.7.0",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",

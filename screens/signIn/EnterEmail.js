@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import { TouchableOpacity } from 'react-native'
+import { useDispatch } from 'react-redux'
 import Textfield from '../../components/TextField'
 import { forgetpasswordrequest} from '../../Redux/action/auth';
 
@@ -20,88 +22,80 @@ const schema = yup.object().shape({
 
 });
 
-const EnterEmail = () => {
-
-
+const EnterEmail = ({ navigation }) => {
+  const dispatch = useDispatch();
 
 const formik = useFormik({
        initialValues: { email: '' },
        validationSchema: schema,
        onSubmit: async (values, { setSubmitting }) => {
-        
-   
          try {
-        
             const { email } = values;
-
-       
-        
-          // If it's an email, pass it as email parameter, otherwise as username
-          await dispatch(forgetpasswordrequest(
-           
-           
-            email
-          ));
-           
-          navigation.navigate('SigninScreens', { screen: 'ForgetEmailVerify', params: { email } });
-
-
-          // console.log("Submitting form with:", { username, password });
-          // await dispatch(loginrequest(username, password));
+          await dispatch(forgetpasswordrequest(email));
+          // navigate directly to the screen registered in the same Signin stack
+          navigation.navigate('ForgetEmailVerify', { email });
         } catch (error) {
           console.error("Form submission error:", error);
         } finally {
           setSubmitting(false);
         }
-    
        },
      }); 
 
   return (
-    <View>
-      <Text>EnterEmail</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Enter your email</Text>
 
-
-       <Textfield
-       placeholder={'Enter your email '}
+      <View style={styles.content}>
+        <Textfield
+          placeholder={'Enter your email'}
           iconName={'person'}
           onChangeText={formik.handleChange('email')}
           onBlur={formik.handleBlur('email')}
           value={formik.values.email}
-    />
+        />
 
-{formik.errors.email && formik.touched.email &&(<Text style={styles.errorText}>
-    {formik.errors.email}
-  </Text>)}
+        {formik.errors.email && formik.touched.email && (
+          <Text style={styles.errorText}>{formik.errors.email}</Text>
+        )}
 
-
-<View style={styles.loginView}>
- <TouchableOpacity
-          onPress={formik.handleSubmit}
-          isSubmitting={formik.isSubmitting}
-          style={styles.button}>
-          <Text style={styles.loginButton}>Submit</Text>
-      </TouchableOpacity>
+        <View style={styles.loginView}>
+          <TouchableOpacity
+            onPress={formik.handleSubmit}
+            isSubmitting={formik.isSubmitting}
+            style={styles.button}>
+            <Text style={styles.loginButton}>Submit</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-  
-
     </View>
   )
 }
-
+ 
 export default EnterEmail
 
 const styles = StyleSheet.create({
-
- loginView:{
-   display:'flex',
-   marginTop:10,
-   alignItems:'center',
-   justifyContent:'center',
-   alignContent:'center',
-   width:'100%',
-   marginBottom: '20',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
   },
+
+  content: {
+    width: '90%', // keeps inputs/buttons from stretching full width on large screens
+  },
+
+  loginView:{
+    display:'flex',
+    marginTop:10,
+    alignItems:'center',
+    justifyContent:'center',
+    alignContent:'center',
+    width:'100%',
+    marginBottom: '20',
+   },
 
   
    button: {
@@ -121,8 +115,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
     fontSize: 16,
-    // fontWeight: '600'
-    // backgroundColor: 
   },
 
+  /* match EmailPassword heading */
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 90,
+  },
+
+  /* match EmailPassword error style */
+  errorText: {
+    color: 'red',
+    textAlign: 'left',
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: '5%',
+  },
 })

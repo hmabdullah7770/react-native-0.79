@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View,TouchableOpacity } from 'react-native'
 import React from 'react'
 import { resetpasswordrequest } from '../../Redux/action/auth'
 import Textfield from '../../components/TextField'

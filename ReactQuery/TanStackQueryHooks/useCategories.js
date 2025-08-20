@@ -65,7 +65,7 @@ export const usegetPostsByCategory  = (category, limit) => {
 
 
   
-export const getFollowingUsersPosts =(category,limit)=>{
+export const usegetFollowingUsersPosts =(category,limit)=>{
 
   
 }
