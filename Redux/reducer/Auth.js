@@ -97,6 +97,17 @@ const initialState = {
           matchotpmessege: action.payload.matchotpmessege,
         };
 
+
+
+case 'CLEAR_MATCH_OTP':
+  console.log('CLEAR_MATCH_OTP in reducer');
+  return {
+    ...state,
+     matchotpmessege: null,
+   
+  };
+
+
   case 'MATCH_OTP_FAIL':
   console.log('MATCH_OTP_FAIL : ', action.payload.matchotperror);
   return {
@@ -319,6 +330,7 @@ return{
           ...state,
           user: action.payload.data,
           isAuthenticated: false,
+          messege: action.payload.messege,
         }
       
       }
@@ -336,12 +348,28 @@ return{
         }
       }
 
+
+
+      case "CLEAR_USER":{
+        
+
+
+        console.log('CLEAR_USER in reducer');
+
+        return{
+
+          ...state,
+          user: null,
+         
+        }
+    }
       case 'RESET_PASSWORD_SUCCESSFUL':{
         console.log('RESET_PASSWORD_SUCCESSFUL : ', action.payload);
         return{
           ...state,
           user: action.payload.data,
           isAuthenticated: false,
+          messege: action.payload.messege,
         }
       
       }

@@ -275,6 +275,19 @@ export const forgetpasswordfails = error => ({
 });
 
 
+export const clearuser = () => ({
+  type: 'CLEAR_USER',
+});
+
+
+//clear match otp 
+
+export const clearmatchotp = () => ({
+  type: 'CLEAR_MATCH_OTP',
+});
+
+
+
 //RESET PASSWORD
 
 export const resetpasswordrequest = (email, otp, newpassword) => ({

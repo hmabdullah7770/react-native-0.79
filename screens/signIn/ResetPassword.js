@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View,TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View,TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React from 'react'
+import { useEffect } from 'react'
 import { resetpasswordrequest } from '../../Redux/action/auth'
 import Textfield from '../../components/TextField'
 import { useFormik } from 'formik';
@@ -8,13 +9,13 @@ import { useDispatch,useSelector } from 'react-redux'
 // import { Button } from 'react-native-paper'
 import { useContext } from 'react';
 import { SnackbarContext } from '../../context/Snackbar';
-
+import {  clearmatchotp } from '../../Redux/action/auth';
 
 const schema = yup.object().shape({
   password: yup
     .string()
     .required('Password is required')
-    .min(8, 'Password must be at least 8 characters long'),
+    .min(6, 'Password must be at least 6 characters long'),
   confirmPassword: yup
     .string()
     .oneOf([yup.ref('password'), null], 'Passwords must match')
@@ -26,6 +27,11 @@ const schema = yup.object().shape({
 const ResetPassword = ({navigation,route}) => {
 
   const dispatch = useDispatch();
+
+   useEffect(() => {
+      // Reset OTP and error state when component mounts
+       dispatch(clearmatchotp());
+    },[])
   
   // const {error } = useSelector(state => state.auth);
 
@@ -44,10 +50,12 @@ const ResetPassword = ({navigation,route}) => {
     
     if(!email || !otp) {
       handleSnackbar({ error: ['Missing Data', 'Email or OTP is missing'] });
-      navigation.navigate('SigninScreens', { screen: 'EmailPassword' });
+      navigation.navigate(EmailPassword);
       return;
     }
 
+
+    console.log('Resetting password for:', email, otp, password);
     await dispatch(resetpasswordrequest(email, otp, password));
     
   } catch (error) {
@@ -61,8 +69,12 @@ const ResetPassword = ({navigation,route}) => {
        }); 
 
   return (
-    <View>
-      <Text>ResetPassword</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>Reset Password</Text>
 
         <Textfield
         placeholder={'Enter your New password'}
@@ -111,14 +123,37 @@ const ResetPassword = ({navigation,route}) => {
       </View>
 
 
+ <TouchableOpacity
+          onPress={navigate => navigation.navigate('EmailPassword')}
+         >
+          <Text style={styles.loginButton}>nav back</Text>
+      </TouchableOpacity>
 
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
 export default ResetPassword
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#111',
+  },
 
  loginView:{
    display:'flex',
@@ -127,7 +162,7 @@ const styles = StyleSheet.create({
    justifyContent:'center',
    alignContent:'center',
    width:'100%',
-   marginBottom: '20',
+   marginBottom: 20,
   },
 
     button: {

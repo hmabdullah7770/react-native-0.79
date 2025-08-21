@@ -565,19 +565,20 @@ function* LogoutSaga() {
 
 
 
-function* ForgetpasswordSaga() {
+function* ForgetpasswordSaga(payload) {
 
   yield put(actions.setloading(true));
   try {
-    const response = yield call(api.forgetpassword);
+    const response = yield call(api.forgetpassword, payload.email);
 
     if (response.status === 200) {
       console.log('Response data:', response.data);
       yield put(
-        actions.forgetpasswordsuccessful([
+        actions.forgetpasswordsuccessful(
           response.data,
           'Please check your email',
-        ]),
+       
+        ),
       );
     } else {
       yield put(
@@ -605,21 +606,24 @@ function* ForgetpasswordSaga() {
 
 }
 
-function* ResetpasswordSaga() {
+function* ResetpasswordSaga(payload) {
+
 
   yield put(actions.setloading(true));
   try {
     const response = yield call(api.resetpassword, payload.email, payload.otp, payload.newpassword);
 
     if (response.status === 200) {
-      console.log('Response data:', response.data);
+      // console.log('Response data:', response.data);
       yield put(
-        actions.resetpasswordsuccessful([
+        actions.resetpasswordsuccessful(
           response.data,
           'Please check your email',
-          navigate('SigninScreens', { screen: 'EmailPassword' }),
-        ]),
+         
+        ),
       );
+
+       navigate( 'EmailPassword' )
     } else {
       yield put(
         console.log('Response status:', response.status, 'error',response.data.error),

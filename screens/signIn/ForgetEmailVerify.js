@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import * as Yup from 'yup';
 import LinearGradient from 'react-native-linear-gradient';
-import {matchotprequest,forgetpasswordrequest} from '../../Redux/action/auth';
+import {matchotprequest,forgetpasswordrequest,clearuser} from '../../Redux/action/auth';
 // import NextButton from './components/NextButton';
 
 // Get screen dimensions for responsive design
@@ -32,7 +32,8 @@ const EmailVerification = ({ navigation, route }) => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(false);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
   const [screenDimensions, setScreenDimensions] = useState({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
@@ -43,8 +44,14 @@ const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
 
-  const {matchotperror,user}  = useSelector(state => state.auth);
+  const {matchotperror,user,matchotpmessege}  = useSelector(state => state.auth);
   
+ 
+ useEffect(() => {
+    // Reset OTP and error state when component mounts
+     dispatch(clearuser());
+  },[])
+ 
   // Handle screen rotation and dimension changes
   useEffect(() => {
     const updateDimensions = () => {
@@ -101,25 +108,40 @@ const [loading, setLoading] = useState(false);
   
   
   const handleVerify = async () => {
-    
     setError('');
-    await dispatch(matchotprequest(email, otp));
-    
+    if (!/^\d{6}$/.test(otp)) {
+      setError('Enter a valid 6-digit OTP.');
+      setIsValid(false);
+      return;
+    }
+    setLoading(true);
+    setVerificationAttempted(true);
+    try {
+      console.log('opt', otp)
+      await dispatch(matchotprequest( otp,email));
+    } finally {
+      setLoading(false);
+    }
   };
+  console.log('matchotperror:', matchotperror);
+
+  console.log("matchotpmessege:", matchotpmessege);
 
   // Listen for matchotperror changes and navigate if no error
   useEffect(() => {
-    // Only navigate after a verification attempt — avoid navigating on initial undefined state
-    if (matchotperror === false) {
-      // verification success -> navigate to ResetPassword within same stack
+    // Only act after the user pressed Verify
+    if (!verificationAttempted) return;
+
+    if (matchotpmessege) {
+      // success
       navigation.navigate('ResetPassword', { email, otp });
-    } else if (matchotperror === true) {
-      // verification failed
+      setVerificationAttempted(false);
+    } else if (!matchotpmessege) {
+      // failed
       setError('OTP does not match or is invalid.');
-      // optionally navigate back to the email/password screen by name:
-      // navigation.navigate('EmailPassword');
+      setVerificationAttempted(false);
     }
-  }, [matchotperror]);
+  }, [matchotpmessege]);
 
   // Calculate dynamic styles based on screen orientation
   const dynamicStyles = {
@@ -150,7 +172,15 @@ const [loading, setLoading] = useState(false);
         autoFocusOnLoad
         codeInputFieldStyle={styles.codeInputField}
         codeInputHighlightStyle={styles.codeInputHighlight}
-        onCodeChanged={setOtp}
+        onCodeChanged={(code) => {
+          setOtp(code);
+          setError(''); // clear previous error while typing
+          setIsValid(/^\d{6}$/.test(code)); // update validity as user types / deletes
+        }}
+        onCodeFilled={(code) => {
+          setOtp(code);
+          setIsValid(true);
+        }}
       />
       
       {error ? <Text style={styles.errorText}>{error}</Text> : null}

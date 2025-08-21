@@ -15,7 +15,7 @@ import Loader from '../components/Loader';
 import { useContext } from 'react';
 import { SnackbarContext } from '../context/Snackbar';
 import { useSelector } from 'react-redux';
-import { clearerror, clearmessege,clearusernameerror,clearemailerror,clearemailmessege } from '../Redux/action/auth';
+import { clearerror, clearmessege,clearusernameerror,clearemailerror,clearemailmessege,clearmatchotp } from '../Redux/action/auth';
 import { useDispatch } from 'react-redux';
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
@@ -67,7 +67,7 @@ const AuthScreens = () => {
 
     else if(matchotpmessege){
       handleSnackbar({matchotpmessege})
-      dispatch(clearusernamemessege())
+      // dispatch(clearmatchotp())
 
     }
 

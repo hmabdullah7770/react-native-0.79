@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native'
-import { useDispatch } from 'react-redux'
+import { useDispatch ,useSelector} from 'react-redux'
 import Textfield from '../../components/TextField'
 import { forgetpasswordrequest} from '../../Redux/action/auth';
+
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -24,22 +25,36 @@ const schema = yup.object().shape({
 
 const EnterEmail = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector(s => s.auth);
+  const [pendingEmail, setPendingEmail] = useState(null);
+
+  const onSubmit = async (values, { setSubmitting }) => {
+    try {
+      await dispatch(forgetpasswordrequest(values.email));
+      setPendingEmail(values.email); // wait for reducer to update
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!pendingEmail) return;
+    const msg =
+      user?.messege ??
+      user?.[0]?.messege ??
+      user?.[0]?.data?.messege ??
+      user?.[1] ??
+      null;
+    if (msg === 'Success' || (typeof msg === 'string' && msg.includes('OTP'))) {
+      navigation.navigate('ForgetEmailVerify', { email: pendingEmail });
+      setPendingEmail(null);
+    }
+  }, [user, pendingEmail, navigation]);
 
 const formik = useFormik({
        initialValues: { email: '' },
        validationSchema: schema,
-       onSubmit: async (values, { setSubmitting }) => {
-         try {
-            const { email } = values;
-          await dispatch(forgetpasswordrequest(email));
-          // navigate directly to the screen registered in the same Signin stack
-          navigation.navigate('ForgetEmailVerify', { email });
-        } catch (error) {
-          console.error("Form submission error:", error);
-        } finally {
-          setSubmitting(false);
-        }
-       },
+       onSubmit: onSubmit,
      }); 
 
   return (

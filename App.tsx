@@ -5,7 +5,8 @@ import { useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import  AppScreens   from  './Stack/AppScreens'
 import AuthScreens from './Stack/AuthScreens';
-import {createNavigationContainerRef} from '@react-navigation/native';
+import {createNavigationContainerRef} from '@react-navigation/native'; // remove this line
+import { navigationRef } from './utils/rootNavigation';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {Provider as ReduxProvider, useSelector} from 'react-redux';
 import store from './Redux/store/store';
@@ -31,7 +32,6 @@ if (__DEV__) {
   require("./ReactotronConfig");
 }
 
-export const navigationRef = createNavigationContainerRef();
 // Define a type for your Redux state (replace with your actual RootState)
 interface RootState {
   auth: {
