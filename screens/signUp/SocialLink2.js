@@ -131,33 +131,35 @@ const SocialLink2 = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Connect Your Socials</Text>
-      <View style={styles.boxesContainer}>
-        {Object.keys(platformLabels).map((platform) => (
-          <View key={platform} style={{ width: '48%' }}>
-            <SocialBox
-              platform={platform}
-              label={platformLabels[platform]}
-              value={platformData[platform]}
-              isSelected={selectedPlatforms[platform]}
-              onPress={() => handleBoxPress(platform)}
-            />
-            {platformErrors[platform] ? (
-              <Text style={styles.errorText}>{platformErrors[platform]}</Text>
-            ) : null}
-          </View>
-        ))}
+      <View style={styles.content}>
+        <Text style={styles.title}>Connect Your Socials</Text>
+        <View style={styles.boxesContainer}>
+          {Object.keys(platformLabels).map((platform) => (
+            <View key={platform} style={{ width: '48%' }}>
+              <SocialBox
+                platform={platform}
+                label={platformLabels[platform]}
+                value={platformData[platform]}
+                isSelected={selectedPlatforms[platform]}
+                onPress={() => handleBoxPress(platform)}
+              />
+              {platformErrors[platform] ? (
+                <Text style={styles.errorText}>{platformErrors[platform]}</Text>
+              ) : null}
+            </View>
+          ))}
+        </View>
+        <Text style={styles.instructionText}>
+          Choose at least one. I recommend you select all, as people interact with you using different platforms.
+        </Text>
+        <TouchableOpacity
+          style={[styles.nextButton, !isNextEnabled && styles.disabledButton]}
+          disabled={!isNextEnabled || isLoading}
+          onPress={handleNext}
+        >
+          <Text style={styles.nextButtonText}>{isLoading ? 'Signing Up...' : 'Next'}</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.instructionText}>
-        Choose at least one. I recommend you select all, as people interact with you using different platforms.
-      </Text>
-      <TouchableOpacity
-        style={[styles.nextButton, !isNextEnabled && styles.disabledButton]}
-        disabled={!isNextEnabled || isLoading}
-        onPress={handleNext}
-      >
-        <Text style={styles.nextButtonText}>{isLoading ? 'Signing Up...' : 'Next'}</Text>
-      </TouchableOpacity>
       <SocialModal
         visible={modalVisible}
         platform={currentPlatform}
@@ -178,6 +180,11 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f8f9fa'
   },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%'
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -188,7 +195,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 20
+    marginBottom: 20,
+    width: '100%'
   },
   instructionText: {
     fontSize: 14,

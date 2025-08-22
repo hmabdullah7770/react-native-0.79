@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, Alert, Modal } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,24 +52,52 @@ const ProfileImage2 = ({ route, navigation }) => {
     }
   };
 
-  // Store image locally (automatically replaces previous image)
+  // Store image locally (only setItem — we'll call this on Next)
   const storeImageLocally = async (imageData) => {
     try {
-      // Clear previous image first
-      await AsyncStorage.removeItem(PROFILE_IMAGE_KEY);
-      
-      // Store new image
+      // just overwrite (AsyncStorage.setItem will replace existing value)
       await AsyncStorage.setItem(PROFILE_IMAGE_KEY, JSON.stringify(imageData));
       console.log('Image stored successfully');
     } catch (error) {
       console.error('Error storing image:', error);
       Alert.alert('Error', 'Failed to store image locally');
+      throw error;
     }
   };
 
   // Handle plus button press (show options)
   const handlePlusPress = () => {
-    setShowModal(true);
+    if (image) {
+      // If image exists, show delete confirmation
+      Alert.alert(
+        'Remove Image',
+        'Are you sure you want to remove your profile picture?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Remove',
+            style: 'destructive',
+            onPress: handleRemoveImage,
+          },
+        ]
+      );
+    } else {
+      // If no image, show options modal
+      setShowModal(true);
+    }
+  };
+
+  // Handle image removal
+  const handleRemoveImage = async () => {
+    setImage(null);
+    try {
+      await AsyncStorage.removeItem(PROFILE_IMAGE_KEY);
+    } catch (error) {
+      console.error('Error removing stored image:', error);
+    }
   };
 
   // Handle camera option
@@ -112,7 +140,7 @@ const ProfileImage2 = ({ route, navigation }) => {
     }
   };
 
-  // Gallery image picker - automatically replaces previous image
+  // Gallery image picker - show image immediately but DO NOT store yet
   const handleImagePicker = async () => {
     const options = {
       mediaType: 'photo',
@@ -132,31 +160,30 @@ const ProfileImage2 = ({ route, navigation }) => {
       }
       if (result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        
-        // Automatically store the new image (replaces previous)
-        await storeImageLocally(selectedImage);
+
+        // show the selected image to the user but DO NOT store it yet
         setImage(selectedImage);
-        
-        Alert.alert('Success', 'Image updated successfully');
+        // Alert.alert('Selected', 'Image selected. It will be saved when you press Next.');
+        // ^-- commented out per request: do not show a modal/alert when image is picked
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong while selecting the image.');
     }
   };
 
-  // Apply camera captured image
+  // Apply camera captured image — set image for preview, do not store
   const handleApplyImage = async () => {
     if (!tempImage) return;
     
     setIsApplying(true);
     
     try {
-      // Store new image (automatically replaces previous)
-      await storeImageLocally(tempImage);
+      // just set the image in state (persist on Next)
       setImage(tempImage);
       setTempImage(null);
       
-      Alert.alert('Success', 'Image applied successfully');
+      // Alert.alert('Applied', 'Image applied locally. It will be saved when you press Next.');
+      // ^-- commented out per request: do not show a modal/alert when apply is performed
     } catch (error) {
       console.error('Error applying image:', error);
       Alert.alert('Error', 'Failed to apply image');
@@ -178,19 +205,27 @@ const ProfileImage2 = ({ route, navigation }) => {
   // Button enabled only if image and bio are present
   const isButtonDisabled = !image || !bio.trim();
 
-  // Next handler: pass all data to SocialLink2
-  const handleNext = () => {
-    navigation.navigate('SignupScreens', {
-      screen: 'SocialLink2',
-      params: {
-        email,
-        username,
-        password,
-        otp,
-        image,
-        bio,
-      },
-    });
+  // Next handler: save image to AsyncStorage then navigate
+  const handleNext = async () => {
+    try {
+      // if there's an image in state, persist it now
+      if (image) {
+        await storeImageLocally(image);
+      }
+      navigation.navigate('SignupScreens', {
+        screen: 'SocialLink2',
+        params: {
+          email,
+          username,
+          password,
+          otp,
+          // image,
+          bio,
+        },
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save profile image. Please try again.');
+    }
   };
 
   if (showCamera && device) {
@@ -252,7 +287,11 @@ const ProfileImage2 = ({ route, navigation }) => {
         )}
         
         <TouchableOpacity style={styles.addButton} onPress={handlePlusPress}>
-          <Icon name="add" size={24} color="#fff" />
+          <Icon 
+            name={image ? "delete" : "add"} 
+            size={24} 
+            color="#fff" 
+          />
         </TouchableOpacity>
       </View>
 
@@ -500,7 +539,11 @@ const styles = StyleSheet.create({
 });
 
 
-// // claude code
+
+
+
+
+// previous code the user save in async before next is clicker
 
 
 // import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, Alert, Modal } from 'react-native';
@@ -519,7 +562,7 @@ const styles = StyleSheet.create({
 //   const [showModal, setShowModal] = useState(false);
 //   const [showCamera, setShowCamera] = useState(false);
 //   const [cameraPermission, setCameraPermission] = useState(null);
-//   const [tempImage, setTempImage] = useState(null); // For preview before apply
+//   const [tempImage, setTempImage] = useState(null); // Only for camera preview
 //   const [isApplying, setIsApplying] = useState(false);
 
 //   const devices = useCameraDevices();
@@ -527,7 +570,6 @@ const styles = StyleSheet.create({
 
 //   // Storage keys
 //   const PROFILE_IMAGE_KEY = `profile_image_${username || email}`;
-//   const PROFILE_BIO_KEY = `profile_bio_${username || email}`;
 
 //   useEffect(() => {
 //     checkCameraPermission();
@@ -545,53 +587,31 @@ const styles = StyleSheet.create({
 //     }
 //   };
 
-//   // Load stored image and bio
+//   // Load stored image
 //   const loadStoredData = async () => {
 //     try {
 //       const storedImage = await AsyncStorage.getItem(PROFILE_IMAGE_KEY);
-//       const storedBio = await AsyncStorage.getItem(PROFILE_BIO_KEY);
       
 //       if (storedImage) {
 //         setImage(JSON.parse(storedImage));
-//       }
-//       if (storedBio) {
-//         setBio(storedBio);
 //       }
 //     } catch (error) {
 //       console.error('Error loading stored data:', error);
 //     }
 //   };
 
-//   // Store image locally
+//   // Store image locally (automatically replaces previous image)
 //   const storeImageLocally = async (imageData) => {
 //     try {
+//       // Clear previous image first
+//       await AsyncStorage.removeItem(PROFILE_IMAGE_KEY);
+      
+//       // Store new image
 //       await AsyncStorage.setItem(PROFILE_IMAGE_KEY, JSON.stringify(imageData));
 //       console.log('Image stored successfully');
 //     } catch (error) {
 //       console.error('Error storing image:', error);
 //       Alert.alert('Error', 'Failed to store image locally');
-//     }
-//   };
-
-//   // Store bio locally
-//   const storeBioLocally = async (bioText) => {
-//     try {
-//       await AsyncStorage.setItem(PROFILE_BIO_KEY, bioText);
-//     } catch (error) {
-//       console.error('Error storing bio:', error);
-//     }
-//   };
-
-//   // Clear stored image
-//   const clearStoredImage = async () => {
-//     try {
-//       await AsyncStorage.removeItem(PROFILE_IMAGE_KEY);
-//       setImage(null);
-//       setTempImage(null);
-//       Alert.alert('Success', 'Image cleared successfully');
-//     } catch (error) {
-//       console.error('Error clearing image:', error);
-//       Alert.alert('Error', 'Failed to clear image');
 //     }
 //   };
 
@@ -610,7 +630,7 @@ const styles = StyleSheet.create({
 //     }
 //   };
 
-//   // Handle gallery option
+//   // Handle gallery option - automatically replaces previous image
 //   const handleGalleryOption = () => {
 //     setShowModal(false);
 //     handleImagePicker();
@@ -640,7 +660,7 @@ const styles = StyleSheet.create({
 //     }
 //   };
 
-//   // Gallery image picker
+//   // Gallery image picker - automatically replaces previous image
 //   const handleImagePicker = async () => {
 //     const options = {
 //       mediaType: 'photo',
@@ -659,26 +679,27 @@ const styles = StyleSheet.create({
 //         return;
 //       }
 //       if (result.assets && result.assets.length > 0) {
-//         setTempImage(result.assets[0]);
+//         const selectedImage = result.assets[0];
+        
+//         // Automatically store the new image (replaces previous)
+//         await storeImageLocally(selectedImage);
+//         setImage(selectedImage);
+        
+//         Alert.alert('Success', 'Image updated successfully');
 //       }
 //     } catch (error) {
 //       Alert.alert('Error', 'Something went wrong while selecting the image.');
 //     }
 //   };
 
-//   // Apply selected image
+//   // Apply camera captured image
 //   const handleApplyImage = async () => {
 //     if (!tempImage) return;
     
 //     setIsApplying(true);
     
 //     try {
-//       // Clear previous image before storing new one
-//       if (image) {
-//         await AsyncStorage.removeItem(PROFILE_IMAGE_KEY);
-//       }
-      
-//       // Store new image
+//       // Store new image (automatically replaces previous)
 //       await storeImageLocally(tempImage);
 //       setImage(tempImage);
 //       setTempImage(null);
@@ -697,16 +718,9 @@ const styles = StyleSheet.create({
 //     setTempImage(null);
 //   };
 
-//   // Handle bio change and auto-save
+//   // Handle bio change
 //   const handleBioChange = (text) => {
 //     setBio(text);
-//     // Auto-save bio with debouncing could be added here
-//   };
-
-//   // Save bio manually
-//   const handleSaveBio = async () => {
-//     await storeBioLocally(bio);
-//     Alert.alert('Success', 'Bio saved successfully');
 //   };
 
 //   // Button enabled only if image and bio are present
@@ -790,7 +804,7 @@ const styles = StyleSheet.create({
 //         </TouchableOpacity>
 //       </View>
 
-//       {/* Image action buttons */}
+//       {/* Only show apply/cancel buttons for camera captures */}
 //       {tempImage && (
 //         <View style={styles.imageActions}>
 //           <TouchableOpacity
@@ -811,16 +825,6 @@ const styles = StyleSheet.create({
 //         </View>
 //       )}
 
-//       {/* Clear image button */}
-//       {image && !tempImage && (
-//         <TouchableOpacity
-//           style={[styles.actionButton, styles.clearButton]}
-//           onPress={clearStoredImage}
-//         >
-//           <Text style={styles.actionButtonText}>Clear Image</Text>
-//         </TouchableOpacity>
-//       )}
-
 //       <TextInput
 //         style={styles.bioInput}
 //         placeholder="Write your bio..."
@@ -829,13 +833,6 @@ const styles = StyleSheet.create({
 //         multiline
 //         maxLength={200}
 //       />
-
-//       <TouchableOpacity
-//         style={styles.saveBioButton}
-//         onPress={handleSaveBio}
-//       >
-//         <Text style={styles.saveBioButtonText}>Save Bio</Text>
-//       </TouchableOpacity>
 
 //       <NextButton onPress={handleNext} disabled={isButtonDisabled} />
 
@@ -949,10 +946,6 @@ const styles = StyleSheet.create({
 //   cancelActionButton: {
 //     backgroundColor: '#f44336',
 //   },
-//   clearButton: {
-//     backgroundColor: '#ff9800',
-//     marginBottom: 16,
-//   },
 //   actionButtonText: {
 //     color: '#fff',
 //     fontWeight: 'bold',
@@ -964,20 +957,9 @@ const styles = StyleSheet.create({
 //     borderWidth: 1,
 //     borderRadius: 10,
 //     padding: 12,
-//     marginBottom: 16,
+//     marginBottom: 24,
 //     fontSize: 16,
 //     backgroundColor: '#fafafa',
-//   },
-//   saveBioButton: {
-//     backgroundColor: '#2196F3',
-//     paddingHorizontal: 20,
-//     paddingVertical: 10,
-//     borderRadius: 8,
-//     marginBottom: 24,
-//   },
-//   saveBioButtonText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
 //   },
 //   modalOverlay: {
 //     flex: 1,
@@ -1064,5 +1046,4 @@ const styles = StyleSheet.create({
 //     height: 50,
 //   },
 // });
-
 

@@ -11,7 +11,7 @@ import WelcomeScreen from './WeclomeScreen';
 import { createStackNavigator } from '@react-navigation/stack';
 import EmailVerification from './EmailVerification';
 import UsernamePassword from './UsernamePassword';
-import SocialLink from './SocialLink';
+import SocialLink2 from './SocialLink';
 import ProfileImage2 from './ProfileImage2';
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
@@ -81,8 +81,8 @@ const SignupScreens = () => {
 
 
         <Signup.Screen
-          name="SocialLink"
-          component={SocialLink}
+          name="SocialLink2"
+          component={SocialLink2}
           options={{ headerShown: false }}  // Add this to hide the header
           // options={{ headerShown: false }}
         />
