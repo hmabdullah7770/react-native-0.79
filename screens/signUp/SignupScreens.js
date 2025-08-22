@@ -13,6 +13,8 @@ import EmailVerification from './EmailVerification';
 import UsernamePassword from './UsernamePassword';
 import SocialLink2 from './SocialLink';
 import ProfileImage2 from './ProfileImage2';
+import ProfileSocial from './ProfileSocial'
+
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
 
@@ -69,6 +71,20 @@ const SignupScreens = () => {
           options={{ headerShown: false }}  // Add this to hide the header
           // options={{ headerShown: false }}
         />
+
+
+
+
+
+{/* <Signup.Screen
+          name="ProfileSocial"
+          component={ProfileSocial}
+          options={{ headerShown: false }}  // Add this to hide the header
+          // options={{ headerShown: false }}
+        />
+ */}
+
+
 
 
 <Signup.Screen
