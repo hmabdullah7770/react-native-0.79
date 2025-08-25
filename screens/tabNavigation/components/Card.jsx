@@ -4,9 +4,12 @@ import { format } from 'date-fns';
 import CardSideBar from './CardSideBar';
 import CardBottomBar from './CardBottomBar';
 import { useDispatch, useSelector } from 'react-redux';
-import Video from 'react-native-video'; // You'll need to install react-native-video
-import { Audio } from 'expo-av'; // You'll need to install expo-av
+import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Sound from 'react-native-sound';
+
+// Enable playback in silence mode
+Sound.setCategory('Playback');
 
 const Card = memo(({ item, index, navigation }) => {
   const dispatch = useDispatch();
@@ -14,7 +17,6 @@ const Card = memo(({ item, index, navigation }) => {
   const [isSongPlaying, setIsSongPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [sound, setSound] = useState(null);
-  const [audioSound, setAudioSound] = useState(null);
   const videoRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
 
@@ -25,53 +27,63 @@ const Card = memo(({ item, index, navigation }) => {
     }
     return () => {
       if (sound) {
-        sound.unloadAsync();
-      }
-      if (audioSound) {
-        audioSound.unloadAsync();
+        sound.release();
       }
     };
   }, [item.song, isMuted]);
 
-  const playBackgroundSong = async () => {
-    try {
-      if (sound) {
-        await sound.unloadAsync();
-      }
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: item.song[0] },
-        { shouldPlay: true, isLooping: true }
-      );
-      setSound(newSound);
-      setIsSongPlaying(true);
-    } catch (error) {
-      console.error('Error playing song:', error);
+  const playBackgroundSong = () => {
+    if (sound) {
+      sound.release();
     }
+
+    const newSound = new Sound(item.song[0], null, (error) => {
+      if (error) {
+        console.error('Error loading song:', error);
+        return;
+      }
+      
+      newSound.setNumberOfLoops(-1); // Loop indefinitely
+      newSound.play((success) => {
+        if (success) {
+          setIsSongPlaying(true);
+        } else {
+          console.error('Error playing song');
+        }
+      });
+    });
+    
+    setSound(newSound);
   };
 
-  const playAudioFile = async () => {
-    try {
-      if (audioSound) {
-        await audioSound.unloadAsync();
+  const playAudioFile = () => {
+    if (!item.audioUrl) return;
+
+    const audioSound = new Sound(item.audioUrl, null, (error) => {
+      if (error) {
+        console.error('Error loading audio:', error);
+        return;
       }
-      const { sound: newAudioSound } = await Audio.Sound.createAsync(
-        { uri: item.audioUrl },
-        { shouldPlay: true }
-      );
-      setAudioSound(newAudioSound);
-    } catch (error) {
-      console.error('Error playing audio:', error);
-    }
+      
+      audioSound.play((success) => {
+        if (!success) {
+          console.error('Error playing audio');
+        }
+        audioSound.release();
+      });
+    });
   };
 
-  const toggleMute = async () => {
+  const toggleMute = () => {
     setIsMuted(!isMuted);
     if (sound) {
       if (isMuted) {
-        await sound.playAsync();
+        // Unmute
+        sound.play();
         setIsSongPlaying(true);
       } else {
-        await sound.pauseAsync();
+        // Mute
+        sound.pause();
         setIsSongPlaying(false);
       }
     }
@@ -137,12 +149,12 @@ const Card = memo(({ item, index, navigation }) => {
     // Single post (1 image or 1 video)
     if (pattern === 'single') {
       if (videocount === 1 && imagecount === 0) {
-        const video = videoFiles[0];
+        const video = videoFiles?.[0];
         return (
           <View style={styles.singleMediaContainer}>
             <Video
               ref={videoRef}
-              source={{ uri: video.url }}
+              source={{ uri: video?.url }}
               style={styles.singleVideo}
               controls={true}
               paused={!isVideoPlaying}
@@ -150,7 +162,7 @@ const Card = memo(({ item, index, navigation }) => {
               posterResizeMode="cover"
               resizeMode="cover"
               onLoad={() => {
-                if (video.autoplay) {
+                if (video?.autoplay) {
                   setIsVideoPlaying(true);
                 }
               }}
@@ -158,11 +170,11 @@ const Card = memo(({ item, index, navigation }) => {
           </View>
         );
       } else if (imagecount === 1 && videocount === 0) {
-        const image = imageFiles[0];
+        const image = imageFiles?.[0];
         return (
           <View style={styles.singleMediaContainer}>
             <Image 
-              source={{ uri: image.url }}
+              source={{ uri: image?.url }}
               style={styles.singleImage}
               resizeMode="cover"
             />

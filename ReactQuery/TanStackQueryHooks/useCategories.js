@@ -33,18 +33,18 @@ export const usegetPostsByCategory  = (category, limit) => {
     queryKey: ['categoryPostData', category, limit],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await getPostsByCategory(category, limit, pageParam);
-      return response.data; // This should return the data object that contains messege.cards
+      return response.data; // This should return the data object that contains messege.posts
     },
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.messege?.pagination;
       return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
     },
     select: (data) => {
-      // Flatten all cards from all pages into a single array
+      // Flatten all posts from all pages into a single array
       return data.pages.flatMap(page => {
-        if (page?.messege?.cards) return page.messege.cards;
-        if (page?.data?.messege?.cards) return page.data.messege.cards;
-        if (page?.cards) return page.cards;
+        if (page?.messege?.posts) return page.messege.posts;
+        if (page?.data?.messege?.posts) return page.data.messege.posts;
+        if (page?.posts) return page.posts;
         return [];
       });
     },

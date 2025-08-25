@@ -51,7 +51,10 @@ const queryClient = new QueryClient()
 
 const App = () => {
 
-    const {show, setShow, messege, explain,type} = useContext(SnackbarContext)
+    // const {show, setShow, messege, explain,type} = useContext(SnackbarContext)
+    // (Provide context null error)
+
+
 
   const dispatch = useDispatch();
 

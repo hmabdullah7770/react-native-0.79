@@ -17,11 +17,13 @@ import { SnackbarContext } from '../context/Snackbar';
 import { useSelector } from 'react-redux';
 import { clearerror, clearmessege,clearusernameerror,clearemailerror,clearemailmessege,clearmatchotp } from '../Redux/action/auth';
 import { useDispatch } from 'react-redux';
+import EmailPassword from '../screens/signIn/EmailPassword'
 // import { connect } from 'react-redux';
 // import PropTypes from 'prop-types'
 
 const AuthScreens = () => {
   const Auth = createStackNavigator();
+  const SignInStack = createStackNavigator();
 
   // const { handleSnackbar } = useContext(SnackbarContext);
 
@@ -75,6 +77,14 @@ const AuthScreens = () => {
     }, [error, messege,emailmessege,emailerror, usernameerror,matchotperror,matchotpmessege]);
 
      console.log('error in AuthScreens', error)
+
+
+
+
+
+
+
+  
 
   return (
     <>

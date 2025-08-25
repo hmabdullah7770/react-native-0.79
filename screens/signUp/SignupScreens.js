@@ -76,17 +76,17 @@ const SignupScreens = () => {
 
 
 
-{/* <Signup.Screen
+ <Signup.Screen
           name="ProfileSocial"
           component={ProfileSocial}
           options={{ headerShown: false }}  // Add this to hide the header
           // options={{ headerShown: false }}
         />
- */}
+ 
 
 
 
-
+{/* 
 <Signup.Screen
           name="ProfileImage2"
           component={ProfileImage2}
@@ -101,7 +101,7 @@ const SignupScreens = () => {
           component={SocialLink2}
           options={{ headerShown: false }}  // Add this to hide the header
           // options={{ headerShown: false }}
-        />
+        /> */}
 
 
         {/* <Auth.Screen

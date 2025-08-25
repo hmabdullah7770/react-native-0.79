@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef  } from 'react';
 import { useDispatch ,useSelector} from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
@@ -24,6 +24,30 @@ const EmailVerification = ({ route, navigation }) => {
   const { email, username, password, otp: expectedOtp } = route?.params || {};
 
 
+console.log('param nav', otp,username, password,email)
+
+
+  useEffect(() => {
+    // Check if any required parameters are missing
+    if ( !username || !password || !email) {
+      console.log('Missing required parameters:', { 
+        // otp: otp || 'missing', 
+        // username: username || 'missing', 
+        // password: password || 'missing',
+        // email: email || 'missing'
+      });
+      navigation.goBack();
+      return;
+    }
+    
+    // // Reset OTP and error state when component mounts
+    // dispatch(clearuser());
+  }, []);
+  
+  // ... rest of your component
+
+
+
   const {user,emailerror} = useSelector(state => state.auth);
 
   // console.log('user from params:', user.data.otp);
@@ -45,7 +69,12 @@ const EmailVerification = ({ route, navigation }) => {
   });
   
   const dispatch = useDispatch();
-  
+  const otpInputRef = useRef(null);
+
+
+ 
+
+
   // Handle screen rotation and dimension changes
   useEffect(() => {
     const updateDimensions = () => {
@@ -104,7 +133,8 @@ useEffect(() => {
   
   const handleVerify = async () => {
    
-   navigation.navigate('SignupScreens',{screen:'ProfileImage2',
+      //  navigation.navigate('SignupScreens',{screen:'ProfileImage2',
+   navigation.navigate('SignupScreens',{screen:'ProfileSocial',
      params: { email, username, password, otp }
 
    });
@@ -135,12 +165,14 @@ useEffect(() => {
       </Text> */}
 
       <OTPInputView
+       ref={otpInputRef}
         style={[styles.otpInput, dynamicStyles.otpInput]}
         pinCount={6}
         autoFocusOnLoad
         codeInputFieldStyle={styles.codeInputField}
         codeInputHighlightStyle={styles.codeInputHighlight}
         onCodeChanged={setOtp}
+        code={otp} // Add this to ensure controlled component
       />
       
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -155,11 +187,11 @@ useEffect(() => {
           ]}
         >
           <LinearGradient 
-            colors={!isValid || loading ? ['#cccccc', '#999999'] : ['#ff0206', '#ff0206']} 
+            colors={!isValid || loading ? ['#cccccc', '#999999'] : ['#1FFFA5', '#1FFFA5']} 
             style={styles.button}
           >
             {loading ? (
-              <ActivityIndicator color="#ff0206" size="small" />
+              <ActivityIndicator color="#1FFFA5" size="small" />
             ) : (
               <Text style={styles.buttonText}>Verify & Continue</Text>
             )}
@@ -173,10 +205,19 @@ useEffect(() => {
           onPress={
             async() => {
           dispatch(clearemaildata());
+         
+          setOtp(''); // Clear OTP input
           await dispatch(verifyemailrequest(email));
         // console.log('emailerror)))))))))))')
        
             // await emailerror
+
+            // Clear the OTP input field using ref (if available)
+    if (otpInputRef.current) {
+      otpInputRef.current.clearText();
+    }
+    
+
         //  if(emailerror){
 
         //   navigation.navigate('SignupScreens', {
@@ -185,7 +226,7 @@ useEffect(() => {
          
         //  console.log('user from params:', user.data.otp);
 
-          setOtp(''); // Clear OTP input
+          
       
         setResendRequested(true); // trigger useEffect to handle response
         //   if(user.data.otp){
@@ -248,7 +289,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(20),
   },
   codeInputHighlight: {
-    borderColor: '#ff0206',
+    borderColor: '#1FFFA5',
     borderWidth: 2,
   },
   errorText: {
@@ -289,7 +330,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(14),
   },
   resendLink: {
-    color: '#ff0206',
+    color: '#1FFFA5',
     fontSize: responsiveSize(14),
     fontWeight: '600',
   }
