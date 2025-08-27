@@ -28,25 +28,90 @@ export const useCategoryNames = () => {
 
 
 
-export const usegetPostsByCategory  = (category, limit) => {
+
+
+
+export const usegetPostsByCategory = (category, limit) => {
+  console.log('🔥 usegetPostsByCategory called with:', { 
+    category, 
+    limit,
+    categoryType: typeof category,
+    categoryLength: category?.length 
+  });
+
   return useInfiniteQuery({
     queryKey: ['categoryPostData', category, limit],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await getPostsByCategory(category, limit, pageParam);
-      return response.data; // This should return the data object that contains messege.posts
+      console.log('📡 Making API call to getPostsByCategory with params:', {
+        category,
+        limit,
+        pageParam,
+        timestamp: new Date().toISOString()
+      });
+
+      try {
+        const response = await getPostsByCategory(category, limit, pageParam);
+        
+        console.log('✅ getPostsByCategory API response received:', {
+          category,
+          pageParam,
+          responseStatus: response?.status,
+          hasData: !!response?.data,
+          dataKeys: response?.data ? Object.keys(response.data) : [],
+          postsCount: response?.data?.messege?.posts?.length || 0,
+          pagination: response?.data?.messege?.pagination,
+          timestamp: new Date().toISOString()
+        });
+
+        return response.data; // This should return the data object that contains messege.posts
+      } catch (error) {
+        console.error('❌ getPostsByCategory API call failed:', {
+          category,
+          pageParam,
+          error: error.message,
+          errorStatus: error?.response?.status,
+          errorData: error?.response?.data,
+          timestamp: new Date().toISOString()
+        });
+        throw error;
+      }
     },
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.messege?.pagination;
-      return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
+      const hasNextPage = pagination?.hasNextPage;
+      const nextPage = hasNextPage ? pagination.currentPage + 1 : undefined;
+      
+      console.log('🔄 getNextPageParam check:', {
+        category,
+        currentPage: pagination?.currentPage,
+        hasNextPage,
+        nextPage,
+        totalPages: pagination?.totalPages
+      });
+
+      return nextPage;
     },
     select: (data) => {
       // Flatten all posts from all pages into a single array
-      return data.pages.flatMap(page => {
+      const flattenedPosts = data.pages.flatMap(page => {
         if (page?.messege?.posts) return page.messege.posts;
         if (page?.data?.messege?.posts) return page.data.messege.posts;
         if (page?.posts) return page.posts;
         return [];
       });
+
+      console.log('📊 Data selection result:', {
+        category,
+        totalPages: data.pages.length,
+        totalPosts: flattenedPosts.length,
+        pagesStructure: data.pages.map((page, index) => ({
+          pageIndex: index,
+          postsCount: page?.messege?.posts?.length || 0,
+          hasValidStructure: !!page?.messege?.posts
+        }))
+      });
+
+      return flattenedPosts;
     },
     staleTime: 2 * 1000, // 2 seconds - data stays fresh for 2 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes - cache retention time
@@ -56,8 +121,58 @@ export const usegetPostsByCategory  = (category, limit) => {
     // Optional: Add these for better UX
     refetchOnMount: 'always', // Always refetch on component mount
     networkMode: 'online', // Only run queries when online
+    
+    // Add onSuccess and onError callbacks for additional logging
+    onSuccess: (data) => {
+      console.log('🎉 usegetPostsByCategory query successful:', {
+        category,
+        postsCount: data?.length || 0,
+        firstPost: data?.[0]?.title || 'No posts'
+      });
+    },
+    
+    onError: (error) => {
+      console.error('💥 usegetPostsByCategory query failed:', {
+        category,
+        error: error.message,
+        stack: error.stack
+      });
+    }
   });
 };
+
+
+
+// export const usegetPostsByCategory  = (category, limit) => {
+//   return useInfiniteQuery({
+//     queryKey: ['categoryPostData', category, limit],
+//     queryFn: async ({ pageParam = 1 }) => {
+//       const response = await getPostsByCategory(category, limit, pageParam);
+//       return response.data; // This should return the data object that contains messege.posts
+//     },
+//     getNextPageParam: (lastPage) => {
+//       const pagination = lastPage?.messege?.pagination;
+//       return pagination?.hasNextPage ? pagination.currentPage + 1 : undefined;
+//     },
+//     select: (data) => {
+//       // Flatten all posts from all pages into a single array
+//       return data.pages.flatMap(page => {
+//         if (page?.messege?.posts) return page.messege.posts;
+//         if (page?.data?.messege?.posts) return page.data.messege.posts;
+//         if (page?.posts) return page.posts;
+//         return [];
+//       });
+//     },
+//     staleTime: 2 * 1000, // 2 seconds - data stays fresh for 2 seconds
+//     gcTime: 5 * 60 * 1000, // 5 minutes - cache retention time
+//     retry: 2, // Retry failed requests twice
+//     refetchOnWindowFocus: false, // Don't refetch when window gains focus
+//     refetchOnReconnect: true, // Refetch when network reconnects
+//     // Optional: Add these for better UX
+//     refetchOnMount: 'always', // Always refetch on component mount
+//     networkMode: 'online', // Only run queries when online
+//   });
+// };
 
 
   

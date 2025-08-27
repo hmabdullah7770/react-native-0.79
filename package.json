@@ -30,6 +30,7 @@
     "formik": "^2.4.6",
     "react": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-audio": "^4.3.0",
     "react-native-axios": "^0.17.1",
     "react-native-edge-to-edge": "^1.6.2",
     "react-native-gesture-handler": "^2.25.0",
