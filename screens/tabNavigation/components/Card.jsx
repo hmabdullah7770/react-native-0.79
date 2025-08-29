@@ -6,87 +6,136 @@ import CardBottomBar from './CardBottomBar';
 import { useDispatch, useSelector } from 'react-redux';
 import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Sound from 'react-native-sound';
+import TrackPlayer, { RepeatMode, State } from 'react-native-track-player';
 
-// Enable playback in silence mode
-Sound.setCategory('Playback');
+// TrackPlayer will handle audio focus/silent switch based on platform defaults
 
 const Card = memo(({ item, index, navigation }) => {
   const dispatch = useDispatch();
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isSongPlaying, setIsSongPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [sound, setSound] = useState(null);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const videoRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
 
-  // Play song automatically if it exists
+  // Prepare player and (re)load background song when item or mute changes
   useEffect(() => {
-    if (item.song && item.song.length > 0 && !isMuted) {
-      playBackgroundSong();
-    }
-    return () => {
-      if (sound) {
-        sound.release();
+    let isCancelled = false;
+
+    const setupAndPlay = async () => {
+      try {
+        // Ensure player is set up once
+        if (!isPlayerReady) {
+          await TrackPlayer.setupPlayer();
+          setIsPlayerReady(true);
+        } else {
+          // Stop any current queue
+          await TrackPlayer.reset();
+        }
+
+        if (item.song && item.song.length > 0) {
+          await TrackPlayer.add({
+            id: 'background-song',
+            url: item.song[0],
+            title: item.title || 'Background',
+            artist: item.owner?.username || 'Unknown',
+            artwork: item.thumbnail,
+          });
+          await TrackPlayer.setRepeatMode(RepeatMode.Track);
+          if (!isMuted) {
+            await TrackPlayer.play();
+            if (!isCancelled) setIsSongPlaying(true);
+          } else {
+            await TrackPlayer.pause();
+            if (!isCancelled) setIsSongPlaying(false);
+          }
+        } else {
+          // No song for this item
+          await TrackPlayer.stop();
+          if (!isCancelled) setIsSongPlaying(false);
+        }
+      } catch (error) {
+        console.error('TrackPlayer setup/play error:', error);
       }
+    };
+
+    setupAndPlay();
+
+    return () => {
+      isCancelled = true;
+      // Reset queue when this card unmounts
+      TrackPlayer.reset().catch(() => {});
     };
   }, [item.song, isMuted]);
 
-  const playBackgroundSong = () => {
-    if (sound) {
-      sound.release();
-    }
-
-    const newSound = new Sound(item.song[0], null, (error) => {
-      if (error) {
-        console.error('Error loading song:', error);
-        return;
+  const playBackgroundSong = async () => {
+    try {
+      if (!isPlayerReady) {
+        await TrackPlayer.setupPlayer();
+        setIsPlayerReady(true);
+      } else {
+        await TrackPlayer.reset();
       }
-      
-      newSound.setNumberOfLoops(-1); // Loop indefinitely
-      newSound.play((success) => {
-        if (success) {
-          setIsSongPlaying(true);
-        } else {
-          console.error('Error playing song');
-        }
-      });
-    });
-    
-    setSound(newSound);
+      if (item.song && item.song.length > 0) {
+        await TrackPlayer.add({
+          id: 'background-song',
+          url: item.song[0],
+          title: item.title || 'Background',
+          artist: item.owner?.username || 'Unknown',
+          artwork: item.thumbnail,
+        });
+        await TrackPlayer.setRepeatMode(RepeatMode.Track);
+        await TrackPlayer.play();
+        setIsSongPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing background song:', error);
+    }
   };
 
-  const playAudioFile = () => {
+  const playAudioFile = async () => {
     if (!item.audioUrl) return;
-
-    const audioSound = new Sound(item.audioUrl, null, (error) => {
-      if (error) {
-        console.error('Error loading audio:', error);
-        return;
+    try {
+      if (!isPlayerReady) {
+        await TrackPlayer.setupPlayer();
+        setIsPlayerReady(true);
+      } else {
+        await TrackPlayer.reset();
       }
-      
-      audioSound.play((success) => {
-        if (!success) {
-          console.error('Error playing audio');
-        }
-        audioSound.release();
+      await TrackPlayer.add({
+        id: 'single-audio',
+        url: item.audioUrl,
+        title: 'Audio',
+        artist: item.owner?.username || 'Unknown',
+        artwork: item.thumbnail,
       });
-    });
+      await TrackPlayer.setRepeatMode(RepeatMode.Off);
+      await TrackPlayer.play();
+    } catch (error) {
+      console.error('Error playing audio file:', error);
+    }
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    if (sound) {
-      if (isMuted) {
-        // Unmute
-        sound.play();
-        setIsSongPlaying(true);
-      } else {
-        // Mute
-        sound.pause();
-        setIsSongPlaying(false);
-      }
-    }
+    TrackPlayer.getState()
+      .then(async (state) => {
+        if (isMuted) {
+          // Unmute => resume
+          if (state === State.Paused || state === State.Ready) {
+            await TrackPlayer.play();
+            setIsSongPlaying(true);
+          }
+        } else {
+          // Mute => pause
+          if (state === State.Playing) {
+            await TrackPlayer.pause();
+            setIsSongPlaying(false);
+          }
+        }
+      })
+      .catch(() => {});
   };
 
   const handleStorePress = () => {
