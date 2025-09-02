@@ -541,4 +541,12 @@ response api  category ==>{
         }
     },
     "success": true
-}
+}   
+
+
+
+
+prompt 2 ========
+
+
+(keep in min if audio url exist the we see that play botton and it only play when we click  an song is run automitiaccly when we are on that post when we play the audio url the song audio stop and when we are on the next post means scroll on screen next  hte both song stops the audio button ) 

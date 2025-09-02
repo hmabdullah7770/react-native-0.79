@@ -25,7 +25,14 @@ import {SnackbarContext} from './context/Snackbar'
 
 import { tokencheck } from './Redux/action/auth';
 
+// Add this to your App.js
+
 // import { tokencheckrequest } from './Redux/action/auth';
+
+
+
+
+
 
 
 if (__DEV__) {
@@ -56,6 +63,11 @@ const App = () => {
 
 
 
+
+
+
+
+
   const dispatch = useDispatch();
 
 //   const getToken = async () => {
@@ -80,8 +92,8 @@ const App = () => {
         // Attempt to retrieve the access token from Keychain
       // // console.log('Clearing all stored tokens...');
       
-        await Keychain.resetGenericPassword({service:'accessToken'});
-        await Keychain.resetGenericPassword({service:'refreshToken'});
+        // await Keychain.resetGenericPassword({service:'accessToken'});
+        // await Keychain.resetGenericPassword({service:'refreshToken'});
       //   console.log('Tokens cleared successfully');
      
      
