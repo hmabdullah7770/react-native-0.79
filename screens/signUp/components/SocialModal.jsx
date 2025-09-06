@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   buttonSave: {
-    backgroundColor: '#4CAF50'
+    backgroundColor: '#1FFFA5'
   },
   buttonSaveText: {
     color: 'white',

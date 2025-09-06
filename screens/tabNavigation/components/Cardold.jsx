@@ -6,216 +6,153 @@ import CardBottomBar from './CardBottomBar';
 import { useDispatch, useSelector } from 'react-redux';
 import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { AudioContext, AudioBufferSourceNode, GainNode } from 'react-native-audio-api';
+import TrackPlayer, { RepeatMode, State } from 'react-native-track-player';
+
+// TrackPlayer will handle audio focus/silent switch based on platform defaults
 
 const Card = memo(({ item, index, navigation }) => {
   const dispatch = useDispatch();
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isSongPlaying, setIsSongPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const videoRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
-  
-  // Audio API refs
-  const audioContextRef = useRef(null);
-  const backgroundSongSourceRef = useRef(null);
-  const audioFileSourceRef = useRef(null);
-  const gainNodeRef = useRef(null);
-  const backgroundAudioBufferRef = useRef(null);
-  const audioFileBufferRef = useRef(null);
 
-  // Initialize Audio Context when component mounts
+  // Initialize TrackPlayer when component mounts
   useEffect(() => {
-    const initializeAudioContext = async () => {
+    const initializePlayer = async () => {
       try {
-        audioContextRef.current = new AudioContext();
-        gainNodeRef.current = new GainNode(audioContextRef.current, { gain: isMuted ? 0 : 1 });
-        gainNodeRef.current.connect(audioContextRef.current.destination);
+        await TrackPlayer.setupPlayer();
+        setIsPlayerReady(true);
       } catch (error) {
-        console.error('Failed to initialize AudioContext:', error);
+        console.error('Failed to setup player:', error);
       }
     };
     
-    initializeAudioContext();
+    initializePlayer();
     
     // Cleanup when component unmounts
     return () => {
-      stopAllAudio();
-      if (audioContextRef.current) {
-        audioContextRef.current.close().catch(() => {});
-      }
+      TrackPlayer.reset().catch(() => {});
     };
   }, []);
 
-  // Load and setup background song when item changes
+  // Prepare player and (re)load background song when item or mute changes
   useEffect(() => {
-    if (item.song && item.song.length > 0) {
-      loadBackgroundSong();
-    }
-  }, [item.song]);
+    let isCancelled = false;
 
-  // Handle mute/unmute
-  useEffect(() => {
-    if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = isMuted ? 0 : 1;
-    }
-  }, [isMuted]);
+    const setupAndPlay = async () => {
+      try {
+        if (!isPlayerReady) {
+          await TrackPlayer.setupPlayer();
+          setIsPlayerReady(true);
+        } else {
+          await TrackPlayer.reset();
+        }
 
-  const loadBackgroundSong = async () => {
-    if (!audioContextRef.current || !item.song || item.song.length === 0) return;
-
-    try {
-      setIsAudioLoading(true);
-      
-      // Stop current background song if playing
-      if (backgroundSongSourceRef.current) {
-        backgroundSongSourceRef.current.stop();
-        backgroundSongSourceRef.current = null;
+        if (item.song && item.song.length > 0) {
+          await TrackPlayer.add({
+            id: 'background-song',
+            url: item.song[0],
+            title: item.title || 'Background',
+            artist: item.owner?.username || 'Unknown',
+            artwork: item.thumbnail,
+          });
+          await TrackPlayer.setRepeatMode(RepeatMode.Track);
+          if (!isMuted) {
+            await TrackPlayer.play();
+            if (!isCancelled) setIsSongPlaying(true);
+          } else {
+            await TrackPlayer.pause();
+            if (!isCancelled) setIsSongPlaying(false);
+          }
+        } else {
+          await TrackPlayer.stop();
+          if (!isCancelled) setIsSongPlaying(false);
+        }
+      } catch (error) {
+        console.error('TrackPlayer setup/play error:', error);
+        // Add user-friendly error handling here
       }
+    };
 
-      // Fetch and decode audio
-      const response = await fetch(item.song[0]);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      
-      backgroundAudioBufferRef.current = audioBuffer;
-      
-      // Auto-play if not muted
-      if (!isMuted) {
-        playBackgroundSong();
-      }
-    } catch (error) {
-      console.error('Error loading background song:', error);
-    } finally {
-      setIsAudioLoading(false);
-    }
-  };
+    setupAndPlay();
+
+    return () => {
+      isCancelled = true;
+      // Reset queue when this card unmounts
+      TrackPlayer.reset().catch(() => {});
+    };
+  }, [item.song, isMuted]);
 
   const playBackgroundSong = async () => {
-    if (!audioContextRef.current || !backgroundAudioBufferRef.current) return;
-
     try {
-      // Stop current source if exists
-      if (backgroundSongSourceRef.current) {
-        backgroundSongSourceRef.current.stop();
+      if (!isPlayerReady) {
+        await TrackPlayer.setupPlayer();
+        setIsPlayerReady(true);
+      } else {
+        await TrackPlayer.reset();
       }
-
-      // Create new source
-      backgroundSongSourceRef.current = new AudioBufferSourceNode(audioContextRef.current, {
-        buffer: backgroundAudioBufferRef.current,
-        loop: true, // Loop the background song
-      });
-
-      // Connect to gain node (for volume control)
-      backgroundSongSourceRef.current.connect(gainNodeRef.current);
-      
-      // Start playing
-      backgroundSongSourceRef.current.start();
-      setIsSongPlaying(true);
-
-      // Handle ended event (shouldn't happen with loop: true, but just in case)
-      backgroundSongSourceRef.current.addEventListener('ended', () => {
-        setIsSongPlaying(false);
-        // Restart the song automatically
-        if (!isMuted && backgroundAudioBufferRef.current) {
-          setTimeout(() => playBackgroundSong(), 100);
-        }
-      });
-
+      if (item.song && item.song.length > 0) {
+        await TrackPlayer.add({
+          id: 'background-song',
+          url: item.song[0],
+          title: item.title || 'Background',
+          artist: item.owner?.username || 'Unknown',
+          artwork: item.thumbnail,
+        });
+        await TrackPlayer.setRepeatMode(RepeatMode.Track);
+        await TrackPlayer.play();
+        setIsSongPlaying(true);
+      }
     } catch (error) {
       console.error('Error playing background song:', error);
-      setIsSongPlaying(false);
-    }
-  };
-
-  const stopBackgroundSong = () => {
-    if (backgroundSongSourceRef.current) {
-      try {
-        backgroundSongSourceRef.current.stop();
-        backgroundSongSourceRef.current = null;
-        setIsSongPlaying(false);
-      } catch (error) {
-        console.error('Error stopping background song:', error);
-      }
     }
   };
 
   const playAudioFile = async () => {
-    if (!item.audioUrl || !audioContextRef.current) return;
-
+    if (!item.audioUrl) return;
     try {
-      setIsAudioLoading(true);
-
-      // Stop current audio file if playing
-      if (audioFileSourceRef.current) {
-        audioFileSourceRef.current.stop();
-        audioFileSourceRef.current = null;
+      if (!isPlayerReady) {
+        await TrackPlayer.setupPlayer();
+        setIsPlayerReady(true);
+      } else {
+        await TrackPlayer.reset();
       }
-
-      // Stop background song temporarily
-      const wasBackgroundPlaying = isSongPlaying;
-      if (wasBackgroundPlaying) {
-        stopBackgroundSong();
-      }
-
-      // Load audio file if not already loaded
-      if (!audioFileBufferRef.current) {
-        const response = await fetch(item.audioUrl);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-        audioFileBufferRef.current = audioBuffer;
-      }
-
-      // Create and play source
-      audioFileSourceRef.current = new AudioBufferSourceNode(audioContextRef.current, {
-        buffer: audioFileBufferRef.current,
+      await TrackPlayer.add({
+        id: 'single-audio',
+        url: item.audioUrl,
+        title: 'Audio',
+        artist: item.owner?.username || 'Unknown',
+        artwork: item.thumbnail,
       });
-
-      audioFileSourceRef.current.connect(gainNodeRef.current);
-      audioFileSourceRef.current.start();
-
-      // Handle ended event
-      audioFileSourceRef.current.addEventListener('ended', () => {
-        audioFileSourceRef.current = null;
-        // Resume background song if it was playing
-        if (wasBackgroundPlaying && !isMuted) {
-          playBackgroundSong();
-        }
-      });
-
+      await TrackPlayer.setRepeatMode(RepeatMode.Off);
+      await TrackPlayer.play();
     } catch (error) {
       console.error('Error playing audio file:', error);
-    } finally {
-      setIsAudioLoading(false);
     }
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    
-    if (!isMuted) {
-      // Muting - stop all audio
-      stopAllAudio();
-    } else {
-      // Unmuting - resume background song if available
-      if (backgroundAudioBufferRef.current) {
-        playBackgroundSong();
-      }
-    }
-  };
-
-  const stopAllAudio = () => {
-    if (backgroundSongSourceRef.current) {
-      backgroundSongSourceRef.current.stop();
-      backgroundSongSourceRef.current = null;
-      setIsSongPlaying(false);
-    }
-    
-    if (audioFileSourceRef.current) {
-      audioFileSourceRef.current.stop();
-      audioFileSourceRef.current = null;
-    }
+    TrackPlayer.getState()
+      .then(async (state) => {
+        if (isMuted) {
+          // Unmute => resume
+          if (state === State.Paused || state === State.Ready) {
+            await TrackPlayer.play();
+            setIsSongPlaying(true);
+          }
+        } else {
+          // Mute => pause
+          if (state === State.Playing) {
+            await TrackPlayer.pause();
+            setIsSongPlaying(false);
+          }
+        }
+      })
+      .catch(() => {});
   };
 
   const handleStorePress = () => {
@@ -486,15 +423,10 @@ const Card = memo(({ item, index, navigation }) => {
           {/* Audio play button */}
           {item.audiocount > 0 && item.audioUrl && (
             <TouchableOpacity 
-              style={[styles.audioButton, isAudioLoading && styles.audioButtonLoading]}
+              style={styles.audioButton}
               onPress={playAudioFile}
-              disabled={isAudioLoading}
             >
-              {isAudioLoading ? (
-                <Icon name="hourglass-outline" size={30} color="#fff" />
-              ) : (
-                <Icon name="play-circle-outline" size={30} color="#fff" />
-              )}
+              <Icon name="play-circle-outline" size={30} color="#fff" />
             </TouchableOpacity>
           )}
 
@@ -504,11 +436,7 @@ const Card = memo(({ item, index, navigation }) => {
               style={styles.muteButton}
               onPress={toggleMute}
             >
-              <Icon 
-                name={isMuted ? "volume-mute" : (isSongPlaying ? "volume-high" : "volume-medium")} 
-                size={24} 
-                color="#fff" 
-              />
+              <Icon name={isMuted ? "volume-mute" : "volume-high"} size={24} color="#fff" />
             </TouchableOpacity>
           )}
 
@@ -622,9 +550,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     padding: 8,
     borderRadius: 20,
-  },
-  audioButtonLoading: {
-    opacity: 0.6,
   },
   muteButton: {
     backgroundColor: 'rgba(0,0,0,0.7)',
@@ -832,3 +757,269 @@ const styles = StyleSheet.create({
 });
 
 export default Card;
+
+
+// // import React, { memo } from 'react';
+// import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions } from 'react-native';
+// import { format } from 'date-fns';
+// import CardSideBar from './CardSideBar';
+// import CardBottomBar from './CardBottomBar';
+// import { useDispatch,useSelector } from 'react-redux';
+// // import store
+// //import cart 
+
+
+
+
+
+
+// const Card = memo(({ item, index ,navigation}) => {
+
+//   const dispatch = useDispatch();
+
+
+//   const handleStorePress =()=>{
+
+//      dispatch(storeRequest(item._id));
+
+//      navigation.navigate('StoreScreens', {
+//       screen: 'Store_HomeScreen',
+//       params: { storeId: item._id }
+//     });
+//   }
+
+
+//   const handleCartPress =()=>{
+
+
+//     if(productId){
+//      dispatch(ProductRequest(item._id));
+
+    
+//      navigation.navigate('StoreScreens', {
+//       screen: 'Store_ProductScreen',
+//       params: { storeId: item._id }
+//     });
+//   }
+
+//   else{
+
+//     console.log('go to web url of product')
+//   }
+
+
+// }
+
+
+//   const formatDate = (dateString) => {
+//     try {
+//       return format(new Date(dateString), 'MMM dd, yyyy');
+//     } catch (error) {
+//       return 'Invalid date';
+//     }
+//   };
+
+//   const handlePress = () => {
+//     // Handle card press
+//     console.log('Card pressed:', item._id);
+//   };
+
+//   return (
+//     <View style={styles.wrapper}>
+//       <CardSideBar item={item} />
+     
+//       <View style={styles.bottomContainer}>
+//           {/* Profile Section */}
+//           <View style={styles.profileSection}>
+//             <Image 
+//               source={{ uri: item.owner?.avatar }}
+//               style={styles.avatar}
+//               defaultSource={{ uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' }}
+//             />
+//             <View style={styles.textSection}>
+//               <Text style={styles.title} numberOfLines={2}>
+//                 {item.title}
+//               </Text>
+//               <Text style={styles.username}>
+//                 {item.owner?.username || 'Unknown User'}
+//               </Text>
+//             </View>
+//           </View>
+
+//           {/* Stats Section */}
+//           <View style={styles.statsSection}>
+//             <Text style={styles.stats}>
+//               {`${item.views || 0} views • ${formatDate(item.createdAt)}`}
+//             </Text>
+//             <View style={styles.ratingContainer}>
+//               <Text style={styles.rating}>
+//                 ★ {(item.averageRating || 0).toFixed(1)}
+//               </Text>
+//               <Text style={styles.ratingCount}>
+//                 ({item.ratingCount || 0})
+//               </Text>
+//             </View>
+//           </View>
+
+          
+//         </View>
+     
+//       <TouchableOpacity 
+//         style={styles.container}
+//         onPress={handlePress}
+//         activeOpacity={0.9}
+//       >
+//         {/* Thumbnail */}
+//         <Image 
+//           source={{ uri: item.thumbnail }}
+//           style={styles.thumbnail}
+//           resizeMode="cover"
+//           loadingIndicatorSource={{ uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' }}
+//         />
+
+
+
+  
+
+//       {item.store==true && (
+//   <TouchableOpacity 
+//     style={styles.storeButton}
+    
+//     // onPress={() => navigation.navigate('StoreScreens', {
+//     //   screen: 'Store_HomeScreen', 
+//     //   params: { storeId: item._id }
+//     // }
+//     // )}
+//     onPress={handleStorePress}
+
+//   >
+//     <Text style={styles.storeButtonText}>Store</Text>
+//   </TouchableOpacity>
+// )}
+
+
+//  {item.productLink || item.productId && (
+
+// <TouchableOpacity
+// //also provide web url of the product if the user provide product link  
+
+// //  onPress={() => navigation.navigate('StoreScreens',{screen:'Store_ProductScreen', params: { productId: item._id }})}
+
+// onPress={handleCartPress}
+// >
+
+//   <Text>cart</Text>
+// </TouchableOpacity>
+// )}
+
+//       </TouchableOpacity>
+//     {/* Description */}
+//           <Text style={styles.description} numberOfLines={2}>
+//             {item.description}
+//           </Text>
+    
+// <View>
+
+//       <CardBottomBar item={item} />
+// </View>
+
+//     </View>
+//   );
+// }, (prevProps, nextProps) => {
+//   // Custom comparison function to prevent unnecessary re-renders
+//   return (
+//     prevProps.item._id === nextProps.item._id &&
+//     prevProps.item.views === nextProps.item.views &&
+//     prevProps.item.averageRating === nextProps.item.averageRating &&
+//     prevProps.item.ratingCount === nextProps.item.ratingCount &&
+//     prevProps.index === nextProps.index
+//   );
+// });
+
+// Card.displayName = 'Card';
+
+// const { width } = Dimensions.get('window');
+
+// const styles = StyleSheet.create({
+//   wrapper: {
+//     flexDirection: 'row',
+//     marginBottom: 15,
+//     backgroundColor: '#fff',
+//     elevation: 1,
+//   },
+//   container: {
+//     width: width - 50, // Reduced to account for sidebar
+//     backgroundColor: '#fff',
+//   },
+//   thumbnail: {
+//     width: '100%',
+//     height: 200,
+//     backgroundColor: '#f0f0f0',
+//   },
+//   bottomContainer: {
+//     padding: 12,
+//   },
+//   profileSection: {
+//     flexDirection: 'row',
+//     marginBottom: 8,
+//   },
+//   avatar: {
+//     width: 40,
+//     height: 40,
+//     borderRadius: 20,
+//     marginRight: 12,
+//     backgroundColor: '#f0f0f0',
+//   },
+//   textSection: {
+//     flex: 1,
+//   },
+//   title: {
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//     color: '#000',
+//     marginBottom: 4,
+//   },
+//   username: {
+//     fontSize: 14,
+//     color: '#666',
+//   },
+//   statsSection: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     marginBottom: 8,
+//   },
+//   stats: {
+//     fontSize: 12,
+//     color: '#666',
+//   },
+//   ratingContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//   },
+//   rating: {
+//     fontSize: 12,
+//     color: '#FFB800',
+//     marginRight: 4,
+//   },
+//   ratingCount: {
+//     fontSize: 12,
+//     color: '#666',
+//   },
+//   description: {
+//     fontSize: 13,
+//     color: '#666',
+//     lineHeight: 18,
+//   },
+// });
+
+// export default Card;
+
+
+
+
+
+
+
+
+
+

@@ -191,21 +191,19 @@ function* VerifyEmailSaga (payload) {
 }
 
 
-function* SignUpSaga(payload) {
+function* SignUpSaga(action) {
   try {
+
+    const signupData = action.payload; 
     yield put(actions.setloading(true));
-    const response = yield call(api.signup, 
-      payload.username, 
-      payload.password,
-      payload.email,
-      payload.otp,
-      // payload.phone,
-      payload.avatar,
-      payload.storelink,
-      payload.whatsapp,
-      payload.facebook,
-      payload.instagram,
-    );
+    
+    
+    console.log("in saga sign up before api call===>")
+    // Pass the entire object to the API
+    const response = yield call(api.signup, signupData);
+
+    console.log("in saga sign up after api call ===>")
+
 
     if (response.status === 200) {
       if (!response.data || typeof response.data !== 'object') {
@@ -229,18 +227,38 @@ function* SignUpSaga(payload) {
         );
       } else {
         yield put(
-          actions.signupsuccessful(response.data, [
-            'signup Successful',
+          actions.signupsuccessful(response.data, 
+           [ 'signup Successful',
             'now login',
-            navigate('SigninScreens',{screen:'EmailPassword'}),
-          ]),
+           ]
+          ),
         );
+        
+        // navigate('SignInScreens'  , {screen:'EmailPassword'})
+     
+         // FIXED: Navigate to the correct nested screen
+         navigate('SigninScreen', { 
+          screen: 'EmailPassword' 
+        });
+       // Navigation reset in saga
+      //  navigate('AuthScreens', {
+      //   action: 'reset',
+      //   index: 0,
+      //   routes: [
+      //     {
+      //       name: 'SigninScreen',
+      //       params: { screen: 'EmailPassword' }
+      //     }
+      //   ]
+      // });
+    
+      
       }
     } else {
       yield put(
         actions.signupfail({
           error: [
-            `Unexpected response status: ${response.status}`,
+            `Unexpected response status: ${response.status} and ${response.data.error}`,
             'please try again',
           ],
         }),

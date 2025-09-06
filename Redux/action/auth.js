@@ -140,19 +140,40 @@ export const matchotpfail = matchotperror => ({
 
 
 //SignUp
-export const signuprequest = (username, password, email, avatar,otp,phone ,whatsapp,facebook,instagram) => ({
+export const signuprequest = (signupData) => {
+  console.log("sign up request action",signupData)
+  
+  return {
   type: 'SIGNUP_REQUEST',
-  username,
-  password, 
-  email,
-   avatar,
-   otp,
-  //  phone ,
-  storelink,
-   whatsapp,
-   facebook,
-   instagram
-});
+  payload: signupData
+}};
+
+
+
+
+// console.log('sgnuprequest.signupdata  ------>',signuprequest(signupData))
+
+
+// // Change this in Redux/action/auth.js
+// export const signuprequest = (username, password, email, otp, avatar, storelink, whatsapp, facebook, instagram, bio) => {
+//   console.log("sign up request action", {username, password, email, otp, avatar, storelink, whatsapp, facebook, instagram, bio})
+//   return {
+//     type: 'SIGNUP_REQUEST',
+//     username,
+//     password,
+//     email,
+//     otp,
+//     avatar,
+//     storelink,
+//     whatsapp,
+//     facebook,
+//     instagram,
+//     bio
+//   };
+// };
+
+
+ 
 
 
 export const signupsuccessful = (data, messege) => ({

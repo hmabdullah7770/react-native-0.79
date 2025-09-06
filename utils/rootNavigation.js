@@ -7,3 +7,18 @@ export function navigate(name, params) {
     navigationRef.navigate(name, params);
   }
 }
+
+
+
+export function reset(resetState) {
+  if (navigationRef.isReady()) {
+    navigationRef.dispatch(CommonActions.reset(resetState));
+  }
+}
+
+
+export function goBack() {
+  if (navigationRef.isReady()) {
+    navigationRef.goBack();
+  }
+}

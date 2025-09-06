@@ -28,7 +28,14 @@ const Feed = () => {
 
   const selectedCategoryName = categoriesWithAll[selectedCategoryIndex]?.name;
 
-  // useCategoryDataInfinite now returns a flat array of cards as data
+  // Add debugging
+  console.log('🔍 Feed Debug:', {
+    selectedCategoryIndex,
+    selectedCategoryName,
+    categoriesWithAll: categoriesWithAll.map(c => c.name),
+    categoriesLength: categories.length
+  });
+
   const {
     data: allItems,
     isLoading,
@@ -36,10 +43,17 @@ const Feed = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch}= 
-    usegetPostsByCategory(selectedCategoryName,LIMIT) 
+    refetch
+  } = usegetPostsByCategory(selectedCategoryName, LIMIT);
 
-  // } = useCategoryDataInfinite(selectedCategoryName, LIMIT);
+  // Add more debugging
+  console.log('📊 Posts Data:', {
+    allItemsLength: allItems?.length || 0,
+    isLoading,
+    error: error?.message,
+    selectedCategoryName,
+    firstItem: allItems?.[0]?.title || 'No items'
+  });
 
   useEffect(() => {
     if (selectedCategoryName && flashListRef.current) {
