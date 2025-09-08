@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons'; // You'll need to install this
 import HomeScreen from './HomeScreen';
 import OfferScreen from './OfferScreen';
-import CreatepostScreen from './CreatepostScreen';
+import CreatepostScreen from './CreatePost/CreatepostScreen';
 // import Hoc from '../hoc/Hoc';
 import SettingScreen from './SettingScreen'; 
 import ProfileScreen from './profilescreen/ProfileScreen';  

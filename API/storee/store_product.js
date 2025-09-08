@@ -5,68 +5,28 @@ import api from '../services/apiservice';
 
 
 
-//create order by customer
+//create product by store owner
 
 
-export const addproduct = (storeId,productName,description,productPrice,warnings,productDiscount,productSizes,productColors,category,stock,variants = [],specifications ,tags ,// productImages
-    ) =>
-  api.post(`/stores/:storeId/products${encodeURIComponent(storeId)}`, {
-       
-        productName,
-        description,
-        productPrice,
-        warnings,    
-        productDiscount,
-        productSizes,
-        productColors,
-     
-        category,
-        stock,
-        variants,
-        specifications,
-        tags,
-      productImages,     //array
-    
-    });
+export const addproduct = (storeId, productData) =>
+  api.post(`/stores/${encodeURIComponent(storeId)}/products`, productData);
 
 
 //get product of the stores
+export const getstoreproduct = (storeId) =>
+  api.get(`/stores/${encodeURIComponent(storeId)}/products`);
 
-export const getstoreproduct= () =>
-
-    
-  api.get(`/stores/:storeId/products${encodeURIComponent(storeId)}`, {
-   
-
-    
-  });
-
-//get product  by id  (plus store id which we also needed)
- export const getproductbyId= (productId) =>
-  api.get(`/stores/products/:productId${encodeURIComponent(productId)}`)
+//get product by id
+export const getproductbyId = (productId) =>
+  api.get(`/stores/products/${encodeURIComponent(productId)}`);
 
 
 
-//delete order by customers
-export const deleteProduct = (storeId,productId) =>
-  api.delete(`/stores/:storeId/products/:productId${encodeURIComponent(storeId)}/${encodeURIComponent(productId)}`);
+//delete product by store owner
+export const deleteProduct = (storeId, productId) =>
+  api.delete(`/stores/${encodeURIComponent(storeId)}/products/${encodeURIComponent(productId)}`);
 
 
 //update product by owner
-export const updateProduct = (storeId,productId,productName,description,productPrice,warnings,productDiscount,productSizes,productColors,category,stock,variants = [],specifications ,tags ,// productImages
-    ) =>
-  api.put(`/stores/:storeId/products/:productId${encodeURIComponent(storeId)}/${encodeURIComponent(productId)}`, {
-    productName,
-    description,
-    productPrice,
-    warnings,
-    productDiscount,
-    productSizes,
-    productColors,
-    category,
-    stock,
-    // variants = [],
-    specifications ,
-    tags ,
-    productImages
-  })
+export const updateProduct = (storeId, productId, productData) =>
+  api.put(`/stores/${encodeURIComponent(storeId)}/products/${encodeURIComponent(productId)}`, productData);
