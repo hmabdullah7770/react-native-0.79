@@ -52,13 +52,46 @@ const ImageGrid = ({visible, onClose}) => {
   };
 
   const handleRemoveMedia = index => {
-    setSelectedMedia(prev => prev.filter((_, i) => i !== index));
+    const updatedMedia = selectedMedia.filter((_, i) => i !== index);
+    setSelectedMedia(updatedMedia);
     
     // Hide video settings if no videos remaining
-    const hasVideo = selectedMedia.filter((_, i) => i !== index).some(media => media.isVideo);
+    const hasVideo = updatedMedia.some(media => media.isVideo);
     if (!hasVideo) {
       setShowVideoSettings(false);
+      // Reset video settings when no videos
+      setVideoSettings({
+        autoPlay: true,
+        thumbnail: null,
+      });
     }
+  };
+
+  const handleRemoveAllMedia = () => {
+    Alert.alert(
+      'Remove All Media',
+      'Are you sure you want to remove all uploaded media?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Remove All',
+          style: 'destructive',
+          onPress: () => {
+            setSelectedMedia([]);
+            setShowVideoSettings(false);
+            setVideoSettings({
+              autoPlay: true,
+              thumbnail: null,
+            });
+            // Reset to default layout when all media is removed
+            setSelectedLayout('1');
+          },
+        },
+      ]
+    );
   };
 
   const handleThumbnailUpload = () => {
@@ -92,6 +125,7 @@ const ImageGrid = ({visible, onClose}) => {
         <TouchableOpacity style={styles.uploadPlaceholder} onPress={handleMediaUpload}>
           <Icon name="add" size={40} color="#666" />
           <Text style={styles.uploadText}>Tap to upload media</Text>
+          <Text style={styles.uploadSubText}>Photos and videos</Text>
         </TouchableOpacity>
       );
     }
@@ -101,6 +135,20 @@ const ImageGrid = ({visible, onClose}) => {
 
     return (
       <View style={styles.mediaContainer}>
+        {/* Media Grid Header with Remove All Button */}
+        <View style={styles.mediaHeader}>
+          <Text style={styles.mediaCount}>
+            {selectedMedia.length} {selectedMedia.length === 1 ? 'item' : 'items'} selected
+          </Text>
+          <TouchableOpacity 
+            style={styles.removeAllButton} 
+            onPress={handleRemoveAllMedia}
+          >
+            <Icon name="delete-outline" size={20} color="#ff4757" />
+            <Text style={styles.removeAllText}>Remove All</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={[styles.mediaGrid, {flexDirection: cols === 1 ? 'column' : 'row'}]}>
           {selectedMedia.map((media, index) => (
             <View
@@ -109,24 +157,29 @@ const ImageGrid = ({visible, onClose}) => {
                 styles.mediaItem,
                 {
                   width: cols === 1 ? '100%' : cols === 2 ? '48%' : '31%',
-                  marginRight: cols > 1 ? '2%' : 0,
+                  marginRight: cols > 1 && (index + 1) % cols !== 0 ? '2%' : 0,
                 },
               ]}>
               <Image source={{uri: media.uri}} style={styles.mediaImage} />
               {media.isVideo && (
                 <View style={styles.videoOverlay}>
-                  <Icon name="play-circle-filled" size={30} color="rgba(255,255,255,0.8)" />
+                  <Icon name="play-circle-filled" size={30} color="rgba(255,255,255,0.9)" />
                 </View>
               )}
+              {/* Enhanced Remove Button */}
               <TouchableOpacity
                 style={styles.removeButton}
-                onPress={() => handleRemoveMedia(index)}>
-                <Icon name="close" size={16} color="#fff" />
+                onPress={() => handleRemoveMedia(index)}
+                activeOpacity={0.7}>
+                <Icon name="close" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           ))}
+          
+          {/* Add More Button */}
           <TouchableOpacity style={styles.addMoreButton} onPress={handleMediaUpload}>
             <Icon name="add" size={24} color="#666" />
+            <Text style={styles.addMoreText}>Add More</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -144,40 +197,45 @@ const ImageGrid = ({visible, onClose}) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Media Grid */}
           <View style={styles.gridContainer}>
             {renderMediaGrid()}
           </View>
 
-          {/* Layout Options */}
-          <View style={styles.layoutSection}>
-            <Text style={styles.sectionTitle}>Layout Style</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.layoutOptions}>
-                {layoutOptions.map(option => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.layoutButton,
-                      selectedLayout === option.id && styles.selectedLayout,
-                    ]}
-                    onPress={() => setSelectedLayout(option.id)}>
-                    <Text
+          {/* Layout Options - Only show when media is uploaded */}
+          {selectedMedia.length > 0 && (
+            <View style={styles.layoutSection}>
+              <Text style={styles.sectionTitle}>Layout Style</Text>
+              <Text style={styles.sectionDescription}>
+                Choose how your media will be displayed
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.layoutOptions}>
+                  {layoutOptions.map(option => (
+                    <TouchableOpacity
+                      key={option.id}
                       style={[
-                        styles.layoutText,
-                        selectedLayout === option.id && styles.selectedLayoutText,
-                      ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+                        styles.layoutButton,
+                        selectedLayout === option.id && styles.selectedLayout,
+                      ]}
+                      onPress={() => setSelectedLayout(option.id)}>
+                      <Text
+                        style={[
+                          styles.layoutText,
+                          selectedLayout === option.id && styles.selectedLayoutText,
+                        ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
-          {/* Video Settings */}
-          {showVideoSettings && (
+          {/* Video Settings - Only show when videos are present */}
+          {showVideoSettings && selectedMedia.some(media => media.isVideo) && (
             <View style={styles.videoSettingsSection}>
               <Text style={styles.sectionTitle}>Video Settings</Text>
               
@@ -194,6 +252,8 @@ const ImageGrid = ({visible, onClose}) => {
                   onValueChange={value =>
                     setVideoSettings(prev => ({...prev, autoPlay: value}))
                   }
+                  trackColor={{false: '#767577', true: '#81b0ff'}}
+                  thumbColor={videoSettings.autoPlay ? '#2196F3' : '#f4f3f4'}
                 />
               </View>
 
@@ -203,32 +263,57 @@ const ImageGrid = ({visible, onClose}) => {
                 onPress={handleThumbnailUpload}>
                 <Icon name="photo" size={20} color="#2196F3" />
                 <Text style={styles.thumbnailButtonText}>
-                  {videoSettings.thumbnail ? 'Change Thumbnail' : 'Upload Thumbnail'}
+                  {videoSettings.thumbnail ? 'Change Thumbnail' : 'Upload Custom Thumbnail'}
                 </Text>
+                <Icon name="chevron-right" size={20} color="#666" />
               </TouchableOpacity>
 
               {videoSettings.thumbnail && (
                 <View style={styles.thumbnailPreview}>
-                  <Image
-                    source={{uri: videoSettings.thumbnail.uri}}
-                    style={styles.thumbnailImage}
-                  />
-                  <TouchableOpacity
-                    style={styles.removeThumbnail}
-                    onPress={() =>
-                      setVideoSettings(prev => ({...prev, thumbnail: null}))
-                    }>
-                    <Icon name="close" size={16} color="#fff" />
-                  </TouchableOpacity>
+                  <Text style={styles.thumbnailPreviewTitle}>Custom Thumbnail:</Text>
+                  <View style={styles.thumbnailContainer}>
+                    <Image
+                      source={{uri: videoSettings.thumbnail.uri}}
+                      style={styles.thumbnailImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeThumbnail}
+                      onPress={() =>
+                        setVideoSettings(prev => ({...prev, thumbnail: null}))
+                      }>
+                      <Icon name="close" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
+            </View>
+          )}
+
+          {/* Empty state message when no layout options or video settings */}
+          {selectedMedia.length === 0 && (
+            <View style={styles.emptyStateInfo}>
+              <Icon name="info-outline" size={20} color="#666" />
+              <Text style={styles.emptyStateText}>
+                Upload photos or videos to see layout options and settings
+              </Text>
             </View>
           )}
         </ScrollView>
 
         {/* Done Button */}
-        <TouchableOpacity style={styles.doneButton} onPress={onClose}>
-          <Text style={styles.doneButtonText}>Done</Text>
+        <TouchableOpacity 
+          style={[
+            styles.doneButton,
+            selectedMedia.length === 0 && styles.doneButtonDisabled
+          ]} 
+          onPress={onClose}
+          disabled={selectedMedia.length === 0}>
+          <Text style={[
+            styles.doneButtonText,
+            selectedMedia.length === 0 && styles.doneButtonTextDisabled
+          ]}>
+            {selectedMedia.length === 0 ? 'Upload Media First' : `Done (${selectedMedia.length})`}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -287,11 +372,45 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     marginTop: 8,
-    color: '#666',
+    color: '#333',
     fontSize: 16,
+    fontWeight: '500',
+  },
+  uploadSubText: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 4,
   },
   mediaContainer: {
     minHeight: 200,
+  },
+  mediaHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  mediaCount: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  removeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#fff5f5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ffe0e0',
+  },
+  removeAllText: {
+    color: '#ff4757',
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   mediaGrid: {
     flexWrap: 'wrap',
@@ -302,6 +421,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     position: 'relative',
+    backgroundColor: '#f0f0f0',
   },
   mediaImage: {
     width: '100%',
@@ -312,27 +432,46 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{translateX: -15}, {translateY: -15}],
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 20,
+    padding: 4,
   },
   removeButton: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(255, 71, 87, 0.9)',
+    borderRadius: 15,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
   },
   addMoreButton: {
-    width: 60,
-    height: 60,
+    width: '48%',
+    height: 80,
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-start',
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
+  },
+  addMoreText: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 4,
   },
   layoutSection: {
     marginBottom: 20,
@@ -341,6 +480,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 4,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 12,
   },
   layoutOptions: {
@@ -368,6 +512,96 @@ const styles = StyleSheet.create({
   selectedLayoutText: {
     color: '#fff',
   },
+  videoSettingsSection: {
+    marginBottom: 20,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 12,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  thumbnailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginTop: 8,
+  },
+  thumbnailButtonText: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#2196F3',
+    fontWeight: '500',
+  },
+  thumbnailPreview: {
+    marginTop: 12,
+  },
+  thumbnailPreviewTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 8,
+  },
+  thumbnailContainer: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  thumbnailImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  removeThumbnail: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#ff4757',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadedStateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    marginTop: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  uploadedStateText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#1565c0',
+    flex: 1,
+    fontWeight: '500',
+  },
   doneButton: {
     margin: 16,
     backgroundColor: '#2196F3',
@@ -375,24 +609,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  doneButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  alignItems: 'center',
-  },
-  doneButton: {
-    margin: 16,
-    backgroundColor: '#2196F3',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+  doneButtonDisabled: {
+    backgroundColor: '#f0f0f0',
   },
   doneButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  doneButtonTextDisabled: {
+    color: '#999',
   },
 });
-
-export default ImageGrid;
