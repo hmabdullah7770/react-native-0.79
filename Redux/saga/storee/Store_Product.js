@@ -1,6 +1,6 @@
 import {call, put, takeLatest} from 'redux-saga/effects';
 import * as actions from '../../action/storee/store_product'
-import * as api from '../../API/storee/store_product';
+import * as api from '../../../API/storee/store_product';
 
 // Get Store Products Saga
 function* GetStoreProductSaga(payload) {
