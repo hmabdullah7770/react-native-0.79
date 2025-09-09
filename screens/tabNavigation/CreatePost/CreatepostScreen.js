@@ -1,4 +1,4 @@
-// witt audio too 
+// Updated CreatepostScreen with inline media upload and layout options
 import {
   StyleSheet,
   Text,
@@ -11,8 +11,8 @@ import {
 import React, {useState} from 'react';
 import ProductDropdown from './components/ProductDropdown';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ImageGrid from './components/ImageGrid'; // Your ImageGrid component
-import AudioRecorder from './components/AudioRecorder'; // The AudioRecorder component we just created
+import InlineImageGrid from './components/InlineImageGrid'; // New inline component
+import AudioRecorder from './components/AudioRecorder';
 
 const CreatepostScreen = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -141,7 +141,7 @@ const CreatepostScreen = () => {
         />
       </View>
 
-      {/* Action Buttons */}
+      {/* Upload Photo/Video Button */}
       <View style={styles.actionsContainer}>
         <ActionButton
           title="Upload Photo/Video"
@@ -149,7 +149,17 @@ const CreatepostScreen = () => {
           onPress={handleUploadMedia}
           iconColor="#4CAF50"
         />
-        
+      </View>
+
+      {/* Inline Image Grid - Shows when activated */}
+      {showImageGrid && (
+        <InlineImageGrid
+          onClose={() => setShowImageGrid(false)}
+        />
+      )}
+
+      {/* Action Buttons - Show after image grid or if no image grid */}
+      <View style={styles.actionsContainer}>
         {/* Audio Upload Section - Dynamic */}
         <AudioUploadSection />
         
@@ -207,12 +217,6 @@ const CreatepostScreen = () => {
       <TouchableOpacity style={styles.createPostButton}>
         <Text style={styles.createPostButtonText}>Create Post</Text>
       </TouchableOpacity>
-
-      {/* Image Grid Modal */}
-      <ImageGrid
-        visible={showImageGrid}
-        onClose={() => setShowImageGrid(false)}
-      />
 
       {/* Audio Recorder Modal */}
       <AudioRecorder
@@ -372,10 +376,7 @@ const styles = StyleSheet.create({
 });
 
 
-
-
-
-// with image and audio upload buttons and description input
+// // witt audio too 
 // import {
 //   StyleSheet,
 //   Text,
@@ -388,11 +389,16 @@ const styles = StyleSheet.create({
 // import React, {useState} from 'react';
 // import ProductDropdown from './components/ProductDropdown';
 // import Icon from 'react-native-vector-icons/MaterialIcons';
+// import ImageGrid from './components/ImageGrid'; // Your ImageGrid component
+// import AudioRecorder from './components/AudioRecorder'; // The AudioRecorder component we just created
 
 // const CreatepostScreen = () => {
 //   const [selectedProduct, setSelectedProduct] = useState(null);
 //   const [selectedProductId, setSelectedProductId] = useState(null);
 //   const [description, setDescription] = useState('');
+//   const [showImageGrid, setShowImageGrid] = useState(false);
+//   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+//   const [uploadedAudio, setUploadedAudio] = useState(null);
 
 //   // Handle product selection from dropdown
 //   const handleProductSelect = product => {
@@ -404,11 +410,31 @@ const styles = StyleSheet.create({
 
 //   // Button handlers
 //   const handleUploadMedia = () => {
-//     Alert.alert('Upload Media', 'Photo/Video upload functionality');
+//     setShowImageGrid(true);
 //   };
 
 //   const handleUploadAudio = () => {
-//     Alert.alert('Upload Audio', 'Audio upload functionality');
+//     setShowAudioRecorder(true);
+//   };
+
+//   const handleAudioRecorded = (audioData) => {
+//     setUploadedAudio(audioData);
+//     console.log('Audio uploaded:', audioData);
+//   };
+
+//   const handleRemoveAudio = () => {
+//     Alert.alert(
+//       'Remove Audio',
+//       'Are you sure you want to remove the uploaded audio?',
+//       [
+//         {text: 'Cancel', style: 'cancel'},
+//         {
+//           text: 'Remove',
+//           style: 'destructive',
+//           onPress: () => setUploadedAudio(null),
+//         },
+//       ]
+//     );
 //   };
 
 //   const handleAddStore = () => {
@@ -427,12 +453,51 @@ const styles = StyleSheet.create({
 //     Alert.alert('Add Songs', 'Song addition functionality');
 //   };
 
+//   const formatTime = (seconds) => {
+//     const mins = Math.floor(seconds / 60);
+//     const secs = seconds % 60;
+//     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+//   };
+
 //   const ActionButton = ({title, iconName, onPress, iconColor = '#666'}) => (
 //     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
 //       <Icon name={iconName} size={24} color={iconColor} style={styles.buttonIcon} />
 //       <Text style={styles.buttonText}>{title}</Text>
 //     </TouchableOpacity>
 //   );
+
+//   // Audio Upload Component
+//   const AudioUploadSection = () => {
+//     if (uploadedAudio) {
+//       return (
+//         <View style={styles.uploadedAudioContainer}>
+//           <View style={styles.audioInfo}>
+//             <Icon name="audiotrack" size={20} color="#4CAF50" />
+//             <View style={styles.audioDetails}>
+//               <Text style={styles.audioTitle}>Audio Recording</Text>
+//               <Text style={styles.audioDuration}>
+//                 Duration: {formatTime(uploadedAudio.duration)}
+//               </Text>
+//             </View>
+//             <TouchableOpacity 
+//               style={styles.removeAudioButton}
+//               onPress={handleRemoveAudio}>
+//               <Icon name="close" size={18} color="#ff4757" />
+//             </TouchableOpacity>
+//           </View>
+//         </View>
+//       );
+//     }
+
+//     return (
+//       <ActionButton
+//         title="Upload Audio"
+//         iconName="mic"
+//         onPress={handleUploadAudio}
+//         iconColor="#FF9800"
+//       />
+//     );
+//   };
 
 //   return (
 //     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -463,12 +528,8 @@ const styles = StyleSheet.create({
 //           iconColor="#4CAF50"
 //         />
         
-//         <ActionButton
-//           title="Upload Audio"
-//           iconName="mic"
-//           onPress={handleUploadAudio}
-//           iconColor="#FF9800"
-//         />
+//         {/* Audio Upload Section - Dynamic */}
+//         <AudioUploadSection />
         
 //         <ActionButton
 //           title="Add Store"
@@ -524,6 +585,19 @@ const styles = StyleSheet.create({
 //       <TouchableOpacity style={styles.createPostButton}>
 //         <Text style={styles.createPostButtonText}>Create Post</Text>
 //       </TouchableOpacity>
+
+//       {/* Image Grid Modal */}
+//       <ImageGrid
+//         visible={showImageGrid}
+//         onClose={() => setShowImageGrid(false)}
+//       />
+
+//       {/* Audio Recorder Modal */}
+//       <AudioRecorder
+//         visible={showAudioRecorder}
+//         onClose={() => setShowAudioRecorder(false)}
+//         onAudioRecorded={handleAudioRecorded}
+//       />
 //     </ScrollView>
 //   );
 // };
@@ -540,7 +614,7 @@ const styles = StyleSheet.create({
 //     paddingBottom: 50,
 //   },
 //   topSpacer: {
-//     height: 60, // Reduced space since we have more content
+//     height: 60,
 //   },
 //   title: {
 //     fontSize: 24,
@@ -596,6 +670,40 @@ const styles = StyleSheet.create({
 //     color: '#333',
 //     fontWeight: '500',
 //   },
+//   // Audio Upload Styles
+//   uploadedAudioContainer: {
+//     marginBottom: 12,
+//     backgroundColor: '#f0fff4',
+//     borderRadius: 12,
+//     borderWidth: 1,
+//     borderColor: '#c8e6c9',
+//   },
+//   audioInfo: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     padding: 16,
+//   },
+//   audioDetails: {
+//     flex: 1,
+//     marginLeft: 12,
+//   },
+//   audioTitle: {
+//     fontSize: 16,
+//     fontWeight: '500',
+//     color: '#333',
+//     marginBottom: 2,
+//   },
+//   audioDuration: {
+//     fontSize: 14,
+//     color: '#666',
+//   },
+//   removeAudioButton: {
+//     padding: 8,
+//     backgroundColor: '#ffebee',
+//     borderRadius: 16,
+//     borderWidth: 1,
+//     borderColor: '#ffcdd2',
+//   },
 //   productSection: {
 //     marginBottom: 20,
 //   },
@@ -643,76 +751,3 @@ const styles = StyleSheet.create({
 
 
 
-// import {StyleSheet, Text, View, ScrollView} from 'react-native';
-// import React, {useState} from 'react';
-// import ProductDropdown from './components/ProductDropdown';
-
-// const CreatepostScreen = () => {
-//   const [selectedProduct, setSelectedProduct] = useState(null);
-//   const [selectedProductId, setSelectedProductId] = useState(null);
-
-//   // Handle product selection from dropdown
-//   const handleProductSelect = product => {
-//     setSelectedProduct(product);
-//     setSelectedProductId(product._id);
-//     console.log('Selected product:', product);
-//     console.log('Selected product ID:', product._id);
-//   };
-
-//   return (
-//     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-//       <View style={styles.topSpacer} />
-      
-//       <Text style={styles.title}>Create Post Screen</Text>
-
-//       <ProductDropdown
-//         onProductSelect={handleProductSelect}
-//         selectedProductId={selectedProductId}
-//       />
-
-//       {selectedProduct && (
-//         <View style={styles.selectedProductInfo}>
-//           <Text style={styles.selectedProductTitle}>Selected Product:</Text>
-//           <Text>Name: {selectedProduct.productName}</Text>
-//           <Text>
-//             Price: ${selectedProduct.finalPrice || selectedProduct.productPrice}
-//           </Text>
-//           <Text>ID: {selectedProduct._id}</Text>
-//         </View>
-//       )}
-//     </ScrollView>
-//   );
-// };
-
-// export default CreatepostScreen;
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   contentContainer: {
-//     padding: 16,
-//     paddingBottom: 50,
-//   },
-//   topSpacer: {
-//     height: 220, // Space for upward dropdown
-//   },
-//   title: {
-//     fontSize: 20,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//     textAlign: 'center',
-//   },
-//   selectedProductInfo: {
-//     marginTop: 20,
-//     padding: 16,
-//     backgroundColor: '#f5f5f5',
-//     borderRadius: 8,
-//   },
-//   selectedProductTitle: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     marginBottom: 8,
-//   },
-// });
