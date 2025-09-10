@@ -1,3 +1,5 @@
+
+
 // Updated CreatepostScreen with inline media upload and layout options
 import {
   StyleSheet,
@@ -141,20 +143,26 @@ const CreatepostScreen = () => {
         />
       </View>
 
-      {/* Upload Photo/Video Button */}
-      <View style={styles.actionsContainer}>
-        <ActionButton
-          title="Upload Photo/Video"
-          iconName="photo-camera"
-          onPress={handleUploadMedia}
-          iconColor="#4CAF50"
-        />
-      </View>
+      {/* Upload Photo/Video Button - Only show when grid is not active */}
+      {!showImageGrid && (
+        <View style={styles.actionsContainer}>
+          <ActionButton
+            title="Upload Photo/Video"
+            iconName="photo-camera"
+            onPress={handleUploadMedia}
+            iconColor="#4CAF50"
+          />
+        </View>
+      )}
 
       {/* Inline Image Grid - Shows when activated */}
       {showImageGrid && (
         <InlineImageGrid
           onClose={() => setShowImageGrid(false)}
+          onMediaChange={(mediaCount) => {
+            // You can use this to track media count if needed
+            console.log('Media count changed:', mediaCount);
+          }}
         />
       )}
 
@@ -374,6 +382,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+
+
+
+
+
+
 
 
 // // witt audio too 
