@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const AudioRecorder = ({visible, onClose, onAudioRecorded}) => {
+const RecorderBottomnav = ({visible, onClose, onAudioRecorded}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -507,4 +507,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AudioRecorder;
+export default RecorderBottomnav;

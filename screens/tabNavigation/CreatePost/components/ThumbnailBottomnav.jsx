@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 
-const BottomNav = ({
+const ThumbnailBottomnav = ({
   visible,
   onClose,
   title = 'Options',
@@ -241,4 +241,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomNav;
+export default ThumbnailBottomnav;

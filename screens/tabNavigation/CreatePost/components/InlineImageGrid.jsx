@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {launchImageLibrary} from 'react-native-image-picker';
-import BottomNav from './bottomnav';
+import ThumbnailBottomnav from './ThumbnailBottomnav';
 import LayoutOptionStyles from './LayoutOptionStyles';
 
 const InlineImageGrid = React.memo(({onClose, onMediaChange}) => {
@@ -485,7 +485,7 @@ const InlineImageGrid = React.memo(({onClose, onMediaChange}) => {
     };
   };
 
-  // Create items for BottomNav (Video Settings Only)
+  // Create items for ThumbnailBottomnav (Video Settings Only)
   const getVideoSettingsItems = () => {
     const items = [
       {
@@ -1174,7 +1174,7 @@ const InlineImageGrid = React.memo(({onClose, onMediaChange}) => {
       {renderLayoutOptions()}
 
       {/* Video Settings Bottom Nav */}
-      <BottomNav
+      <ThumbnailBottomnav
         visible={
           showVideoSettings && selectedMedia.some(media => media.isVideo)
         }
@@ -1747,7 +1747,7 @@ export default InlineImageGrid;
 //     setShowVideoSettings(true);
 //   };
 
-//   // Create items for BottomNav (Video Settings Only)
+//   // Create items for ThumbnailBottomnav (Video Settings Only)
 //   const getVideoSettingsItems = () => {
 //     const items = [
 //       {
@@ -1955,7 +1955,7 @@ export default InlineImageGrid;
 //       {renderLayoutOptions()}
 
 //       {/* Video Settings Bottom Nav */}
-//       <BottomNav
+//       <ThumbnailBottomnav
 //         visible={showVideoSettings && selectedMedia.some(media => media.isVideo)}
 //         onClose={() => setShowVideoSettings(false)}
 //         title="Video Settings"
@@ -2221,7 +2221,7 @@ export default InlineImageGrid;
 // } from 'react-native';
 // import Icon from 'react-native-vector-icons/MaterialIcons';
 // import {launchImageLibrary} from 'react-native-image-picker';
-// import BottomNav from './bottomnav'; // Import your BottomNav component
+// import ThumbnailBottomnav from './ThumbnailBottomnav'; // Import your ThumbnailBottomnav component
 
 // const ImageGrid = ({visible, onClose}) => {
 //   const [selectedMedia, setSelectedMedia] = useState([]);
@@ -2330,7 +2330,7 @@ export default InlineImageGrid;
 //     setShowVideoSettings(true);
 //   };
 
-//   // Create items for BottomNav (Video Settings Only)
+//   // Create items for ThumbnailBottomnav (Video Settings Only)
 //   const getVideoSettingsItems = () => {
 //     const items = [
 //       {
@@ -2540,7 +2540,7 @@ export default InlineImageGrid;
 //       </View>
 
 //       {/* Video Settings Bottom Nav - Only for video settings */}
-//       <BottomNav
+//       <ThumbnailBottomnav
 //         visible={showVideoSettings && selectedMedia.some(media => media.isVideo)}
 //         onClose={() => setShowVideoSettings(false)}
 //         title="Video Settings"

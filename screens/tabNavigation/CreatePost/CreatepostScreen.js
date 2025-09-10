@@ -14,7 +14,7 @@ import React, {useState} from 'react';
 import ProductDropdown from './components/ProductDropdown';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import InlineImageGrid from './components/InlineImageGrid'; // New inline component
-import AudioRecorder from './components/AudioRecorder';
+import RecorderBottomnav from './components/RecorderBottomnav';
 
 const CreatepostScreen = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -227,7 +227,7 @@ const CreatepostScreen = () => {
       </TouchableOpacity>
 
       {/* Audio Recorder Modal */}
-      <AudioRecorder
+      <RecorderBottomnav
         visible={showAudioRecorder}
         onClose={() => setShowAudioRecorder(false)}
         onAudioRecorded={handleAudioRecorded}
