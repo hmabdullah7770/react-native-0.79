@@ -14,1178 +14,1305 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import ThumbnailBottomnav from './ThumbnailBottomnav';
 import LayoutOptionStyles from './LayoutOptionStyles';
 
-const InlineImageGrid = React.memo(({onClose, onMediaChange}) => {
-  const [selectedMedia, setSelectedMedia] = useState([]);
-  const [selectedLayout, setSelectedLayout] = useState('1');
-  const [layoutLocked, setLayoutLocked] = useState(false);
-  const [showLayoutReset, setShowLayoutReset] = useState(false);
-  const [videoSettings, setVideoSettings] = useState({
-    autoPlay: true,
-    thumbnail: null,
-  });
-  const [showVideoSettings, setShowVideoSettings] = useState(false);
-  const [videoSettingsAutoOpened, setVideoSettingsAutoOpened] = useState(false);
-
-  // Layout constraint configuration system
-  const layoutConstraints = {
-    1: {minItems: 1, maxItems: 1, description: 'Single item only'},
-    2: {minItems: 1, maxItems: 10, description: '2+ items'},
-    '2x2': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
-    '1x2': {minItems: 3, maxItems: 3, description: 'Exactly 3 items'},
-    '1x3': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
-    carousel: {minItems: 2, maxItems: 10, description: '2+ items'},
-  };
-
-  // Layout options with validation requirements
-  const layoutOptions = [
-    {
-      id: '1',
-      label: '1',
-      cols: 1,
-      ...layoutConstraints['1'],
-    },
-    {
-      id: '2',
-      label: '2',
-      cols: 2,
-      ...layoutConstraints['2'],
-    },
-    {
-      id: '2x2',
-      label: '2x2',
-      cols: 2,
-      ...layoutConstraints['2x2'],
-    },
-    {
-      id: '1x2',
-      label: '1x2',
-      cols: 2,
-      ...layoutConstraints['1x2'],
-    },
-    {
-      id: '1x3',
-      label: '1x3',
-      cols: 3,
-      ...layoutConstraints['1x3'],
-    },
-    {
-      id: 'carousel',
-      label: 'Carousel',
-      cols: 'carousel',
-      ...layoutConstraints['carousel'],
-    },
-  ];
-
-  // Helper functions for layout constraints
-  const validateLayoutConstraints = (layoutId, mediaCount) => {
-    const constraints = layoutConstraints[layoutId];
-    if (!constraints) return {isValid: false, message: 'Invalid layout'};
-
-    const isValid =
-      mediaCount >= constraints.minItems && mediaCount <= constraints.maxItems;
-    let message = '';
-
-    if (mediaCount < constraints.minItems) {
-      message = `${layoutId} layout requires at least ${constraints.minItems} items`;
-    } else if (mediaCount > constraints.maxItems) {
-      message = `${layoutId} layout accepts maximum ${constraints.maxItems} items`;
-    }
-
-    return {isValid, message};
-  };
-
-  const checkUploadEligibility = (layoutId, currentMediaCount) => {
-    const constraints = layoutConstraints[layoutId];
-    if (!constraints) return {canUpload: false, remainingSlots: 0};
-
-    const canUpload = currentMediaCount < constraints.maxItems;
-    const remainingSlots = constraints.maxItems - currentMediaCount;
-
-    return {canUpload, remainingSlots};
-  };
-
-  // Layout validation is now prevented by constraint enforcement
-  // No need for reactive validation since layout switching is blocked
-
-  // Cleanup effect to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      // Cleanup when component unmounts
-      if (selectedMedia.length > 0) {
-        console.log('Cleaning up media resources');
-        // Clear media references to help with garbage collection
-        setSelectedMedia([]);
-      }
-    };
-  }, []);
-
-  const handleMediaUpload = () => {
-    // Check upload eligibility based on layout constraints
-    const eligibility = checkUploadEligibility(
-      selectedLayout,
-      selectedMedia.length,
-    );
-
-    if (!eligibility.canUpload) {
-      const constraints = layoutConstraints[selectedLayout];
-      Alert.alert(
-        'Maximum Reached',
-        `${selectedLayout} layout can only have ${constraints.maxItems} ${
-          constraints.maxItems === 1 ? 'item' : 'items'
-        }.`,
-      );
-      return;
-    }
-
-    // Configure image picker with remaining slots limit
-    const maxSelection = Math.min(eligibility.remainingSlots, 5);
-    const options = {
-      mediaType: 'mixed',
-      quality: 0.7, // Reduced quality to prevent memory issues
-      maxWidth: 1920, // Limit image dimensions
-      maxHeight: 1920,
-      selectionLimit: maxSelection, // Limit based on layout constraints
-      includeBase64: false, // Don't include base64 to save memory
-      includeExtra: false, // Don't include extra metadata
-    };
-
-    try {
-      launchImageLibrary(options, response => {
-        // Enhanced error handling
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-          return;
-        }
-
-        if (response.error) {
-          console.error('ImagePicker Error: ', response.error);
-          Alert.alert('Error', 'Failed to select media. Please try again.');
-          return;
-        }
-
-        if (response.errorMessage) {
-          console.error('ImagePicker Error Message: ', response.errorMessage);
-          Alert.alert('Error', response.errorMessage);
-          return;
-        }
-
-        if (!response.assets || response.assets.length === 0) {
-          console.log('No assets selected');
-          return;
-        }
-
-        try {
-          // Filter out invalid assets and add size validation
-          const validAssets = response.assets.filter(asset => {
-            // Check if asset has required properties
-            if (!asset.uri || !asset.type) {
-              console.warn('Invalid asset detected:', asset);
-              return false;
-            }
-
-            // Check file size (limit to 50MB per file)
-            const maxFileSize = 50 * 1024 * 1024; // 50MB
-            if (asset.fileSize && asset.fileSize > maxFileSize) {
-              Alert.alert(
-                'File Too Large',
-                `File ${
-                  asset.fileName || 'selected'
-                } is too large. Please select files under 50MB.`,
-              );
-              return false;
-            }
-
-            return true;
-          });
-
-          if (validAssets.length === 0) {
-            Alert.alert(
-              'No Valid Files',
-              'No valid media files were selected.',
-            );
-            return;
-          }
-
-          const newMedia = validAssets.map(asset => ({
-            uri: asset.uri,
-            type: asset.type,
-            fileName: asset.fileName || 'Unknown',
-            fileSize: asset.fileSize || 0,
-            isVideo: asset.type?.includes('video') || false,
-            width: asset.width || 0,
-            height: asset.height || 0,
-          }));
-
-          // Check layout constraints for the new total
-          const totalMedia = selectedMedia.length + newMedia.length;
-          const currentLayout = layoutOptions.find(
-            l => l.id === selectedLayout,
-          );
-
-          if (totalMedia > 10) {
-            Alert.alert(
-              'Too Many Files',
-              'You can only select up to 10 media files total.',
-            );
-            return;
-          }
-
-          // Check if adding these items would exceed layout maximum
-          if (currentLayout?.maxItems && totalMedia > currentLayout.maxItems) {
-            const allowedCount = currentLayout.maxItems - selectedMedia.length;
-            if (allowedCount <= 0) {
-              Alert.alert(
-                'Layout Limit Reached',
-                `${currentLayout.label} layout can only have ${
-                  currentLayout.maxItems
-                } ${currentLayout.maxItems === 1 ? 'item' : 'items'}.`,
-              );
-              return;
-            } else {
-              Alert.alert(
-                'Too Many Items',
-                `${
-                  currentLayout.label
-                } layout can only accept ${allowedCount} more ${
-                  allowedCount === 1 ? 'item' : 'items'
-                }.`,
-              );
-              return;
-            }
-          }
-
-          const updatedMedia = [...selectedMedia, ...newMedia];
-          setSelectedMedia(updatedMedia);
-
-          // Lock layout once media is uploaded
-          if (updatedMedia.length > 0) {
-            setLayoutLocked(true);
-          }
-
-          // Notify parent component about media changes
-          if (onMediaChange) {
-            onMediaChange(updatedMedia.length);
-          }
-
-          // Auto-show video settings if any video is uploaded and hasn't been auto-opened before
-          const hasVideo = newMedia.some(media => media.isVideo);
-          if (hasVideo && !videoSettingsAutoOpened) {
-            setShowVideoSettings(true);
-            setVideoSettingsAutoOpened(true);
-          }
-
-          console.log('Successfully added media:', newMedia.length, 'files');
-        } catch (processingError) {
-          console.error('Error processing selected media:', processingError);
-          Alert.alert(
-            'Processing Error',
-            'Failed to process selected media. Please try again.',
-          );
-        }
-      });
-    } catch (launchError) {
-      console.error('Error launching image picker:', launchError);
-      Alert.alert(
-        'Launch Error',
-        'Failed to open media picker. Please try again.',
-      );
-    }
-  };
-
-  const handleRemoveMedia = index => {
-    try {
-      const updatedMedia = selectedMedia.filter((_, i) => i !== index);
-      setSelectedMedia(updatedMedia);
-
-      // Unlock layout if no media remaining
-      if (updatedMedia.length === 0) {
-        setLayoutLocked(false);
-        setShowLayoutReset(false);
-      }
-
-      // Notify parent component about media changes
-      if (onMediaChange) {
-        onMediaChange(updatedMedia.length);
-      }
-
-      // Hide video settings if no videos remaining
-      const hasVideo = updatedMedia.some(media => media.isVideo);
-      if (!hasVideo) {
-        setShowVideoSettings(false);
-        setVideoSettingsAutoOpened(false);
-        // Reset video settings when no videos
-        setVideoSettings({
-          autoPlay: true,
-          thumbnail: null,
-        });
-      }
-
-      console.log(
-        'Media removed successfully, remaining:',
-        updatedMedia.length,
-      );
-    } catch (error) {
-      console.error('Error removing media:', error);
-      Alert.alert('Error', 'Failed to remove media. Please try again.');
-    }
-  };
-
-  const handleRemoveAllMedia = () => {
-    Alert.alert(
-      'Remove All Media',
-      'Are you sure you want to remove all uploaded media?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Remove All',
-          style: 'destructive',
-          onPress: () => {
-            setSelectedMedia([]);
-            setLayoutLocked(false); // Unlock layout when all media is removed
-            setShowLayoutReset(false);
-            setShowVideoSettings(false);
-            setVideoSettingsAutoOpened(false);
-            setVideoSettings({
-              autoPlay: true,
-              thumbnail: null,
-            });
-            // Notify parent component about media changes
-            if (onMediaChange) {
-              onMediaChange(0);
-            }
-            // Reset to default layout when all media is removed
-            setSelectedLayout('1');
-          },
-        },
-      ],
-    );
-  };
-
-  const handleThumbnailUpload = () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.8,
-    };
-
-    launchImageLibrary(options, response => {
-      if (response.didCancel || response.error) return;
-
-      setVideoSettings(prev => ({
-        ...prev,
-        thumbnail: response.assets[0],
-      }));
+const InlineImageGrid = React.memo(
+  ({onClose, onMediaChange, onVideoSettingsOpen}) => {
+    const [selectedMedia, setSelectedMedia] = useState([]);
+    const [selectedLayout, setSelectedLayout] = useState('1');
+    const [layoutLocked, setLayoutLocked] = useState(false);
+    const [showLayoutReset, setShowLayoutReset] = useState(false);
+    const [videoSettings, setVideoSettings] = useState({
+      autoPlay: true,
+      thumbnails: {}, // Map of video index to thumbnail data
     });
-  };
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(null);
+    const [showVideoSettings, setShowVideoSettings] = useState(false);
+    const [videoSettingsAutoOpened, setVideoSettingsAutoOpened] =
+      useState(false);
 
-  const handleVideoClick = () => {
-    setShowVideoSettings(true);
-  };
-
-  const handleLayoutChangeRequest = () => {
-    Alert.alert(
-      'Change Layout',
-      'Changing layout will remove all uploaded media. Are you sure you want to continue?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Change Layout',
-          style: 'destructive',
-          onPress: () => {
-            setSelectedMedia([]);
-            setLayoutLocked(false);
-            setShowLayoutReset(false);
-            setShowVideoSettings(false);
-            setVideoSettingsAutoOpened(false);
-            setVideoSettings({
-              autoPlay: true,
-              thumbnail: null,
-            });
-            // Notify parent component about media changes
-            if (onMediaChange) {
-              onMediaChange(0);
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  // Layout constraint utility functions
-  const calculateUIState = (selectedLayout, mediaCount, layoutOptions) => {
-    const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
-    if (!currentLayout) {
-      return {
-        showAddMore: false,
-        showRemoveAll: false,
-        removeButtonLabel: 'Remove',
-        isMaxReached: false,
-        statusMessage: '',
-        canUploadMore: false,
-      };
-    }
-
-    const isMaxReached =
-      currentLayout.maxItems && mediaCount >= currentLayout.maxItems;
-    const canUploadMore = !isMaxReached && mediaCount < 10; // Global limit
-    const showAddMore = canUploadMore && mediaCount > 0;
-    const showRemoveAll = mediaCount > 1; // Only show "Remove All" for multiple items
-    const removeButtonLabel = mediaCount > 1 ? 'Remove All' : 'Remove';
-
-    let statusMessage = '';
-    if (isMaxReached) {
-      statusMessage = `Maximum ${currentLayout.maxItems} ${
-        currentLayout.maxItems === 1 ? 'item' : 'items'
-      } reached`;
-    }
-
-    return {
-      showAddMore,
-      showRemoveAll,
-      removeButtonLabel,
-      isMaxReached,
-      statusMessage,
-      canUploadMore,
+    // Layout constraint configuration system
+    const layoutConstraints = {
+      1: {minItems: 1, maxItems: 1, description: 'Single item only'},
+      2: {minItems: 1, maxItems: 10, description: '2+ items'},
+      '2x2': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
+      '1x2': {minItems: 3, maxItems: 3, description: 'Exactly 3 items'},
+      '1x3': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
+      carousel: {minItems: 2, maxItems: 10, description: '2+ items'},
     };
-  };
 
-  const checkLayoutConstraints = (layout, currentMediaCount) => {
-    if (!layout) {
-      return {
-        isValid: false,
-        canAddMore: false,
-        isAtMaximum: false,
-        validationMessage: 'Invalid layout',
-      };
-    }
-
-    const isValid =
-      currentMediaCount >= layout.minItems &&
-      (!layout.maxItems || currentMediaCount <= layout.maxItems);
-    const canAddMore = !layout.maxItems || currentMediaCount < layout.maxItems;
-    const isAtMaximum = layout.maxItems && currentMediaCount >= layout.maxItems;
-
-    let validationMessage = '';
-    if (currentMediaCount < layout.minItems) {
-      validationMessage = `${layout.label} layout requires at least ${layout.minItems} items`;
-    } else if (layout.maxItems && currentMediaCount > layout.maxItems) {
-      validationMessage = `${layout.label} layout accepts maximum ${layout.maxItems} items`;
-    }
-
-    return {
-      isValid,
-      canAddMore,
-      isAtMaximum,
-      validationMessage,
-    };
-  };
-
-  // Create items for ThumbnailBottomnav (Video Settings Only)
-  const getVideoSettingsItems = () => {
-    const items = [
+    // Layout options with validation requirements
+    const layoutOptions = [
       {
-        type: 'button',
-        icon: 'photo',
-        iconColor: '#2196F3',
-        title: videoSettings.thumbnail
-          ? 'Change Thumbnail'
-          : 'Upload Thumbnail',
-        textColor: '#2196F3',
-        showArrow: false,
-        onPress: handleThumbnailUpload,
+        id: '1',
+        label: '1',
+        cols: 1,
+        ...layoutConstraints['1'],
       },
       {
-        type: 'divider',
+        id: '2',
+        label: '2',
+        cols: 2,
+        ...layoutConstraints['2'],
       },
       {
-        type: 'switch',
-        icon: 'play-circle-filled',
-        iconColor: '#4CAF50',
-        title: 'Auto Play',
-        description: 'Videos will play automatically',
-        value: videoSettings.autoPlay,
-        component: Switch,
-        onToggle: value =>
-          setVideoSettings(prev => ({...prev, autoPlay: value})),
+        id: '2x2',
+        label: '2x2',
+        cols: 2,
+        ...layoutConstraints['2x2'],
+      },
+      {
+        id: '1x2',
+        label: '1x2',
+        cols: 2,
+        ...layoutConstraints['1x2'],
+      },
+      {
+        id: '1x3',
+        label: '1x3',
+        cols: 3,
+        ...layoutConstraints['1x3'],
+      },
+      {
+        id: 'carousel',
+        label: 'Carousel',
+        cols: 'carousel',
+        ...layoutConstraints['carousel'],
       },
     ];
 
-    if (videoSettings.thumbnail) {
-      items.push({
-        type: 'divider',
-      });
-      items.push({
-        type: 'info',
-        icon: 'check-circle',
-        iconColor: '#4CAF50',
-        title: 'Custom Thumbnail Set',
-        description: 'Thumbnail uploaded successfully',
-      });
-    }
+    // Helper functions for layout constraints
+    const validateLayoutConstraints = (layoutId, mediaCount) => {
+      const constraints = layoutConstraints[layoutId];
+      if (!constraints) return {isValid: false, message: 'Invalid layout'};
 
-    return items;
-  };
+      const isValid =
+        mediaCount >= constraints.minItems &&
+        mediaCount <= constraints.maxItems;
+      let message = '';
 
-  // Layout-specific renderers
-  const renderSingleColumn = () => {
-    const items = [];
-    const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
-    const uiState = calculateUIState(
-      selectedLayout,
-      selectedMedia.length,
-      layoutOptions,
-    );
+      if (mediaCount < constraints.minItems) {
+        message = `${layoutId} layout requires at least ${constraints.minItems} items`;
+      } else if (mediaCount > constraints.maxItems) {
+        message = `${layoutId} layout accepts maximum ${constraints.maxItems} items`;
+      }
 
-    // Show uploaded media first
-    selectedMedia.forEach((media, index) => {
-      items.push(
-        <View
-          key={index}
-          style={[
-            styles.mediaItem,
-            {width: '100%', aspectRatio: 1, marginBottom: 8},
-          ]}>
-          <Image
-            source={{uri: media.uri}}
-            style={styles.mediaImage}
-            onError={error => {
-              console.error('Image load error:', error);
-              // Optionally remove the problematic media
-              handleRemoveMedia(index);
-            }}
-            resizeMode="cover"
-          />
-          {media.isVideo && (
-            <TouchableOpacity
-              style={styles.videoOverlay}
-              onPress={handleVideoClick}>
+      return {isValid, message};
+    };
+
+    const checkUploadEligibility = (layoutId, currentMediaCount) => {
+      const constraints = layoutConstraints[layoutId];
+      if (!constraints) return {canUpload: false, remainingSlots: 0};
+
+      const canUpload = currentMediaCount < constraints.maxItems;
+      const remainingSlots = constraints.maxItems - currentMediaCount;
+
+      return {canUpload, remainingSlots};
+    };
+
+    // Layout validation is now prevented by constraint enforcement
+    // No need for reactive validation since layout switching is blocked
+
+    // Cleanup effect to prevent memory leaks
+    useEffect(() => {
+      return () => {
+        // Cleanup when component unmounts
+        if (selectedMedia.length > 0) {
+          console.log('Cleaning up media resources');
+          // Clear media references to help with garbage collection
+          setSelectedMedia([]);
+        }
+      };
+    }, []);
+
+    const handleMediaUpload = () => {
+      // Check upload eligibility based on layout constraints
+      const eligibility = checkUploadEligibility(
+        selectedLayout,
+        selectedMedia.length,
+      );
+
+      if (!eligibility.canUpload) {
+        const constraints = layoutConstraints[selectedLayout];
+        Alert.alert(
+          'Maximum Reached',
+          `${selectedLayout} layout can only have ${constraints.maxItems} ${
+            constraints.maxItems === 1 ? 'item' : 'items'
+          }.`,
+        );
+        return;
+      }
+
+      // Configure image picker with remaining slots limit
+      const maxSelection = Math.min(eligibility.remainingSlots, 5);
+      const options = {
+        mediaType: 'mixed',
+        quality: 0.7, // Reduced quality to prevent memory issues
+        maxWidth: 1920, // Limit image dimensions
+        maxHeight: 1920,
+        selectionLimit: maxSelection, // Limit based on layout constraints
+        includeBase64: false, // Don't include base64 to save memory
+        includeExtra: false, // Don't include extra metadata
+      };
+
+      try {
+        launchImageLibrary(options, response => {
+          // Enhanced error handling
+          if (response.didCancel) {
+            console.log('User cancelled image picker');
+            return;
+          }
+
+          if (response.error) {
+            console.error('ImagePicker Error: ', response.error);
+            Alert.alert('Error', 'Failed to select media. Please try again.');
+            return;
+          }
+
+          if (response.errorMessage) {
+            console.error('ImagePicker Error Message: ', response.errorMessage);
+            Alert.alert('Error', response.errorMessage);
+            return;
+          }
+
+          if (!response.assets || response.assets.length === 0) {
+            console.log('No assets selected');
+            return;
+          }
+
+          try {
+            // Filter out invalid assets and add size validation
+            const validAssets = response.assets.filter(asset => {
+              // Check if asset has required properties
+              if (!asset.uri || !asset.type) {
+                console.warn('Invalid asset detected:', asset);
+                return false;
+              }
+
+              // Check file size (limit to 50MB per file)
+              const maxFileSize = 50 * 1024 * 1024; // 50MB
+              if (asset.fileSize && asset.fileSize > maxFileSize) {
+                Alert.alert(
+                  'File Too Large',
+                  `File ${
+                    asset.fileName || 'selected'
+                  } is too large. Please select files under 50MB.`,
+                );
+                return false;
+              }
+
+              return true;
+            });
+
+            if (validAssets.length === 0) {
+              Alert.alert(
+                'No Valid Files',
+                'No valid media files were selected.',
+              );
+              return;
+            }
+
+            const newMedia = validAssets.map(asset => ({
+              uri: asset.uri,
+              type: asset.type,
+              fileName: asset.fileName || 'Unknown',
+              fileSize: asset.fileSize || 0,
+              isVideo: asset.type?.includes('video') || false,
+              width: asset.width || 0,
+              height: asset.height || 0,
+            }));
+
+            // Check layout constraints for the new total
+            const totalMedia = selectedMedia.length + newMedia.length;
+            const currentLayout = layoutOptions.find(
+              l => l.id === selectedLayout,
+            );
+
+            if (totalMedia > 10) {
+              Alert.alert(
+                'Too Many Files',
+                'You can only select up to 10 media files total.',
+              );
+              return;
+            }
+
+            // Check if adding these items would exceed layout maximum
+            if (
+              currentLayout?.maxItems &&
+              totalMedia > currentLayout.maxItems
+            ) {
+              const allowedCount =
+                currentLayout.maxItems - selectedMedia.length;
+              if (allowedCount <= 0) {
+                Alert.alert(
+                  'Layout Limit Reached',
+                  `${currentLayout.label} layout can only have ${
+                    currentLayout.maxItems
+                  } ${currentLayout.maxItems === 1 ? 'item' : 'items'}.`,
+                );
+                return;
+              } else {
+                Alert.alert(
+                  'Too Many Items',
+                  `${
+                    currentLayout.label
+                  } layout can only accept ${allowedCount} more ${
+                    allowedCount === 1 ? 'item' : 'items'
+                  }.`,
+                );
+                return;
+              }
+            }
+
+            const updatedMedia = [...selectedMedia, ...newMedia];
+            setSelectedMedia(updatedMedia);
+
+            // Lock layout once media is uploaded
+            if (updatedMedia.length > 0) {
+              setLayoutLocked(true);
+            }
+
+            // Notify parent component about media changes
+            if (onMediaChange) {
+              onMediaChange(updatedMedia.length);
+            }
+
+            // Auto-show video settings if any video is uploaded and hasn't been auto-opened before
+            const hasVideo = newMedia.some(media => media.isVideo);
+            if (hasVideo && !videoSettingsAutoOpened) {
+              setShowVideoSettings(true);
+              setVideoSettingsAutoOpened(true);
+            }
+
+            console.log('Successfully added media:', newMedia.length, 'files');
+          } catch (processingError) {
+            console.error('Error processing selected media:', processingError);
+            Alert.alert(
+              'Processing Error',
+              'Failed to process selected media. Please try again.',
+            );
+          }
+        });
+      } catch (launchError) {
+        console.error('Error launching image picker:', launchError);
+        Alert.alert(
+          'Launch Error',
+          'Failed to open media picker. Please try again.',
+        );
+      }
+    };
+
+    const handleRemoveMedia = index => {
+      try {
+        const updatedMedia = selectedMedia.filter((_, i) => i !== index);
+        setSelectedMedia(updatedMedia);
+
+        // Unlock layout if no media remaining
+        if (updatedMedia.length === 0) {
+          setLayoutLocked(false);
+          setShowLayoutReset(false);
+        }
+
+        // Notify parent component about media changes
+        if (onMediaChange) {
+          onMediaChange(updatedMedia.length);
+        }
+
+        // Clean up thumbnails - shift indices for remaining videos
+        setVideoSettings(prev => {
+          const newThumbnails = {};
+
+          // Rebuild thumbnails with correct indices
+          updatedMedia.forEach((media, newIndex) => {
+            if (media.isVideo) {
+              // Find the original index of this video
+              const originalIndex = selectedMedia.findIndex(
+                m => m.uri === media.uri,
+              );
+              if (originalIndex !== -1 && prev.thumbnails[originalIndex]) {
+                newThumbnails[newIndex] = prev.thumbnails[originalIndex];
+              }
+            }
+          });
+
+          return {
+            ...prev,
+            thumbnails: newThumbnails,
+          };
+        });
+
+        // Hide video settings if no videos remaining or if current video was removed
+        const hasVideo = updatedMedia.some(media => media.isVideo);
+        if (!hasVideo) {
+          setShowVideoSettings(false);
+          setVideoSettingsAutoOpened(false);
+          setCurrentVideoIndex(null);
+        } else if (currentVideoIndex === index) {
+          // If the current video was removed, close settings
+          setShowVideoSettings(false);
+          setCurrentVideoIndex(null);
+        } else if (currentVideoIndex !== null && currentVideoIndex > index) {
+          // Adjust current video index if it was after the removed video
+          setCurrentVideoIndex(currentVideoIndex - 1);
+        }
+
+        console.log(
+          'Media removed successfully, remaining:',
+          updatedMedia.length,
+        );
+      } catch (error) {
+        console.error('Error removing media:', error);
+        Alert.alert('Error', 'Failed to remove media. Please try again.');
+      }
+    };
+
+    const handleRemoveAllMedia = () => {
+      Alert.alert(
+        'Remove All Media',
+        'Are you sure you want to remove all uploaded media?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Remove All',
+            style: 'destructive',
+            onPress: () => {
+              setSelectedMedia([]);
+              setLayoutLocked(false); // Unlock layout when all media is removed
+              setShowLayoutReset(false);
+              setShowVideoSettings(false);
+              setVideoSettingsAutoOpened(false);
+              setVideoSettings({
+                autoPlay: true,
+                thumbnails: {},
+              });
+              setCurrentVideoIndex(null);
+              // Notify parent component about media changes
+              if (onMediaChange) {
+                onMediaChange(0);
+              }
+              // Reset to default layout when all media is removed
+              setSelectedLayout('1');
+            },
+          },
+        ],
+      );
+    };
+
+    const handleThumbnailUpload = (videoIndex = currentVideoIndex) => {
+      if (videoIndex === null || videoIndex === undefined) {
+        Alert.alert('Error', 'No video selected for thumbnail upload.');
+        return;
+      }
+
+      const options = {
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        includeBase64: false,
+      };
+
+      try {
+        launchImageLibrary(options, response => {
+          if (response.didCancel) {
+            console.log('User cancelled thumbnail picker');
+            return;
+          }
+
+          if (response.error) {
+            console.error('Thumbnail picker error:', response.error);
+            Alert.alert(
+              'Error',
+              'Failed to select thumbnail. Please try again.',
+            );
+            return;
+          }
+
+          if (!response.assets || response.assets.length === 0) {
+            Alert.alert('Error', 'No thumbnail selected.');
+            return;
+          }
+
+          const thumbnail = response.assets[0];
+
+          // Validate file size (max 10MB for thumbnails)
+          const maxFileSize = 10 * 1024 * 1024; // 10MB
+          if (thumbnail.fileSize && thumbnail.fileSize > maxFileSize) {
+            Alert.alert('File Too Large', 'Thumbnail must be under 10MB.');
+            return;
+          }
+
+          // Update thumbnail for specific video
+          setVideoSettings(prev => ({
+            ...prev,
+            thumbnails: {
+              ...prev.thumbnails,
+              [videoIndex]: thumbnail,
+            },
+          }));
+
+          console.log(
+            `Thumbnail uploaded for video ${videoIndex}:`,
+            thumbnail.fileName,
+          );
+        });
+      } catch (error) {
+        console.error('Error launching thumbnail picker:', error);
+        Alert.alert('Error', 'Failed to open thumbnail picker.');
+      }
+    };
+
+    const handleVideoClick = videoIndex => {
+      setCurrentVideoIndex(videoIndex);
+      setShowVideoSettings(true);
+      // Pass video settings data to parent
+      if (onVideoSettingsOpen) {
+        onVideoSettingsOpen({
+          videoIndex,
+          videoSettings,
+          setVideoSettings,
+          currentVideoIndex: videoIndex,
+          setCurrentVideoIndex,
+          setShowVideoSettings,
+        });
+      }
+    };
+
+    const handleLayoutChangeRequest = () => {
+      Alert.alert(
+        'Change Layout',
+        'Changing layout will remove all uploaded media. Are you sure you want to continue?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Change Layout',
+            style: 'destructive',
+            onPress: () => {
+              setSelectedMedia([]);
+              setLayoutLocked(false);
+              setShowLayoutReset(false);
+              setShowVideoSettings(false);
+              setVideoSettingsAutoOpened(false);
+              setVideoSettings({
+                autoPlay: true,
+                thumbnails: {},
+              });
+              setCurrentVideoIndex(null);
+              // Notify parent component about media changes
+              if (onMediaChange) {
+                onMediaChange(0);
+              }
+            },
+          },
+        ],
+      );
+    };
+
+    // VideoThumbnailOverlay component for custom thumbnail display
+    const VideoThumbnailOverlay = ({videoIndex, thumbnail, onPress}) => {
+      if (thumbnail) {
+        return (
+          <TouchableOpacity
+            style={styles.customThumbnailOverlay}
+            onPress={() => onPress(videoIndex)}>
+            <Image
+              source={{uri: thumbnail.uri}}
+              style={styles.thumbnailImage}
+            />
+            <View style={styles.playIconOverlay}>
               <Icon
                 name="play-circle-filled"
-                size={30}
+                size={24}
                 color="rgba(255,255,255,0.9)"
               />
-              <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => handleRemoveMedia(index)}
-            activeOpacity={0.7}>
-            <Icon name="close" size={18} color="#fff" />
+            </View>
           </TouchableOpacity>
-        </View>,
-      );
-    });
+        );
+      }
 
-    // Show upload slot only if we can add more based on layout constraints
-    const eligibility = checkUploadEligibility(
-      selectedLayout,
-      selectedMedia.length,
-    );
-    if (selectedMedia.length === 0) {
-      items.push(
+      return (
         <TouchableOpacity
-          key="first-upload"
-          style={[
-            styles.mediaItem,
-            styles.placeholderItem,
-            {width: '100%', aspectRatio: 1, marginBottom: 8},
-          ]}
-          onPress={handleMediaUpload}>
-          <Icon name="add" size={30} color="#666" />
-          <Text style={styles.placeholderText}>Add Photo/Video</Text>
-        </TouchableOpacity>,
+          style={styles.videoOverlay}
+          onPress={() => onPress(videoIndex)}>
+          <Icon
+            name="play-circle-filled"
+            size={30}
+            color="rgba(255,255,255,0.9)"
+          />
+          <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
+        </TouchableOpacity>
       );
-    } else if (eligibility.canUpload) {
-      // Only show "Add More" if layout constraints allow it
-      items.push(
-        <TouchableOpacity
-          key="add-more"
-          style={[
-            styles.mediaItem,
-            styles.placeholderItem,
-            {width: '100%', aspectRatio: 1, marginBottom: 8},
-          ]}
-          onPress={handleMediaUpload}>
-          <Icon name="add" size={30} color="#666" />
-          <Text style={styles.placeholderText}>Add More</Text>
-        </TouchableOpacity>,
+    };
+
+    // Layout constraint utility functions
+    const calculateUIState = (selectedLayout, mediaCount, layoutOptions) => {
+      const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
+      if (!currentLayout) {
+        return {
+          showAddMore: false,
+          showRemoveAll: false,
+          removeButtonLabel: 'Remove',
+          isMaxReached: false,
+          statusMessage: '',
+          canUploadMore: false,
+        };
+      }
+
+      const isMaxReached =
+        currentLayout.maxItems && mediaCount >= currentLayout.maxItems;
+      const canUploadMore = !isMaxReached && mediaCount < 10; // Global limit
+      const showAddMore = canUploadMore && mediaCount > 0;
+      const showRemoveAll = mediaCount > 1; // Only show "Remove All" for multiple items
+      const removeButtonLabel = mediaCount > 1 ? 'Remove All' : 'Remove';
+
+      let statusMessage = '';
+      if (isMaxReached) {
+        statusMessage = `Maximum ${currentLayout.maxItems} ${
+          currentLayout.maxItems === 1 ? 'item' : 'items'
+        } reached`;
+      }
+
+      return {
+        showAddMore,
+        showRemoveAll,
+        removeButtonLabel,
+        isMaxReached,
+        statusMessage,
+        canUploadMore,
+      };
+    };
+
+    const checkLayoutConstraints = (layout, currentMediaCount) => {
+      if (!layout) {
+        return {
+          isValid: false,
+          canAddMore: false,
+          isAtMaximum: false,
+          validationMessage: 'Invalid layout',
+        };
+      }
+
+      const isValid =
+        currentMediaCount >= layout.minItems &&
+        (!layout.maxItems || currentMediaCount <= layout.maxItems);
+      const canAddMore =
+        !layout.maxItems || currentMediaCount < layout.maxItems;
+      const isAtMaximum =
+        layout.maxItems && currentMediaCount >= layout.maxItems;
+
+      let validationMessage = '';
+      if (currentMediaCount < layout.minItems) {
+        validationMessage = `${layout.label} layout requires at least ${layout.minItems} items`;
+      } else if (layout.maxItems && currentMediaCount > layout.maxItems) {
+        validationMessage = `${layout.label} layout accepts maximum ${layout.maxItems} items`;
+      }
+
+      return {
+        isValid,
+        canAddMore,
+        isAtMaximum,
+        validationMessage,
+      };
+    };
+
+    // Create items for ThumbnailBottomnav (Video Settings Only)
+    const getVideoSettingsItems = () => {
+      const currentThumbnail =
+        currentVideoIndex !== null
+          ? videoSettings.thumbnails[currentVideoIndex]
+          : null;
+
+      const items = [
+        {
+          type: 'button',
+          icon: 'photo',
+          iconColor: '#2196F3',
+          title: currentThumbnail ? 'Change Thumbnail' : 'Upload Thumbnail',
+          textColor: '#2196F3',
+          showArrow: false,
+          onPress: () => handleThumbnailUpload(currentVideoIndex),
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'switch',
+          icon: 'play-circle-filled',
+          iconColor: '#4CAF50',
+          title: 'Auto Play',
+          description: 'Videos will play automatically',
+          value: videoSettings.autoPlay,
+          component: Switch,
+          onToggle: value =>
+            setVideoSettings(prev => ({...prev, autoPlay: value})),
+        },
+      ];
+
+      if (currentThumbnail) {
+        items.push({
+          type: 'divider',
+        });
+        items.push({
+          type: 'info',
+          icon: 'check-circle',
+          iconColor: '#4CAF50',
+          title: 'Custom Thumbnail Active',
+          description: `File: ${
+            currentThumbnail.fileName || 'Custom thumbnail'
+          }`,
+        });
+        items.push({
+          type: 'button',
+          icon: 'delete',
+          iconColor: '#ff4757',
+          title: 'Remove Thumbnail',
+          textColor: '#ff4757',
+          showArrow: false,
+          onPress: () => {
+            setVideoSettings(prev => {
+              const newThumbnails = {...prev.thumbnails};
+              delete newThumbnails[currentVideoIndex];
+              return {
+                ...prev,
+                thumbnails: newThumbnails,
+              };
+            });
+          },
+        });
+      }
+
+      return items;
+    };
+
+    // Layout-specific renderers
+    const renderSingleColumn = () => {
+      const items = [];
+      const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
+      const uiState = calculateUIState(
+        selectedLayout,
+        selectedMedia.length,
+        layoutOptions,
       );
-    }
 
-    return items;
-  };
-
-  const renderTwoColumn = () => {
-    const items = [];
-    const constraints = layoutConstraints[selectedLayout];
-    const eligibility = checkUploadEligibility(
-      selectedLayout,
-      selectedMedia.length,
-    );
-
-    // Show slots based on layout constraints
-    const minSlots = Math.max(
-      2,
-      selectedMedia.length + (eligibility.canUpload ? 1 : 0),
-    );
-
-    for (let i = 0; i < minSlots; i++) {
-      const media = selectedMedia[i];
-
-      if (media) {
-        // Show uploaded media
+      // Show uploaded media first
+      selectedMedia.forEach((media, index) => {
         items.push(
           <View
-            key={i}
+            key={index}
             style={[
               styles.mediaItem,
-              {
-                width: '48%',
-                height: 120,
-                marginBottom: 8,
-                marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
-              },
+              {width: '100%', aspectRatio: 1, marginBottom: 8},
             ]}>
             <Image
               source={{uri: media.uri}}
               style={styles.mediaImage}
               onError={error => {
-                console.error('Image load error in two-column:', error);
-                handleRemoveMedia(i);
+                console.error('Image load error:', error);
+                // Optionally remove the problematic media
+                handleRemoveMedia(index);
               }}
               resizeMode="cover"
             />
             {media.isVideo && (
-              <TouchableOpacity
-                style={styles.videoOverlay}
-                onPress={handleVideoClick}>
-                <Icon
-                  name="play-circle-filled"
-                  size={30}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
-              </TouchableOpacity>
+              <VideoThumbnailOverlay
+                videoIndex={index}
+                thumbnail={videoSettings.thumbnails[index]}
+                onPress={handleVideoClick}
+              />
             )}
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => handleRemoveMedia(i)}
+              onPress={() => handleRemoveMedia(index)}
               activeOpacity={0.7}>
               <Icon name="close" size={18} color="#fff" />
             </TouchableOpacity>
           </View>,
         );
-      } else {
-        // Show upload placeholder
+      });
+
+      // Show upload slot only if we can add more based on layout constraints
+      const eligibility = checkUploadEligibility(
+        selectedLayout,
+        selectedMedia.length,
+      );
+      if (selectedMedia.length === 0) {
         items.push(
           <TouchableOpacity
-            key={`placeholder-${i}`}
+            key="first-upload"
             style={[
               styles.mediaItem,
               styles.placeholderItem,
-              {
-                width: '48%',
-                height: 120,
-                marginBottom: 8,
-                marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
-              },
-            ]}
-            onPress={handleMediaUpload}>
-            <Icon name="add" size={30} color="#666" />
-            <Text style={styles.placeholderText}>
-              {selectedMedia.length === 0 ? 'Add Photo/Video' : 'Add More'}
-            </Text>
-          </TouchableOpacity>,
-        );
-      }
-    }
-
-    return items;
-  };
-
-  const renderGrid = () => {
-    const gridItems = [];
-    // Always show 4 slots for 2x2 grid
-    for (let i = 0; i < 4; i++) {
-      const media = selectedMedia[i];
-      if (media) {
-        gridItems.push(
-          <View
-            key={i}
-            style={[
-              styles.mediaItem,
-              {
-                width: '48%',
-                height: 140,
-                marginBottom: i < 2 ? 8 : 0,
-                marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
-              },
-            ]}>
-            <Image source={{uri: media.uri}} style={styles.mediaImage} />
-            {media.isVideo && (
-              <TouchableOpacity
-                style={styles.videoOverlay}
-                onPress={handleVideoClick}>
-                <Icon
-                  name="play-circle-filled"
-                  size={30}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => handleRemoveMedia(i)}
-              activeOpacity={0.7}>
-              <Icon name="close" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>,
-        );
-      } else {
-        // Show placeholder for missing images
-        gridItems.push(
-          <TouchableOpacity
-            key={`placeholder-${i}`}
-            style={[
-              styles.mediaItem,
-              styles.placeholderItem,
-              {
-                width: '48%',
-                height: 140,
-                marginBottom: i < 2 ? 8 : 0,
-                marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
-              },
+              {width: '100%', aspectRatio: 1, marginBottom: 8},
             ]}
             onPress={handleMediaUpload}>
             <Icon name="add" size={30} color="#666" />
             <Text style={styles.placeholderText}>Add Photo/Video</Text>
           </TouchableOpacity>,
         );
-      }
-    }
-    return gridItems;
-  };
-
-  const renderAsymmetric = layoutType => {
-    const mainImage = selectedMedia[0];
-    const sideImages = selectedMedia.slice(1);
-    const maxSideImages = layoutType === '1x2' ? 2 : 3;
-    const sideImageHeight = layoutType === '1x2' ? 94 : 62;
-
-    return (
-      <View style={styles.specialLayoutContainer}>
-        {/* Main large image - always show slot */}
-        {mainImage ? (
-          <View style={[styles.mediaItem, styles.mainImageContainer]}>
-            <Image source={{uri: mainImage.uri}} style={styles.mediaImage} />
-            {mainImage.isVideo && (
-              <TouchableOpacity
-                style={styles.videoOverlay}
-                onPress={handleVideoClick}>
-                <Icon
-                  name="play-circle-filled"
-                  size={30}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => handleRemoveMedia(0)}
-              activeOpacity={0.7}>
-              <Icon name="close" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.mediaItem,
-              styles.mainImageContainer,
-              styles.placeholderItem,
-            ]}
-            onPress={handleMediaUpload}>
-            <Icon name="add" size={40} color="#666" />
-            <Text style={styles.placeholderText}>Add Main Photo/Video</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Side images column - always show all slots */}
-        <View style={styles.sideImagesContainer}>
-          {Array.from({length: maxSideImages}, (_, index) => {
-            const media = sideImages[index];
-            if (media) {
-              return (
-                <View
-                  key={index + 1}
-                  style={[
-                    styles.mediaItem,
-                    {height: sideImageHeight, marginBottom: 4},
-                  ]}>
-                  <Image source={{uri: media.uri}} style={styles.mediaImage} />
-                  {media.isVideo && (
-                    <TouchableOpacity
-                      style={styles.videoOverlay}
-                      onPress={handleVideoClick}>
-                      <Icon
-                        name="play-circle-filled"
-                        size={20}
-                        color="rgba(255,255,255,0.9)"
-                      />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => handleRemoveMedia(index + 1)}
-                    activeOpacity={0.7}>
-                    <Icon name="close" size={16} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              );
-            } else {
-              return (
-                <TouchableOpacity
-                  key={`side-placeholder-${index}`}
-                  style={[
-                    styles.mediaItem,
-                    styles.placeholderItem,
-                    {height: sideImageHeight, marginBottom: 4},
-                  ]}
-                  onPress={handleMediaUpload}>
-                  <Icon name="add" size={20} color="#666" />
-                  <Text style={[styles.placeholderText, {fontSize: 10}]}>
-                    Add Photo/Video
-                  </Text>
-                </TouchableOpacity>
-              );
-            }
-          })}
-        </View>
-      </View>
-    );
-  };
-
-  const renderCarousel = () => {
-    const items = [];
-    const constraints = layoutConstraints[selectedLayout];
-    const eligibility = checkUploadEligibility(
-      selectedLayout,
-      selectedMedia.length,
-    );
-
-    // Always show at least 2 slots for carousel (minimum requirement)
-    const minSlots = Math.max(
-      2,
-      selectedMedia.length + (eligibility.canUpload ? 1 : 0),
-    );
-
-    for (let i = 0; i < minSlots; i++) {
-      const media = selectedMedia[i];
-
-      if (media) {
-        // Show uploaded media
-        items.push(
-          <View
-            key={i}
-            style={[
-              styles.mediaItem,
-              {width: 200, height: 150, marginRight: 8},
-            ]}>
-            <Image source={{uri: media.uri}} style={styles.mediaImage} />
-            {media.isVideo && (
-              <TouchableOpacity
-                style={styles.videoOverlay}
-                onPress={handleVideoClick}>
-                <Icon
-                  name="play-circle-filled"
-                  size={30}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.thumbnailHint}>Click to add thumbnail</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => handleRemoveMedia(i)}
-              activeOpacity={0.7}>
-              <Icon name="close" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>,
-        );
-      } else {
-        // Show upload placeholder
+      } else if (eligibility.canUpload) {
+        // Only show "Add More" if layout constraints allow it
         items.push(
           <TouchableOpacity
-            key={`placeholder-${i}`}
+            key="add-more"
             style={[
               styles.mediaItem,
               styles.placeholderItem,
-              {width: 200, height: 150, marginRight: 8},
+              {width: '100%', aspectRatio: 1, marginBottom: 8},
             ]}
             onPress={handleMediaUpload}>
             <Icon name="add" size={30} color="#666" />
-            <Text style={styles.placeholderText}>
-              {selectedMedia.length === 0 ? 'Add Photo/Video' : 'Add More'}
-            </Text>
+            <Text style={styles.placeholderText}>Add More</Text>
           </TouchableOpacity>,
         );
       }
-    }
 
-    return items;
-  };
+      return items;
+    };
 
-  const renderMediaGrid = () => {
-    // Always show the grid structure based on selected layout
-    const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
-    const hasVideos = selectedMedia.some(media => media.isVideo);
-
-    // Show initial upload placeholder when no media exists
-    if (selectedMedia.length === 0) {
+    const renderTwoColumn = () => {
+      const items = [];
       const constraints = layoutConstraints[selectedLayout];
-      return (
-        <TouchableOpacity
-          style={styles.uploadPlaceholder}
-          onPress={handleMediaUpload}>
-          <Icon name="add" size={40} color="#666" />
-          <Text style={styles.uploadText}>
-            Upload{' '}
-            {constraints.maxItems === 1
-              ? '1 item'
-              : `${constraints.minItems}${
-                  constraints.maxItems === constraints.minItems ? '' : '+'
-                } items`}{' '}
-            for {selectedLayout} layout
-          </Text>
-          <Text style={styles.uploadSubText}>{constraints.description}</Text>
-        </TouchableOpacity>
+      const eligibility = checkUploadEligibility(
+        selectedLayout,
+        selectedMedia.length,
       );
-    }
 
-    return (
-      <View style={styles.mediaContainer}>
-        {/* Media Grid Header - show when media exists */}
-        {selectedMedia.length > 0 && (
-          <View style={styles.mediaHeader}>
-            <View style={styles.mediaCountContainer}>
-              <Text style={styles.mediaCount}>
-                {selectedMedia.length} of{' '}
-                {layoutConstraints[selectedLayout].maxItems} items uploaded
-              </Text>
-              <Text style={styles.layoutIndicator}>
-                Layout: {selectedLayout} (
-                {layoutConstraints[selectedLayout].description})
-              </Text>
-              {(() => {
-                const constraints = layoutConstraints[selectedLayout];
-                const isComplete = selectedMedia.length >= constraints.minItems;
-                const isMaxReached =
-                  selectedMedia.length >= constraints.maxItems;
+      // Show slots based on layout constraints
+      const minSlots = Math.max(
+        2,
+        selectedMedia.length + (eligibility.canUpload ? 1 : 0),
+      );
 
-                if (isMaxReached) {
-                  return (
-                    <Text style={styles.completionMessage}>
-                      ✓ Layout complete
-                    </Text>
-                  );
-                } else if (!isComplete) {
-                  const needed = constraints.minItems - selectedMedia.length;
-                  return (
-                    <Text style={styles.progressMessage}>
-                      {needed} more {needed === 1 ? 'item' : 'items'} needed
-                    </Text>
-                  );
-                } else {
-                  const remaining = constraints.maxItems - selectedMedia.length;
-                  return (
-                    <Text style={styles.progressMessage}>
-                      {remaining} more {remaining === 1 ? 'item' : 'items'} can
-                      be added
-                    </Text>
-                  );
-                }
-              })()}
+      for (let i = 0; i < minSlots; i++) {
+        const media = selectedMedia[i];
+
+        if (media) {
+          // Show uploaded media
+          items.push(
+            <View
+              key={i}
+              style={[
+                styles.mediaItem,
+                {
+                  width: '48%',
+                  height: 120,
+                  marginBottom: 8,
+                  marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
+                },
+              ]}>
+              <Image
+                source={{uri: media.uri}}
+                style={styles.mediaImage}
+                onError={error => {
+                  console.error('Image load error in two-column:', error);
+                  handleRemoveMedia(i);
+                }}
+                resizeMode="cover"
+              />
+              {media.isVideo && (
+                <VideoThumbnailOverlay
+                  videoIndex={i}
+                  thumbnail={videoSettings.thumbnails[i]}
+                  onPress={handleVideoClick}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => handleRemoveMedia(i)}
+                activeOpacity={0.7}>
+                <Icon name="close" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>,
+          );
+        } else {
+          // Show upload placeholder
+          items.push(
+            <TouchableOpacity
+              key={`placeholder-${i}`}
+              style={[
+                styles.mediaItem,
+                styles.placeholderItem,
+                {
+                  width: '48%',
+                  height: 120,
+                  marginBottom: 8,
+                  marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
+                },
+              ]}
+              onPress={handleMediaUpload}>
+              <Icon name="add" size={30} color="#666" />
+              <Text style={styles.placeholderText}>
+                {selectedMedia.length === 0 ? 'Add Photo/Video' : 'Add More'}
+              </Text>
+            </TouchableOpacity>,
+          );
+        }
+      }
+
+      return items;
+    };
+
+    const renderGrid = () => {
+      const gridItems = [];
+      // Always show 4 slots for 2x2 grid
+      for (let i = 0; i < 4; i++) {
+        const media = selectedMedia[i];
+        if (media) {
+          gridItems.push(
+            <View
+              key={i}
+              style={[
+                styles.mediaItem,
+                {
+                  width: '48%',
+                  height: 140,
+                  marginBottom: i < 2 ? 8 : 0,
+                  marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
+                },
+              ]}>
+              <Image source={{uri: media.uri}} style={styles.mediaImage} />
+              {media.isVideo && (
+                <VideoThumbnailOverlay
+                  videoIndex={i}
+                  thumbnail={videoSettings.thumbnails[i]}
+                  onPress={handleVideoClick}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => handleRemoveMedia(i)}
+                activeOpacity={0.7}>
+                <Icon name="close" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>,
+          );
+        } else {
+          // Show placeholder for missing images
+          gridItems.push(
+            <TouchableOpacity
+              key={`placeholder-${i}`}
+              style={[
+                styles.mediaItem,
+                styles.placeholderItem,
+                {
+                  width: '48%',
+                  height: 140,
+                  marginBottom: i < 2 ? 8 : 0,
+                  marginRight: (i + 1) % 2 !== 0 ? '4%' : 0,
+                },
+              ]}
+              onPress={handleMediaUpload}>
+              <Icon name="add" size={30} color="#666" />
+              <Text style={styles.placeholderText}>Add Photo/Video</Text>
+            </TouchableOpacity>,
+          );
+        }
+      }
+      return gridItems;
+    };
+
+    const renderAsymmetric = layoutType => {
+      const mainImage = selectedMedia[0];
+      const sideImages = selectedMedia.slice(1);
+      const maxSideImages = layoutType === '1x2' ? 2 : 3;
+      const sideImageHeight = layoutType === '1x2' ? 94 : 62;
+
+      return (
+        <View style={styles.specialLayoutContainer}>
+          {/* Main large image - always show slot */}
+          {mainImage ? (
+            <View style={[styles.mediaItem, styles.mainImageContainer]}>
+              <Image source={{uri: mainImage.uri}} style={styles.mediaImage} />
+              {mainImage.isVideo && (
+                <VideoThumbnailOverlay
+                  videoIndex={0}
+                  thumbnail={videoSettings.thumbnails[0]}
+                  onPress={handleVideoClick}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => handleRemoveMedia(0)}
+                activeOpacity={0.7}>
+                <Icon name="close" size={18} color="#fff" />
+              </TouchableOpacity>
             </View>
-            {selectedMedia.length > 0 &&
-              (() => {
-                const uiState = calculateUIState(
-                  selectedLayout,
-                  selectedMedia.length,
-                  layoutOptions,
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.mediaItem,
+                styles.mainImageContainer,
+                styles.placeholderItem,
+              ]}
+              onPress={handleMediaUpload}>
+              <Icon name="add" size={40} color="#666" />
+              <Text style={styles.placeholderText}>Add Main Photo/Video</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Side images column - always show all slots */}
+          <View style={styles.sideImagesContainer}>
+            {Array.from({length: maxSideImages}, (_, index) => {
+              const media = sideImages[index];
+              if (media) {
+                return (
+                  <View
+                    key={index + 1}
+                    style={[
+                      styles.mediaItem,
+                      {height: sideImageHeight, marginBottom: 4},
+                    ]}>
+                    <Image
+                      source={{uri: media.uri}}
+                      style={styles.mediaImage}
+                    />
+                    {media.isVideo && (
+                      <VideoThumbnailOverlay
+                        videoIndex={index + 1}
+                        thumbnail={videoSettings.thumbnails[index + 1]}
+                        onPress={handleVideoClick}
+                      />
+                    )}
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveMedia(index + 1)}
+                      activeOpacity={0.7}>
+                      <Icon name="close" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 );
-                return uiState.showRemoveAll ? (
+              } else {
+                return (
                   <TouchableOpacity
-                    style={styles.removeAllButton}
-                    onPress={handleRemoveAllMedia}>
-                    <Icon name="delete-outline" size={20} color="#ff4757" />
-                    <Text style={styles.removeAllText}>
-                      {uiState.removeButtonLabel}
+                    key={`side-placeholder-${index}`}
+                    style={[
+                      styles.mediaItem,
+                      styles.placeholderItem,
+                      {height: sideImageHeight, marginBottom: 4},
+                    ]}
+                    onPress={handleMediaUpload}>
+                    <Icon name="add" size={20} color="#666" />
+                    <Text style={[styles.placeholderText, {fontSize: 10}]}>
+                      Add Photo/Video
                     </Text>
                   </TouchableOpacity>
-                ) : null;
-              })()}
+                );
+              }
+            })}
           </View>
-        )}
+        </View>
+      );
+    };
 
-        {/* Dynamic Layout Rendering - Always show full grid structure */}
-        <ScrollView
-          horizontal={selectedLayout === 'carousel'}
-          showsHorizontalScrollIndicator={false}
-          style={
-            selectedLayout === 'carousel' ? styles.carouselContainer : null
-          }>
-          <View
-            style={[
-              styles.mediaGrid,
-              selectedLayout === '1'
-                ? {flexDirection: 'column'}
-                : selectedLayout === 'carousel'
-                ? {flexDirection: 'row'}
-                : {flexDirection: 'row', flexWrap: 'wrap'},
-            ]}>
-            {selectedLayout === '1' && renderSingleColumn()}
-            {selectedLayout === '2' && renderTwoColumn()}
-            {selectedLayout === '2x2' && renderGrid()}
-            {selectedLayout === '1x2' && renderAsymmetric('1x2')}
-            {selectedLayout === '1x3' && renderAsymmetric('1x3')}
-            {selectedLayout === 'carousel' && renderCarousel()}
-          </View>
-        </ScrollView>
+    const renderCarousel = () => {
+      const items = [];
+      const constraints = layoutConstraints[selectedLayout];
+      const eligibility = checkUploadEligibility(
+        selectedLayout,
+        selectedMedia.length,
+      );
 
-        {/* Validation errors are now prevented by constraint enforcement */}
+      // Always show at least 2 slots for carousel (minimum requirement)
+      const minSlots = Math.max(
+        2,
+        selectedMedia.length + (eligibility.canUpload ? 1 : 0),
+      );
 
-        {/* Video Settings Hint - Only show when videos are present */}
-        {hasVideos && (
+      for (let i = 0; i < minSlots; i++) {
+        const media = selectedMedia[i];
+
+        if (media) {
+          // Show uploaded media
+          items.push(
+            <View
+              key={i}
+              style={[
+                styles.mediaItem,
+                {width: 200, height: 150, marginRight: 8},
+              ]}>
+              <Image source={{uri: media.uri}} style={styles.mediaImage} />
+              {media.isVideo && (
+                <VideoThumbnailOverlay
+                  videoIndex={i}
+                  thumbnail={videoSettings.thumbnails[i]}
+                  onPress={handleVideoClick}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => handleRemoveMedia(i)}
+                activeOpacity={0.7}>
+                <Icon name="close" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>,
+          );
+        } else {
+          // Show upload placeholder
+          items.push(
+            <TouchableOpacity
+              key={`placeholder-${i}`}
+              style={[
+                styles.mediaItem,
+                styles.placeholderItem,
+                {width: 200, height: 150, marginRight: 8},
+              ]}
+              onPress={handleMediaUpload}>
+              <Icon name="add" size={30} color="#666" />
+              <Text style={styles.placeholderText}>
+                {selectedMedia.length === 0 ? 'Add Photo/Video' : 'Add More'}
+              </Text>
+            </TouchableOpacity>,
+          );
+        }
+      }
+
+      return items;
+    };
+
+    const renderMediaGrid = () => {
+      // Always show the grid structure based on selected layout
+      const currentLayout = layoutOptions.find(l => l.id === selectedLayout);
+      const hasVideos = selectedMedia.some(media => media.isVideo);
+
+      // Show initial upload placeholder when no media exists
+      if (selectedMedia.length === 0) {
+        const constraints = layoutConstraints[selectedLayout];
+        return (
           <TouchableOpacity
-            style={styles.videoSettingsHint}
-            onPress={handleVideoClick}>
-            <Icon name="video-settings" size={20} color="#2196F3" />
-            <Text style={styles.videoSettingsHintText}>
-              Tap to customize video settings (thumbnail, autoplay)
+            style={styles.uploadPlaceholder}
+            onPress={handleMediaUpload}>
+            <Icon name="add" size={40} color="#666" />
+            <Text style={styles.uploadText}>
+              Upload{' '}
+              {constraints.maxItems === 1
+                ? '1 item'
+                : `${constraints.minItems}${
+                    constraints.maxItems === constraints.minItems ? '' : '+'
+                  } items`}{' '}
+              for {selectedLayout} layout
             </Text>
-            <Icon name="chevron-right" size={16} color="#2196F3" />
+            <Text style={styles.uploadSubText}>{constraints.description}</Text>
           </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+        );
+      }
 
-  const renderLayoutOptions = () => {
-    // Hide layout options when media exists and layout is locked
-    if (layoutLocked && selectedMedia.length > 0) {
+      return (
+        <View style={styles.mediaContainer}>
+          {/* Media Grid Header - show when media exists */}
+          {selectedMedia.length > 0 && (
+            <View style={styles.mediaHeader}>
+              <View style={styles.mediaCountContainer}>
+                <Text style={styles.mediaCount}>
+                  {selectedMedia.length} of{' '}
+                  {layoutConstraints[selectedLayout].maxItems} items uploaded
+                </Text>
+                <Text style={styles.layoutIndicator}>
+                  Layout: {selectedLayout} (
+                  {layoutConstraints[selectedLayout].description})
+                </Text>
+                {(() => {
+                  const constraints = layoutConstraints[selectedLayout];
+                  const isComplete =
+                    selectedMedia.length >= constraints.minItems;
+                  const isMaxReached =
+                    selectedMedia.length >= constraints.maxItems;
+
+                  if (isMaxReached) {
+                    return (
+                      <Text style={styles.completionMessage}>
+                        ✓ Layout complete
+                      </Text>
+                    );
+                  } else if (!isComplete) {
+                    const needed = constraints.minItems - selectedMedia.length;
+                    return (
+                      <Text style={styles.progressMessage}>
+                        {needed} more {needed === 1 ? 'item' : 'items'} needed
+                      </Text>
+                    );
+                  } else {
+                    const remaining =
+                      constraints.maxItems - selectedMedia.length;
+                    return (
+                      <Text style={styles.progressMessage}>
+                        {remaining} more {remaining === 1 ? 'item' : 'items'}{' '}
+                        can be added
+                      </Text>
+                    );
+                  }
+                })()}
+              </View>
+              {selectedMedia.length > 0 &&
+                (() => {
+                  const uiState = calculateUIState(
+                    selectedLayout,
+                    selectedMedia.length,
+                    layoutOptions,
+                  );
+                  return uiState.showRemoveAll ? (
+                    <TouchableOpacity
+                      style={styles.removeAllButton}
+                      onPress={handleRemoveAllMedia}>
+                      <Icon name="delete-outline" size={20} color="#ff4757" />
+                      <Text style={styles.removeAllText}>
+                        {uiState.removeButtonLabel}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null;
+                })()}
+            </View>
+          )}
+
+          {/* Dynamic Layout Rendering - Always show full grid structure */}
+          <ScrollView
+            horizontal={selectedLayout === 'carousel'}
+            showsHorizontalScrollIndicator={false}
+            style={
+              selectedLayout === 'carousel' ? styles.carouselContainer : null
+            }>
+            <View
+              style={[
+                styles.mediaGrid,
+                selectedLayout === '1'
+                  ? {flexDirection: 'column'}
+                  : selectedLayout === 'carousel'
+                  ? {flexDirection: 'row'}
+                  : {flexDirection: 'row', flexWrap: 'wrap'},
+              ]}>
+              {selectedLayout === '1' && renderSingleColumn()}
+              {selectedLayout === '2' && renderTwoColumn()}
+              {selectedLayout === '2x2' && renderGrid()}
+              {selectedLayout === '1x2' && renderAsymmetric('1x2')}
+              {selectedLayout === '1x3' && renderAsymmetric('1x3')}
+              {selectedLayout === 'carousel' && renderCarousel()}
+            </View>
+          </ScrollView>
+
+          {/* Validation errors are now prevented by constraint enforcement */}
+
+          {/* Video Settings Hint - Only show when videos are present */}
+          {hasVideos && (
+            <TouchableOpacity
+              style={styles.videoSettingsHint}
+              onPress={handleVideoClick}>
+              <Icon name="video-settings" size={20} color="#2196F3" />
+              <Text style={styles.videoSettingsHintText}>
+                Tap to customize video settings (thumbnail, autoplay)
+              </Text>
+              <Icon name="chevron-right" size={16} color="#2196F3" />
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    };
+
+    const renderLayoutOptions = () => {
+      // Hide layout options when media exists and layout is locked
+      if (layoutLocked && selectedMedia.length > 0) {
+        return (
+          <View style={styles.layoutSection}>
+            <View style={styles.lockedLayoutHeader}>
+              <View style={styles.lockedLayoutInfo}>
+                <Text style={styles.sectionTitle}>
+                  Layout: {selectedLayout}
+                </Text>
+                <Text style={styles.lockedLayoutDescription}>
+                  {layoutConstraints[selectedLayout]?.description}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.changeLayoutButton}
+                onPress={handleLayoutChangeRequest}>
+                <Icon name="refresh" size={16} color="#2196F3" />
+                <Text style={styles.changeLayoutText}>Change Layout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      }
+
+      // Show layout options when no media exists or layout is unlocked
       return (
         <View style={styles.layoutSection}>
-          <View style={styles.lockedLayoutHeader}>
-            <View style={styles.lockedLayoutInfo}>
-              <Text style={styles.sectionTitle}>Layout: {selectedLayout}</Text>
-              <Text style={styles.lockedLayoutDescription}>
-                {layoutConstraints[selectedLayout]?.description}
-              </Text>
+          <Text style={styles.sectionTitle}>Layout Style</Text>
+          <Text style={styles.sectionDescription}>
+            Choose how your media will be displayed
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.layoutScrollView}>
+            <View style={styles.layoutOptions}>
+              {layoutOptions.map(option => {
+                const isSelected = selectedLayout === option.id;
+
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[
+                      styles.layoutButton,
+                      isSelected && styles.selectedLayout,
+                    ]}
+                    onPress={() => setSelectedLayout(option.id)}>
+                    {/* Visual representation of layout */}
+                    <View style={styles.layoutIconContainer}>
+                      <LayoutOptionStyles
+                        layoutId={option.id}
+                        size={36}
+                        isSelected={isSelected}
+                      />
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.layoutText,
+                        isSelected && styles.selectedLayoutText,
+                      ]}>
+                      {option.label}
+                    </Text>
+                    <Text style={styles.layoutHint}>{option.description}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <TouchableOpacity
-              style={styles.changeLayoutButton}
-              onPress={handleLayoutChangeRequest}>
-              <Icon name="refresh" size={16} color="#2196F3" />
-              <Text style={styles.changeLayoutText}>Change Layout</Text>
+          </ScrollView>
+        </View>
+      );
+    };
+
+    return (
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Upload Media</Text>
+          <View style={styles.headerActions}>
+            {selectedMedia.length > 0 && (
+              <View style={styles.completionStatus}>
+                <Icon name="check-circle" size={16} color="#4CAF50" />
+                <Text style={[styles.statusText, {color: '#4CAF50'}]}>
+                  Ready
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Icon name="close" size={24} color="#333" />
             </TouchableOpacity>
           </View>
         </View>
-      );
-    }
 
-    // Show layout options when no media exists or layout is unlocked
-    return (
-      <View style={styles.layoutSection}>
-        <Text style={styles.sectionTitle}>Layout Style</Text>
-        <Text style={styles.sectionDescription}>
-          Choose how your media will be displayed
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.layoutScrollView}>
-          <View style={styles.layoutOptions}>
-            {layoutOptions.map(option => {
-              const isSelected = selectedLayout === option.id;
+        {/* Media Grid */}
+        <View style={styles.gridContainer}>{renderMediaGrid()}</View>
 
-              return (
-                <TouchableOpacity
-                  key={option.id}
-                  style={[
-                    styles.layoutButton,
-                    isSelected && styles.selectedLayout,
-                  ]}
-                  onPress={() => setSelectedLayout(option.id)}>
-                  {/* Visual representation of layout */}
-                  <View style={styles.layoutIconContainer}>
-                    <LayoutOptionStyles
-                      layoutId={option.id}
-                      size={36}
-                      isSelected={isSelected}
-                    />
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.layoutText,
-                      isSelected && styles.selectedLayoutText,
-                    ]}>
-                    {option.label}
-                  </Text>
-                  <Text style={styles.layoutHint}>{option.description}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+        {/* Layout Options - Always show (either selection or locked state) */}
+        {renderLayoutOptions()}
       </View>
     );
-  };
-
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Upload Media</Text>
-        <View style={styles.headerActions}>
-          {selectedMedia.length > 0 && (
-            <View style={styles.completionStatus}>
-              <Icon name="check-circle" size={16} color="#4CAF50" />
-              <Text style={[styles.statusText, {color: '#4CAF50'}]}>Ready</Text>
-            </View>
-          )}
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Media Grid */}
-      <View style={styles.gridContainer}>{renderMediaGrid()}</View>
-
-      {/* Layout Options - Always show (either selection or locked state) */}
-      {renderLayoutOptions()}
-
-      {/* Video Settings Bottom Nav */}
-      <ThumbnailBottomnav
-        visible={
-          showVideoSettings && selectedMedia.some(media => media.isVideo)
-        }
-        onClose={() => setShowVideoSettings(false)}
-        title="Video Settings"
-        items={getVideoSettingsItems()}
-        height={videoSettings.thumbnail ? 280 : 220}
-      />
-    </View>
-  );
-});
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -1328,6 +1455,33 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  customThumbnailOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  thumbnailImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  playIconOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{translateX: -12}, {translateY: -12}],
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+    padding: 8,
   },
   thumbnailHint: {
     color: 'white',

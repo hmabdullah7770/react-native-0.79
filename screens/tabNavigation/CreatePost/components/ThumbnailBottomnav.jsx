@@ -5,11 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const {height: SCREEN_HEIGHT} = Dimensions.get('window');
+
 
 const ThumbnailBottomnav = ({
   visible,
@@ -35,8 +36,6 @@ const ThumbnailBottomnav = ({
       }).start();
     }
   }, [visible, height, slideAnim]);
-
-  if (!visible) return null;
 
   const renderItem = (item, index) => {
     switch (item.type) {
@@ -89,6 +88,26 @@ const ThumbnailBottomnav = ({
           </View>
         );
 
+      case 'iconButton':
+        return (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.iconButtonItem,
+              {
+                backgroundColor: item.backgroundColor || '#ffebee',
+                borderColor: item.borderColor || '#ffcdd2',
+              }
+            ]}
+            onPress={item.onPress}>
+            <Icon 
+              name={item.icon} 
+              size={24} 
+              color={item.iconColor || '#ff4757'} 
+            />
+          </TouchableOpacity>
+        );
+
       case 'divider':
         return <View key={index} style={styles.divider} />;
 
@@ -98,62 +117,62 @@ const ThumbnailBottomnav = ({
   };
 
   return (
-    <View style={styles.overlay}>
-      <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={onClose}
-      />
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            height: height,
-            transform: [{translateY: slideAnim}],
-          },
-        ]}>
-        {/* Handle Bar */}
-        <View style={styles.handleBar} />
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent={true}>
+      <View style={styles.overlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        <Animated.View
+          style={[
+            styles.container,
+            {
+              height: height,
+              transform: [{translateY: slideAnim}],
+            },
+          ]}>
+          {/* Handle Bar */}
+          <View style={styles.handleBar} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#666" />
-          </TouchableOpacity>
-        </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Icon name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {items.map((item, index) => renderItem(item, index))}
-        </View>
-      </Animated.View>
-    </View>
+          {/* Content */}
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {items.map((item, index) => renderItem(item, index))}
+          </ScrollView>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 2000,
+    justifyContent: 'flex-end',
   },
   backdrop: {
     flex: 1,
   },
   container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 20,
+    paddingBottom: 34, // Safe area padding for devices with home indicator
+    maxHeight: '80%',
   },
   handleBar: {
     width: 40,

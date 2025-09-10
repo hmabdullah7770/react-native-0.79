@@ -9,12 +9,15 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Switch,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
+import {launchImageLibrary} from 'react-native-image-picker';
 import ProductDropdown from './components/ProductDropdown';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import InlineImageGrid from './components/InlineImageGrid'; // New inline component
 import RecorderBottomnav from './components/RecorderBottomnav';
+import ThumbnailBottomnav from './components/ThumbnailBottomnav';
 
 const CreatepostScreen = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -23,6 +26,11 @@ const CreatepostScreen = () => {
   const [showImageGrid, setShowImageGrid] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [uploadedAudio, setUploadedAudio] = useState(null);
+  
+  // Video settings state
+  const [showVideoSettings, setShowVideoSettings] = useState(false);
+  const [videoSettingsData, setVideoSettingsData] = useState(null);
+  const [modalUpdateTrigger, setModalUpdateTrigger] = useState(0);
 
   // Handle product selection from dropdown
   const handleProductSelect = product => {
@@ -45,6 +53,204 @@ const CreatepostScreen = () => {
     setUploadedAudio(audioData);
     console.log('Audio uploaded:', audioData);
   };
+
+  // Add useEffect to listen for state changes
+  useEffect(() => {
+    if (videoSettingsData?.lastUpdate) {
+      // Force modal to regenerate items when state changes
+      try {
+        setModalUpdateTrigger(prev => prev + 1);
+      } catch (error) {
+        console.error('Error updating modal trigger:', error);
+      }
+    }
+  }, [videoSettingsData?.lastUpdate]);
+
+  const handleVideoSettingsOpen = (data) => {
+    setVideoSettingsData({
+      ...data,
+      // Add reactive update mechanism
+      onStateChange: (newState) => {
+        // Force re-render of modal items
+        setVideoSettingsData(prev => ({
+          ...prev,
+          ...newState,
+          lastUpdate: Date.now() // Force re-render trigger
+        }));
+      }
+    });
+    setShowVideoSettings(true);
+  };
+
+  const handleThumbnailUpload = (videoIndex = videoSettingsData?.currentVideoIndex) => {
+    if (videoIndex === null || videoIndex === undefined || !videoSettingsData) {
+      Alert.alert('Error', 'No video selected for thumbnail upload.');
+      return;
+    }
+
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1920,
+      maxHeight: 1080,
+      includeBase64: false,
+    };
+
+    try {
+      launchImageLibrary(options, response => {
+        if (response.didCancel) {
+          console.log('User cancelled thumbnail picker');
+          return;
+        }
+
+        if (response.error) {
+          console.error('Thumbnail picker error:', response.error);
+          Alert.alert('Error', 'Failed to select thumbnail. Please try again.');
+          return;
+        }
+
+        if (!response.assets || response.assets.length === 0) {
+          Alert.alert('Error', 'No thumbnail selected.');
+          return;
+        }
+
+        const thumbnail = response.assets[0];
+
+        // Validate file size (max 10MB for thumbnails)
+        const maxFileSize = 10 * 1024 * 1024; // 10MB
+        if (thumbnail.fileSize && thumbnail.fileSize > maxFileSize) {
+          Alert.alert('File Too Large', 'Thumbnail must be under 10MB.');
+          return;
+        }
+
+        // Update thumbnail for specific video
+        const newSettings = {
+          ...videoSettingsData.videoSettings,
+          thumbnails: {
+            ...videoSettingsData.videoSettings.thumbnails,
+            [videoIndex]: thumbnail,
+          },
+        };
+        
+        videoSettingsData.setVideoSettings(prev => ({
+          ...prev,
+          thumbnails: {
+            ...prev.thumbnails,
+            [videoIndex]: thumbnail,
+          },
+        }));
+
+        // Notify parent of state change for real-time updates
+        try {
+          if (videoSettingsData?.onStateChange) {
+            videoSettingsData.onStateChange({
+              videoSettings: newSettings,
+              lastUpdate: Date.now()
+            });
+          }
+        } catch (error) {
+          console.error('Error updating thumbnail state:', error);
+        }
+
+        console.log(
+          `Thumbnail uploaded for video ${videoIndex}:`,
+          thumbnail.fileName,
+        );
+      });
+    } catch (error) {
+      console.error('Error launching thumbnail picker:', error);
+      Alert.alert('Error', 'Failed to open thumbnail picker.');
+    }
+  };
+
+  // Create items for ThumbnailBottomnav (Video Settings Only)
+  const getVideoSettingsItems = useCallback(() => {
+    if (!videoSettingsData) return [];
+
+    const currentThumbnail =
+      videoSettingsData.currentVideoIndex !== null
+        ? videoSettingsData.videoSettings.thumbnails[videoSettingsData.currentVideoIndex]
+        : null;
+
+    const items = [
+      {
+        type: 'button',
+        icon: 'photo',
+        iconColor: '#2196F3',
+        title: currentThumbnail ? 'Change Thumbnail' : 'Upload Thumbnail',
+        textColor: '#2196F3',
+        showArrow: false,
+        onPress: () => handleThumbnailUpload(videoSettingsData.currentVideoIndex),
+      },
+      {
+        type: 'divider',
+      },
+      {
+        type: 'switch',
+        icon: 'play-circle-filled',
+        iconColor: '#4CAF50',
+        title: 'Auto Play',
+        description: 'Videos will play automatically',
+        value: videoSettingsData.videoSettings.autoPlay,
+        component: Switch,
+        onToggle: value =>
+          videoSettingsData.setVideoSettings(prev => ({...prev, autoPlay: value})),
+      },
+    ];
+
+    if (currentThumbnail) {
+      items.push({
+        type: 'divider',
+      });
+      items.push({
+        type: 'info',
+        icon: 'check-circle',
+        iconColor: '#4CAF50',
+        title: 'Custom Thumbnail Active',
+        description: `File: ${currentThumbnail.fileName || 'Custom thumbnail'}`,
+      });
+      items.push({
+        type: 'button',
+        icon: 'delete',
+        iconColor: '#ff4757',
+        title: 'Remove Thumbnail',
+        textColor: '#ff4757',
+        showArrow: false,
+        onPress: () => {
+          const newThumbnails = {...videoSettingsData.videoSettings.thumbnails};
+          delete newThumbnails[videoSettingsData.currentVideoIndex];
+          
+          const newSettings = {
+            ...videoSettingsData.videoSettings,
+            thumbnails: newThumbnails,
+          };
+          
+          videoSettingsData.setVideoSettings(prev => {
+            const updatedThumbnails = {...prev.thumbnails};
+            delete updatedThumbnails[videoSettingsData.currentVideoIndex];
+            return {
+              ...prev,
+              thumbnails: updatedThumbnails,
+            };
+          });
+
+          // Notify parent of state change for real-time updates
+          try {
+            if (videoSettingsData?.onStateChange) {
+              videoSettingsData.onStateChange({
+                videoSettings: newSettings,
+                lastUpdate: Date.now()
+              });
+            }
+          } catch (error) {
+            console.error('Error removing thumbnail state:', error);
+          }
+        },
+      });
+    }
+
+    return items;
+  }, [videoSettingsData, modalUpdateTrigger]);
 
   const handleRemoveAudio = () => {
     Alert.alert(
@@ -163,6 +369,7 @@ const CreatepostScreen = () => {
             // You can use this to track media count if needed
             console.log('Media count changed:', mediaCount);
           }}
+          onVideoSettingsOpen={handleVideoSettingsOpen}
         />
       )}
 
@@ -231,6 +438,26 @@ const CreatepostScreen = () => {
         visible={showAudioRecorder}
         onClose={() => setShowAudioRecorder(false)}
         onAudioRecorded={handleAudioRecorded}
+      />
+
+      {/* Video Settings Bottom Nav */}
+      <ThumbnailBottomnav
+        key={modalUpdateTrigger} // Force component re-mount on state changes
+        visible={showVideoSettings}
+        onClose={() => {
+          setShowVideoSettings(false);
+          if (videoSettingsData?.setShowVideoSettings) {
+            videoSettingsData.setShowVideoSettings(false);
+          }
+        }}
+        title="Video Settings"
+        items={getVideoSettingsItems()}
+        height={
+          videoSettingsData?.currentVideoIndex !== null &&
+          videoSettingsData?.videoSettings.thumbnails[videoSettingsData.currentVideoIndex]
+            ? 380
+            : 250
+        }
       />
     </ScrollView>
   );
