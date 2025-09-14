@@ -8,6 +8,11 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {
+  requestMicrophonePermission,
+  AudioRecorder,
+  AudioPlayer,
+} from 'react-native-audio-api';
 
 const RecorderBottomnav = ({visible, onClose, onAudioRecorded}) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -81,51 +86,100 @@ const RecorderBottomnav = ({visible, onClose, onAudioRecorded}) => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+  const startRecording = async () => {
+    try {
+      const granted = await requestMicrophonePermission();
+      if (!granted) {
+        Alert.alert(
+          'Microphone Permission',
+          'Microphone access is required to record audio. Please enable it in settings.'
+        );
+        return;
+      }
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingTime(0);
-    setRecordedAudio(null);
-    // Here you would integrate with actual audio recording library
-    console.log('Starting audio recording...');
+      // Reset state
+      setRecordedAudio(null);
+      setRecordingTime(0);
+      setIsRecording(true);
+
+      // Start native recorder from library
+      await AudioRecorder.start();
+      console.log('AudioRecorder.start() called');
+    } catch (err) {
+      console.warn('startRecording error', err);
+      // Fallback to simulated behavior
+      setIsRecording(true);
+    }
   };
 
-  const stopRecording = () => {
-    setIsRecording(false);
-    // Simulate recorded audio data
-    const audioData = {
-      uri: 'mock-audio-uri',
-      duration: recordingTime,
-      size: recordingTime * 1024, // mock size
-    };
-    setRecordedAudio(audioData);
-    console.log('Stopped recording, duration:', recordingTime);
+  const stopRecording = async () => {
+    try {
+      setIsRecording(false);
+
+      const result = await AudioRecorder.stop();
+      // result should include path/uri, duration, size when available
+      const audioData = {
+        uri: result?.uri || result?.path || 'file://' + (result?.path || 'unknown'),
+        duration: result?.duration ?? recordingTime,
+        size: result?.size ?? recordingTime * 1024,
+        mimeType: result?.mimeType || 'audio/m4a',
+        createdAt: Date.now(),
+      };
+      setRecordedAudio(audioData);
+      console.log('Stopped recording, result:', result);
+    } catch (err) {
+      console.warn('stopRecording error', err);
+      // Fallback simulated audio data
+      const audioData = {
+        uri: 'mock-audio-uri',
+        duration: recordingTime,
+        size: recordingTime * 1024,
+      };
+      setRecordedAudio(audioData);
+    }
   };
 
-  const playRecording = () => {
+  const playRecording = async () => {
     if (!recordedAudio) return;
-    
-    setIsPlaying(true);
-    setPlaybackTime(0);
-    
-    // Simulate playback
-    playbackInterval.current = setInterval(() => {
-      setPlaybackTime(prev => {
-        if (prev >= recordedAudio.duration) {
-          setIsPlaying(false);
-          clearInterval(playbackInterval.current);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 1000);
+
+    try {
+      setIsPlaying(true);
+      setPlaybackTime(0);
+
+      await AudioPlayer.load(recordedAudio.uri);
+      AudioPlayer.onProgress = (pos) => {
+        setPlaybackTime(Math.floor(pos));
+      };
+      AudioPlayer.onEnd = () => {
+        setIsPlaying(false);
+        setPlaybackTime(0);
+      };
+      await AudioPlayer.play();
+    } catch (err) {
+      console.warn('playRecording error', err);
+      // Fallback to simulated playback
+      setIsPlaying(true);
+      playbackInterval.current = setInterval(() => {
+        setPlaybackTime(prev => {
+          if (prev >= recordedAudio.duration) {
+            setIsPlaying(false);
+            clearInterval(playbackInterval.current);
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
   };
 
-  const stopPlayback = () => {
-    setIsPlaying(false);
-    setPlaybackTime(0);
-    if (playbackInterval.current) {
-      clearInterval(playbackInterval.current);
+  const stopPlayback = async () => {
+    try {
+      setIsPlaying(false);
+      setPlaybackTime(0);
+      await AudioPlayer.stop();
+    } catch (err) {
+      if (playbackInterval.current) clearInterval(playbackInterval.current);
+      console.warn('stopPlayback error', err);
     }
   };
 

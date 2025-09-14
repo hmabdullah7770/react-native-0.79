@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import InlineImageGrid from './components/InlineImageGrid'; // New inline component
 import RecorderBottomnav from './components/RecorderBottomnav';
 import ThumbnailBottomnav from './components/ThumbnailBottomnav';
+import StoreBottomnav from './components/StoreBottomnav';
 
 const CreatepostScreen = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -26,6 +27,8 @@ const CreatepostScreen = () => {
   const [showImageGrid, setShowImageGrid] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [uploadedAudio, setUploadedAudio] = useState(null);
+  const [showStoreBottomnav, setShowStoreBottomnav] = useState(false);
+  const [appliedStore, setAppliedStore] = useState(null); // {type: 'store'|'url', value}
   
   // Video settings state
   const [showVideoSettings, setShowVideoSettings] = useState(false);
@@ -268,7 +271,7 @@ const CreatepostScreen = () => {
   };
 
   const handleAddStore = () => {
-    Alert.alert('Add Store', 'Store addition functionality');
+    setShowStoreBottomnav(true);
   };
 
   const handleAddProduct = () => {
@@ -378,12 +381,26 @@ const CreatepostScreen = () => {
         {/* Audio Upload Section - Dynamic */}
         <AudioUploadSection />
         
-        <ActionButton
-          title="Add Store"
-          iconName="store"
-          onPress={handleAddStore}
-          iconColor="#2196F3"
-        />
+        {appliedStore ? (
+          <View style={styles.appliedStorePill}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Icon name="store" size={18} color="#2196F3" />
+              <Text style={{marginLeft: 8, fontWeight: '500'}}>
+                {appliedStore.type === 'store' ? 'Store attached' : appliedStore.value}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.appliedRemove} onPress={() => { setAppliedStore(null); }}>
+              <Icon name="close" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ActionButton
+            title="Add Store"
+            iconName="store"
+            onPress={handleAddStore}
+            iconColor="#2196F3"
+          />
+        )}
         
         <ActionButton
           title="Add Product"
@@ -438,6 +455,19 @@ const CreatepostScreen = () => {
         visible={showAudioRecorder}
         onClose={() => setShowAudioRecorder(false)}
         onAudioRecorded={handleAudioRecorded}
+      />
+      
+      {/* Store Bottomnav Modal */}
+      <StoreBottomnav
+        visible={showStoreBottomnav}
+        onClose={() => setShowStoreBottomnav(false)}
+        onApply={(data) => {
+          setAppliedStore(data);
+          setShowStoreBottomnav(false);
+        }}
+        onRemove={() => {
+          setAppliedStore(null);
+        }}
       />
 
       {/* Video Settings Bottom Nav */}
@@ -607,6 +637,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  appliedStorePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#cfe8ff',
+    marginBottom: 12,
+  },
+  appliedRemove: {
+    padding: 6,
   },
 });
 

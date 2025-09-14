@@ -33,6 +33,10 @@ const AppScreens = () => {
 
 
   console.log('error in AppScreens', error)
+
+
+
+  
 console.log("user tokenin: ",user?.data?.data?.accessToken);
 
 //verfiy the user have store or not
