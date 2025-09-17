@@ -6,12 +6,16 @@ buildscript {
         targetSdkVersion = 35
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.0.21"
+
+        // Add AGP version compatible with Gradle 8.13
+        agpVersion = "8.7.3"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
+        classpath("com.android.tools.build:gradle:$agpVersion")
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")

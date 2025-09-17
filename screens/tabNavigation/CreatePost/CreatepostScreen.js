@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import React, {useState, useCallback, useEffect} from 'react';
 import {launchImageLibrary} from 'react-native-image-picker';
-import ProductDropdown from './components/ProductDropdown';
+import ProductBottomnav from './components/ProductBottomnav';
+import {CreatePostProvider} from './context/CreatePostContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import InlineImageGrid from './components/InlineImageGrid'; // New inline component
 import RecorderBottomnav from './components/RecorderBottomnav';
@@ -29,6 +30,8 @@ const CreatepostScreen = () => {
   const [uploadedAudio, setUploadedAudio] = useState(null);
   const [showStoreBottomnav, setShowStoreBottomnav] = useState(false);
   const [appliedStore, setAppliedStore] = useState(null); // {type: 'store'|'url', value}
+  const [showProductBottomnav, setShowProductBottomnav] = useState(false);
+  const [appliedProduct, setAppliedProduct] = useState(null); // object or url
   
   // Video settings state
   const [showVideoSettings, setShowVideoSettings] = useState(false);
@@ -275,7 +278,8 @@ const CreatepostScreen = () => {
   };
 
   const handleAddProduct = () => {
-    Alert.alert('Add Product', 'Product addition functionality');
+    // Open Product bottom sheet
+    setShowProductBottomnav(true);
   };
 
   const handleLinkSocialMedia = () => {
@@ -333,7 +337,8 @@ const CreatepostScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <CreatePostProvider>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.topSpacer} />
       
       <Text style={styles.title}>Create Post Screen</Text>
@@ -424,24 +429,19 @@ const CreatepostScreen = () => {
         />
       </View>
 
-      {/* Product Dropdown */}
-      <View style={styles.productSection}>
-        <Text style={styles.sectionTitle}>Select Product (Optional)</Text>
-        <ProductDropdown
-          onProductSelect={handleProductSelect}
-          selectedProductId={selectedProductId}
-        />
-      </View>
-
-      {/* Selected Product Info */}
-      {selectedProduct && (
+      {/* Product selection is now handled via ProductBottomnav (opened by Add Product) */}
+      {appliedProduct && (
         <View style={styles.selectedProductInfo}>
           <Text style={styles.selectedProductTitle}>Selected Product:</Text>
-          <Text style={styles.productInfoText}>Name: {selectedProduct.productName}</Text>
-          <Text style={styles.productInfoText}>
-            Price: ${selectedProduct.finalPrice || selectedProduct.productPrice}
-          </Text>
-          <Text style={styles.productInfoText}>ID: {selectedProduct._id}</Text>
+          {appliedProduct.type === 'product' ? (
+            <>
+              <Text style={styles.productInfoText}>Name: {appliedProduct.value.productName}</Text>
+              <Text style={styles.productInfoText}>Price: ${appliedProduct.value.finalPrice || appliedProduct.value.productPrice}</Text>
+              <Text style={styles.productInfoText}>ID: {appliedProduct.value._id}</Text>
+            </>
+          ) : (
+            <Text style={styles.productInfoText}>URL: {appliedProduct.value}</Text>
+          )}
         </View>
       )}
 
@@ -470,6 +470,21 @@ const CreatepostScreen = () => {
         }}
       />
 
+      {/* Product Bottomnav Modal */}
+      <ProductBottomnav
+        visible={showProductBottomnav}
+        onClose={() => setShowProductBottomnav(false)}
+        onApply={(data) => {
+          // data: {type: 'product'|'url', value}
+          setAppliedProduct(data);
+          setShowProductBottomnav(false);
+        }}
+        onRemove={() => {
+          setAppliedProduct(null);
+          setShowProductBottomnav(false);
+        }}
+      />
+
       {/* Video Settings Bottom Nav */}
       <ThumbnailBottomnav
         key={modalUpdateTrigger} // Force component re-mount on state changes
@@ -489,7 +504,8 @@ const CreatepostScreen = () => {
             : 250
         }
       />
-    </ScrollView>
+      </ScrollView>
+    </CreatePostProvider>
   );
 };
 

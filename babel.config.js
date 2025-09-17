@@ -8,7 +8,7 @@ module.exports = {
   presets: ['module:@react-native/babel-preset'],
 
    plugins: [
-
+         
     //  [   'babel-plugin-react-compiler', ReactCompilerConfig],
     [
       'module:react-native-dotenv',
@@ -25,7 +25,7 @@ module.exports = {
         verbose: false,
       },
     ],
-
+      'react-native-reanimated/plugin',
     // ['react-native-unistyles/plugin', 
     //    // Includes all folders like screens/, components/, etc.
      
