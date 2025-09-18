@@ -402,6 +402,34 @@ const CreatepostScreen = () => {
           />
         )}
         
+        {/* Applied Product Pill - mirrors appliedStore behavior so user can remove the attached product */}
+        {selectedProduct ? (
+          <View style={styles.appliedStorePill}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Icon name="shopping-cart" size={18} color="#9C27B0" />
+              <Text style={{marginLeft: 8, fontWeight: '500'}}>
+                {selectedProduct.productName || 'Product attached'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.appliedRemove}
+              onPress={() => {
+                // clear selected product and id
+                setSelectedProduct(null);
+                setSelectedProductId(null);
+              }}
+            >
+              <Icon name="close" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ActionButton
+            title="Add Product"
+            iconName="shopping-cart"
+            onPress={handleAddProduct}
+            iconColor="#9C27B0"
+          />
+        )}
         <ActionButton
           title="Add Product"
           iconName="shopping-cart"
