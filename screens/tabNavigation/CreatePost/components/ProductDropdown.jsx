@@ -20,12 +20,14 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
   const { products, loading, error } = useSelector(state => state.storeproduct);
 
   // Get storeId from Keychain when dropdown opens
+  // The app stores storeId using Keychain with service: 'storeId'
+  // setGenericPassword('storeId', storeId, { service: 'storeId' })
+  // so the actual storeId value is in credentials.password
   const getStoreIdFromKeychain = async () => {
     try {
-      const credentials = await Keychain.getGenericPassword();
-      if (credentials && credentials.username) {
-        // Assuming storeId is stored in keychain, adjust the key as needed
-        const storedStoreId = credentials.username; // or however you store storeId
+      const credentials = await Keychain.getGenericPassword({ service: 'storeId' });
+      if (credentials) {
+        const storedStoreId = credentials.password || credentials.username;
         setStoreId(storedStoreId);
         return storedStoreId;
       }
@@ -130,7 +132,7 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
             </ScrollView>
           ) : (
             <View style={styles.noItemsContainer}>
-              <Text style={styles.noItemsText}>No items found</Text>
+              <Text style={styles.noItemsText}>No items</Text>
             </View>
           )}
         </View>
