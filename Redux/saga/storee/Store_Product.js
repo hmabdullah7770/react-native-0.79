@@ -27,11 +27,15 @@ function* GetStoreProductSaga(payload) {
         yield put(actions.getStoreProductFail([response.data.error]));
       } else {
         console.log('Get store products successful, data:', response.data);
+        // Pass the products array directly so reducer receives an array in action.payload.data
         yield put(
-          actions.getStoreProductSuccessful(response.data, [
-            'Get Products successful',
-            'Products loaded successfully',
-          ]),
+          actions.getStoreProductSuccessful(
+            response.data.data,
+            [
+              'Get Products successful',
+              'Products loaded successfully',
+            ],
+          ),
         );
       }
     } else {

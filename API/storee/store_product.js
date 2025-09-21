@@ -13,8 +13,12 @@ export const addproduct = (storeId, productData) =>
 
 
 //get product of the stores
-export const getstoreproduct = (storeId) =>
-  api.get(`/stores/${encodeURIComponent(storeId)}/products`);
+export const getstoreproduct = (storeId) =>{
+
+  console.log("Inside Api call with storeId:", storeId);
+ 
+return api.get(`/stores/${encodeURIComponent(storeId)}/products`);
+}
 
 //get product by id
 export const getproductbyId = (productId) =>

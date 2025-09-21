@@ -17,7 +17,7 @@ const storeProduct = (state = initialState, action) => {
         products: action.payload.data || [],
         totalProducts: action.payload.data ? action.payload.data.length : 0,
         error: null,
-        message: action.payload.message,
+        // message: action.payload.message,
       };
 
     case 'GET_STORE_PRODUCT_FAIL':

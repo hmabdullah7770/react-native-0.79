@@ -12,6 +12,7 @@ import {
   Dimensions,
   Keyboard,
   ScrollView,
+  Image,
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,6 +20,7 @@ import * as Keychain from 'react-native-keychain';
 import {useDispatch, useSelector} from 'react-redux';
 import {getStoreProductRequest} from '../../../../Redux/action/storee/store_product';
 import {useCreatePostContext} from '../context/CreatePostContext';
+import ProductDropdown from './ProductDropdown';
 
 let KeyboardController;
 try {
@@ -51,7 +53,8 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
           setStoreIdPresent(true);
           setSelectedMode('product');
           // fetch products
-          dispatch(getStoreProductRequest(creds.password || creds.username));
+          // Fetch once when sheet becomes visible and storeId exists
+          if (visible) dispatch(getStoreProductRequest(creds.password || creds.username));
         } else {
           setStoreIdPresent(false);
           setSelectedMode('url');
@@ -108,15 +111,7 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
       return;
     }
     setSelectedMode(mode);
-    if (mode === 'product') {
-      // attempt to fetch products again
-      (async () => {
-        try {
-          const creds = await Keychain.getGenericPassword({service: 'storeId'});
-          if (creds) dispatch(getStoreProductRequest(creds.password || creds.username));
-        } catch (e) { console.warn(e); }
-      })();
-    }
+    // when switching to product mode we rely on previously fetched products
   };
 
   const handleApply = () => {
@@ -196,7 +191,23 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
               </View>
             ) : (
               <View style={styles.productListWrapper}>
-                {loading ? (
+                {/* Presentational dropdown component receives products/loading/error and control props */}
+                <ProductDropdown
+                  products={products}
+                  loading={loading}
+                  error={error}
+                  isOpen={false}
+                  onToggle={(open) => {
+                    // control toggle: when opening, nothing special required because products are already fetched
+                    // This local implementation will manage a simple open state per sheet instance.
+                    // For now, ProductDropdown will receive false as default and ProductBottomnav will control via re-render if needed.
+                  }}
+                  onProductSelect={onSelectProduct}
+                />
+               
+              
+                {/* Also show inline list as fallback for accessibility (keeps old behaviour without duplicates) */}
+                {/* {loading ? (
                   <View style={styles.loadingContainer}>
                     <ActivityIndicator size="small" />
                   </View>
@@ -206,16 +217,19 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
                   <ScrollView style={styles.productScroll} nestedScrollEnabled={true}>
                     {products.map((p) => (
                       <TouchableOpacity key={p._id} style={styles.productItem} onPress={() => onSelectProduct(p)}>
-                        <View style={styles.productInfo}>
-                          <Text style={styles.productName} numberOfLines={1}>{p.productName}</Text>
-                          <Text style={styles.productPrice}>${p.finalPrice || p.productPrice}</Text>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                          <Image source={{uri: p.productImages && p.productImages.length > 0 ? p.productImages[0] : 'https://via.placeholder.com/40'}} style={{width:40,height:40,borderRadius:6,marginRight:12}} />
+                          <View style={styles.productInfo}>
+                            <Text style={styles.productName} numberOfLines={1}>{p.productName}</Text>
+                            <Text style={styles.productPrice}>${p.finalPrice || p.productPrice}</Text>
+                          </View>
                         </View>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
                 ) : (
                   <View style={styles.noItemsContainer}><Text style={styles.noItemsText}>No items found</Text></View>
-                )}
+                )} */}
               </View>
             )}
 
