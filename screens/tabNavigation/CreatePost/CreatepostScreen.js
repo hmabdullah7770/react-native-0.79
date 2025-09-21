@@ -408,20 +408,19 @@ const CreatepostScreen = () => {
         )}
         
         {/* Applied Product Pill - mirrors appliedStore behavior so user can remove the attached product */}
-        {selectedProduct ? (
+        {appliedProduct ? (
           <View style={styles.appliedStorePill}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Icon name="shopping-cart" size={18} color="#9C27B0" />
               <Text style={{marginLeft: 8, fontWeight: '500'}}>
-                {selectedProduct.productName || 'Product attached'}
+                {appliedProduct.type === 'product' ? (appliedProduct.value.productName || 'Product attached') : (appliedProduct.value || 'Product attached')}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.appliedRemove}
               onPress={() => {
-                // clear selected product and id
-                setSelectedProduct(null);
-                setSelectedProductId(null);
+                // clear applied product
+                setAppliedProduct(null);
               }}
             >
               <Icon name="close" size={16} color="#666" />
@@ -435,12 +434,6 @@ const CreatepostScreen = () => {
             iconColor="#9C27B0"
           />
         )}
-        <ActionButton
-          title="Add Product"
-          iconName="shopping-cart"
-          onPress={handleAddProduct}
-          iconColor="#9C27B0"
-        />
         
         <ActionButton
           title="Link Social Media"
@@ -457,7 +450,7 @@ const CreatepostScreen = () => {
         />
       </View>
 
-      {/* Product selection is now handled via ProductBottomnav (opened by Add Product) */}
+      {/* Product selection is now handled via ProductBottomnav (opened by Add Product)
       {appliedProduct && (
         <View style={styles.selectedProductInfo}>
           <Text style={styles.selectedProductTitle}>Selected Product:</Text>
@@ -471,7 +464,7 @@ const CreatepostScreen = () => {
             <Text style={styles.productInfoText}>URL: {appliedProduct.value}</Text>
           )}
         </View>
-      )}
+      )} */}
 
       {/* Create Post Button */}
       <TouchableOpacity style={styles.createPostButton}>

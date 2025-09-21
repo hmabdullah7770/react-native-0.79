@@ -26,10 +26,21 @@ export const CLEAR_PRODUCT_MESSAGE = 'CLEAR_PRODUCT_MESSAGE';
 // Action Creators
 
 // Get Store Products
-export const getStoreProductRequest = (storeId) => ({
+export const getStoreProductRequest = (storeId) => 
+{
+ console.log("Inside getStoreProductRequest with storeId:", storeId);
+  return{
   type: GET_STORE_PRODUCT_REQUEST,
-  payload: { storeId }
-});
+   storeId 
+}};
+
+
+
+
+
+
+
+
 
 export const getStoreProductSuccessful = (data, message) => ({
   type: GET_STORE_PRODUCT_SUCCESSFUL,
