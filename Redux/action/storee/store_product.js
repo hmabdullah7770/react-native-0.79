@@ -44,7 +44,9 @@ export const getStoreProductRequest = (storeId) =>
 
 export const getStoreProductSuccessful = (data, message) => ({
   type: GET_STORE_PRODUCT_SUCCESSFUL,
-  payload: { data, message }
+  payload: { data
+    // ,message
+  }
 });
 
 export const getStoreProductFail = (error) => ({

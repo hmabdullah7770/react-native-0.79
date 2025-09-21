@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,55 +8,40 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import * as Keychain from 'react-native-keychain';
-import { getStoreProductRequest } from '../../../../Redux/action/storee/store_product';
+// (Image already imported above)
 
-const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [storeId, setStoreId] = useState(null);
-  
-  const dispatch = useDispatch();
-  const { products, loading, error } = useSelector(state => state.storeproduct);
+// ProductDropdown is now a presentational component.
+// Props:
+// - products: array of product objects to render
+// - loading: boolean
+// - error: any
+// - isOpen: boolean (controls whether the dropdown list is visible)
+// - onToggle: () => void to open/close the dropdown
+// - onProductSelect: (product) => void
+// - selectedProductId: id of selected product
 
-  // Get storeId from Keychain when dropdown opens
-  // The app stores storeId using Keychain with service: 'storeId'
-  // setGenericPassword('storeId', storeId, { service: 'storeId' })
-  // so the actual storeId value is in credentials.password
-  const getStoreIdFromKeychain = async () => {
-    try {
-      const credentials = await Keychain.getGenericPassword({ service: 'storeId' });
-      if (credentials) {
-        const storedStoreId = credentials.password || credentials.username;
-        setStoreId(storedStoreId);
-        return storedStoreId;
-      }
-    } catch (error) {
-      console.log('Error getting storeId from keychain:', error);
-    }
-    return null;
-  };
+const ProductDropdown = ({ products = [], loading = false, error = null, isOpen = false, onToggle, onProductSelect, selectedProductId }) => {
+  const [open, setOpen] = useState(isOpen);
 
-  // Handle dropdown toggle
-  const toggleDropdown = async () => {
-    if (!isOpen) {
-      // Opening dropdown - get storeId and fetch products
-      const retrievedStoreId = await getStoreIdFromKeychain();
-      if (retrievedStoreId) {
-        dispatch(getStoreProductRequest(retrievedStoreId));
-      }
-    }
-    setIsOpen(!isOpen);
-  };
+  // keep local open state in sync with prop
+  React.useEffect(() => setOpen(isOpen), [isOpen]);
 
   // Handle product selection
   const handleProductSelect = (product) => {
     onProductSelect(product);
-    setIsOpen(false);
+    onToggle && onToggle(false);
   };
 
+  const handleToggle = () => {
+    const next = !open;
+    setOpen(next);
+    onToggle && onToggle(next);
+  };
+
+  // Defensive: ensure products is an array before using array methods
+  const productList = Array.isArray(products) ? products : [];
   // Find selected product for display
-  const selectedProduct = products.find(product => product._id === selectedProductId);
+  const selectedProduct = productList.find(product => product._id === selectedProductId);
 
   // Render individual product item
   const renderProductItem = ({ item }) => (
@@ -87,7 +72,7 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
   return (
     <View style={styles.container}>
       {/* Dropdown Content - Opens Upward */}
-      {isOpen && (
+      {open && (
         <View style={styles.dropdownContent}>
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -104,7 +89,7 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
               showsVerticalScrollIndicator={true}
               nestedScrollEnabled={true}
             >
-              {products.map((item) => (
+              {productList.map((item) => (
                 <TouchableOpacity
                   key={item._id}
                   style={styles.productItem}
@@ -139,7 +124,7 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
       )}
 
       {/* Dropdown Header */}
-      <TouchableOpacity style={styles.dropdownHeader} onPress={toggleDropdown}>
+  <TouchableOpacity style={styles.dropdownHeader} onPress={handleToggle}>
         {selectedProduct ? (
           <View style={styles.selectedProductContainer}>
             <Image
@@ -158,7 +143,7 @@ const ProductDropdown = ({ onProductSelect, selectedProductId }) => {
         ) : (
           <Text style={styles.placeholderText}>Select a product</Text>
         )}
-        <Text style={styles.dropdownArrow}>{isOpen ? '▲' : '▼'}</Text>
+        <Text style={styles.dropdownArrow}>{open ? '▲' : '▼'}</Text>
       </TouchableOpacity>
     </View>
   );
