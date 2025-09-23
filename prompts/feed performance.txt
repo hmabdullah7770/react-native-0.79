@@ -1,0 +1,390 @@
+/plan i want to improve the performance of my infnite scroll feed like instagram in react native use best practise like image cacheing , flashlist v2 ,  worklets, avoid rerender , proper rendering, 90 fps like smooth , currcerent  react hook if required , and the  hook too to imarve performance also if any react 19 hook required also use only for eperormance optimazation (use hook if required only if not dotn use them the main goal is to improve performance ), use less cpu of mobile device so onlow spec device it work properly , i use tanstak query for api call i also want  so do proper api call i also want batter threshold like if we have limit 5 and user scroll  and react the thrid then the next api call for the next five post so the user not see the lookeder lif some time miss or take time  use loader  use skelton loader for that also create sperate folder and file if required , also use legend state for ste mangement instead of usestate and also do any other technique to imrpove proformance to  too so do resech also to add improvment if required (if this is enoghf dont do reserach do what i tell you as i am using tanstak for api call use select the to make response exactely as we needed )
+
+
+this wahy to give==>
+
+
+/specify
+I want an Instagram-style infinite scroll feed in React Native that performs well on low-end devices.
+
+
+
+api response sample ==>{
+    "statusCode": 200,
+    "data": "All categories posts fetched successfully",
+    "messege": {
+        "posts": [
+            {
+                "_id": "68bdaf4be75aa5e872c740cb",
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757261616/hztcmn5scygwpljk474l.avif",
+                        "Imageposition": 2,
+                        "_id": "68bdaf4be75aa5e872c740cc"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261641/qqxxf60lwssuqaflypey.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757261615/qitzuszxpxwpenyfjbml.jpg",
+                        "_id": "68bdaf4be75aa5e872c740cd"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261640/h4emwvc3cewif5apt2lp.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68bdaf4be75aa5e872c740ce"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261632/ddpsstaakuhxy2bn2tve.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "store": [],
+                "createdAt": "2025-09-07T16:14:03.526Z",
+                "updatedAt": "2025-09-07T16:14:03.526Z"
+            },
+            {
+                "_id": "68bdae2ed45340bfae91707c",
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757261332/fyvos0qed91itffk3odp.avif",
+                        "Imageposition": 2,
+                        "_id": "68bdae2ed45340bfae91707d"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261356/jo34ac7bddwc4nyezkel.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757261331/b500cg7mslthv5xmyemg.jpg",
+                        "_id": "68bdae2ed45340bfae91707e"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261344/da5zinbh0mpj23p8seex.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68bdae2ed45340bfae91707f"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261335/b7yucahm1m66zqbbgg2g.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "store": [],
+                "createdAt": "2025-09-07T16:09:18.650Z",
+                "updatedAt": "2025-09-07T16:09:18.650Z"
+            },
+            {
+                "_id": "68bdacd4be4372f063e97127",
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757260983/zvrzgh2yyuvv5apjhmm8.avif",
+                        "Imageposition": 2,
+                        "_id": "68bdacd4be4372f063e97128"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757260997/vx8llqwejlgdcearwfbd.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757260982/onm3kljce17va5hffjh8.jpg",
+                        "_id": "68bdacd4be4372f063e97129"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757261010/odgyygq9m37xj73t3gjm.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68bdacd4be4372f063e9712a"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757260992/vq2tgfcufvlqclawh8ui.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "store": [],
+                "createdAt": "2025-09-07T16:03:32.437Z",
+                "updatedAt": "2025-09-07T16:03:32.437Z"
+            },
+            {
+                "_id": "68bda69b32bfb6c0b8653517",
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757259394/l1jjclnku9qtkowjidlj.avif",
+                        "Imageposition": 2,
+                        "_id": "68bda69b32bfb6c0b8653518"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259417/xlfgfy9grizxexcjnecz.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757259393/eg3xunczgntfqo7i6ftd.jpg",
+                        "_id": "68bda69b32bfb6c0b8653519"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259411/rsb9n7suhzjrlg0xirim.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68bda69b32bfb6c0b865351a"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259404/zm4rusx19rci7mp6qlju.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "store": [],
+                "createdAt": "2025-09-07T15:36:59.567Z",
+                "updatedAt": "2025-09-07T15:36:59.567Z"
+            },
+            {
+                "_id": "68bda5c3e2a7d20a020ba55f",
+                "videocount": 2,
+                "imagecount": 1,
+                "audiocount": 1,
+                "title": "3 video post with song and audio and autoplay check",
+                "description": "3 video post with song and audio and autoplay check",
+                "category": "car",
+                "owner": {
+                    "_id": "6828da1d4dc2dbde2ff9945a",
+                    "username": "hm abdullah",
+                    "email": "hmabdullah7770@gmail.com",
+                    "avatar": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1747507740/a8dyhw2lfkefaiali76c.png",
+                    "fullName": "hmabdullah",
+                    "stores": [
+                        {
+                            "storeId": "68490d86cdf84d6b25d1a121",
+                            "storeName": "My Tech Store",
+                            "storeLogo": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1749618059/a5hwlebnjnbnqbqxtj8s.avif",
+                            "default": [],
+                            "_id": "68490d86cdf84d6b25d1a123"
+                        }
+                    ]
+                },
+                "imageFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757259166/dnofxd8udibigmhj9cbc.avif",
+                        "Imageposition": 2,
+                        "_id": "68bda5c3e2a7d20a020ba560"
+                    }
+                ],
+                "videoFiles": [
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259201/zfoiy6f2oeeaipwu0xwa.mp4",
+                        "Videoposition": 1,
+                        "autoplay": true,
+                        "thumbnail": "http://res.cloudinary.com/dvt6j6kzm/image/upload/v1757259166/odtgwn6xmromzpdylend.jpg",
+                        "_id": "68bda5c3e2a7d20a020ba561"
+                    },
+                    {
+                        "url": "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259185/zzjzyghpj8lhkaoeyczb.mp4",
+                        "Videoposition": 3,
+                        "autoplay": false,
+                        "_id": "68bda5c3e2a7d20a020ba562"
+                    }
+                ],
+                "song": [
+                    "http://res.cloudinary.com/dvt6j6kzm/video/upload/v1757259169/n45z1w4gmsdz9nfxicp8.mp3"
+                ],
+                "pattern": "grid_1_2",
+                "views": 0,
+                "isPublished": true,
+                "averageRating": 0,
+                "store": [],
+                "createdAt": "2025-09-07T15:33:23.503Z",
+                "updatedAt": "2025-09-07T15:33:23.503Z"
+            }
+        ],
+        "pagination": {
+            "currentPage": 1,
+            "itemsPerPage": 5,
+            "totalSkip": 0,
+            "hasNextPage": true,
+            "hasPrevPage": false
+        }
+    },
+    "success": true
+}
+Goals:
+- Smooth, low-jank scrolling (~90 FPS).
+- Low CPU/battery usage.
+- Use FlashList v2 for rendering.
+- Use TanStack Query useInfiniteQuery with pagination, select, and threshold (prefetch at index 2).
+- Use Legend-State for state management.
+- Add skeleton loader for posts.
+- Cache images with react-native-fast-image.
+- Memoize feed items and images, use worklets for expensive calculations.
+
+Acceptance criteria:
+- Feed shows skeletons while next page fetches, no flicker.
+- Pagination trigger works correctly (fetch at index 2).
+- Feed feels smooth on low-spec devices.
+
+Constraints:
+- Only add React 19 hooks if they clearly improve performance.
+- Keep changes scoped to feed improvements only.
+
+Non-goals:
+- Do not refactor unrelated features.
+
+
+
+
+
+
+
+
+/plan
+I want to improve the performance of my infinite scroll feed in React Native.
+
+Goals:
+- Smooth, low-jank scrolling (target ~90 FPS where possible).
+- Low CPU/battery usage so it works on low-spec devices.
+- Use FlashList v2 for virtualization.
+- Use Legend-State for fine-grained state management.
+- Use TanStack Query useInfiniteQuery with:
+  - Page size = 5.
+  - Prefetch next page when user reaches item index 2 of the current page.
+  - keepPreviousData = true.
+  - staleTime = 1 minute.
+  - select to normalize API response into { posts: Post[], nextCursor }.
+- Use react-native-fast-image for caching and prefetching images.
+- Add skeleton loader for posts.
+- Minimize re-renders with memoization, stable keys, and worklets.
+- Use React 19 hooks/concurrent features only if they directly improve performance.
+
+Acceptance criteria:
+- Feed shows skeleton loaders while fetching the next page, no full-screen flicker.
+- fetchNextPage() triggers when visibleIndex >= (currentPageStartIndex + 2).
+- Scrolling remains responsive on low-end devices.
+
+Constraints:
+- Only create new files if required.
+- Do not perform external research unless explicitly allowed.
+
+Non-goals:
+- Do not rewrite unrelated parts of the app.
+
+
+
+
+
+
+
+
+
+/tasks
+- [ ] Refactor feed logic to use useInfiniteQuery with select, keepPreviousData, and staleTime = 1 min.
+- [ ] Implement threshold pagination (prefetch when index >= 2).
+- [ ] Replace FlatList with FlashList v2.
+- [ ] Add skeleton loader for posts.
+- [ ] Integrate react-native-fast-image for caching/prefetch.
+- [ ] Replace useState with Legend-State where appropriate.
+- [ ] Memoize feed items, cached images, and avoid re-renders.
+- [ ] Use worklets for heavy UI logic if needed.
+- [ ] Test performance on low-spec devices.
