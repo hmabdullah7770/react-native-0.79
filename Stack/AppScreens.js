@@ -9,6 +9,8 @@ import TestingScreen from '../screens/TestingScreen'; // Assuming this is the in
 import Tabnavigation from '../screens/tabNavigation/Tabnavigation'
 import { clearerror, clearmessege } from '../Redux/action/auth';
 import { useDispatch } from 'react-redux';
+import { asyncStorage } from 'reactotron-react-native';
+
 // import api from '../services/apiservice'; //
 const AppScreens = () => {
   const App = createStackNavigator();
@@ -35,13 +37,48 @@ const AppScreens = () => {
   console.log('error in AppScreens', error)
 
 
-
+console.log("user facebook  ", user?.data?.data?.facebook)
+console.log("user instagram  ", user?.data?.data?.instagram)
+console.log("user whatsapp  ", user?.data?.data?.whatsapp)
+console.log("user  storelink  ", user?.data?.data?.storeLink)
   
 console.log("user tokenin: ",user?.data?.data?.accessToken);
 
 //verfiy the user have store or not
 const stores = user?.data?.data?.user?.stores || [];
 const storeId = stores.length > 0 ? stores[0].storeId : null;
+
+
+
+//verfiy the user have facebook or not
+const facebook = user?.data?.data?.user?.facebook || [];
+const facebookId = facebook.length > 0 ? facebook[0].facebookId : null;
+
+
+//verfiy the user have whatsapp or not
+const whatsapp = user?.data?.data?.user?.whatsapp || [];
+const whatsappId = whatsapp.length > 0 ? whatsapp[0].whatsappId : null;
+
+
+
+
+//verfiy the user have instagram or not
+const instagram= user?.data?.data?.user?.instagram || [];
+const instagramId = instagram.length > 0 ? instagram[0].instagramId : null;
+
+
+
+//verfiy the user have whatsapp or not
+const storeLink = user?.data?.data?.user?.storeLink || [];
+const storeLinkUrl = storeLink.length > 0 ? storeLink[0].storeLinkUrl : null;
+
+
+
+
+
+
+
+
 
 
 
@@ -79,6 +116,77 @@ const storeId = stores.length > 0 ? stores[0].storeId : null;
           console.log('No storeId to store.');
         }
         
+
+        //verfiy the user have store or not
+        
+        // if (facebookId) {
+        //   await Keychain.setGenericPassword('facebookId', facebookId, { service: 'facebookId' });
+        //   console.log('StoreId stored successfully!');
+        // } else {
+        //   console.log('No storeId to store.');
+        // }
+        
+
+
+        if (facebookId) {
+  try {
+    await AsyncStorage.setItem('facebookId', facebookId);
+    console.log('Facebook ID stored successfully!');
+  } catch (error) {
+    console.error('Error storing Facebook ID:', error);
+  }
+} else {
+  console.log('No Facebook ID to store.');
+}
+
+
+
+         //verfiy the user have store or not
+        
+       if (whatsappId) {
+  try {
+    await AsyncStorage.setItem('whatsappId', whatsappId);
+    console.log('whatsappId ID stored successfully!');
+  } catch (error) {
+    console.error('Error storing Facebook ID:', error);
+  }
+} else {
+  console.log('No Facebook ID to store.');
+}
+
+
+         //verfiy the user have store or not
+        
+      if (instagramId) {
+  try {
+    await AsyncStorage.setItem('instagramId', instagramId);
+    console.log('instagramId ID stored successfully!');
+  } catch (error) {
+    console.error('Error storing Facebook ID:', error);
+  }
+} else {
+  console.log(' No instagramId ID to store.');
+}
+
+         //verfiy the user have store or not
+        
+       if (storeLinkUrl) {
+  try {
+    await AsyncStorage.setItem('storeLinkUrl', storeLinkUrl);
+    console.log('storeLinkUrl  stored successfully!');
+  } catch (error) {
+    console.error('Error storing Facebook ID:', error);
+  }
+} else {
+  console.log('No storeLinkUrl ID to store.');
+}
+
+
+
+
+
+
+
           // Mark tokens as stored to prevent re-storing on subsequent state changes
             // api.defaults.headers.common['Authorization'] = `Bearer ${user?.data?.data?.accessToken}`;
           setTokensStored(true);
