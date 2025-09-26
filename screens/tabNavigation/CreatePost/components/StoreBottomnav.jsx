@@ -154,11 +154,22 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
   };
 
   // Button size control: use a pending local selection until user hits Apply
-  const {getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
+  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
   const [pendingSize, setPendingSize] = useState(getAppliedSizeFor('store'));
   const largeDisabled = isLargeDisabled('store');
 
+  // keep in sync with context when other side applies
+  useEffect(() => {
+    try {
+      const effective = getAppliedSizeFor('store');
+      setPendingSize(effective);
+    } catch (e) {
+      // ignore
+    }
+  }, [appliedLargeBy]);
+
   const handleSizeChange = (size) => {
+    if (size === 'large' && largeDisabled) return;
     // allow changing pending size freely; the applied lock only sets on Apply
     setPendingSize(size);
   };

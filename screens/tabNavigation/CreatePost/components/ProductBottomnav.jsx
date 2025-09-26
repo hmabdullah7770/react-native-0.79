@@ -145,11 +145,23 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
   };
 
   // button size controls: use pending local selection until user hits Apply
-  const {getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
+  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
   const [pendingSize, setPendingSize] = useState(getAppliedSizeFor('product'));
   const largeDisabled = isLargeDisabled('product');
 
+  // Keep pendingSize in-sync with context when appliedLargeBy changes
+  useEffect(() => {
+    try {
+      const effective = getAppliedSizeFor('product');
+      setPendingSize(effective);
+    } catch (e) {
+      // ignore
+    }
+  }, [appliedLargeBy]);
+
   const handleSizeChange = (size) => {
+    // If large is disabled, prevent selecting it
+    if (size === 'large' && largeDisabled) return;
     setPendingSize(size);
   };
 
