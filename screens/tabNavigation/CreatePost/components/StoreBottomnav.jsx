@@ -144,32 +144,90 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
     }
 
     // Confirm applying store
-    onApply({type: 'store', value: true});
-    onClose();
+    try {
+      // first call the parent apply handler so any side-effects run
+      onApply && onApply({type: 'store', value: true});
+      // record the applied size in context only after parent apply succeeds
+      onClose && onClose();
+    } catch (err) {
+      console.warn('Parent onApply failed', err);
+    }
   };
 
   const handleRemove = () => {
+    // clear any applied lock that belonged to store when user removes store
+    try {
+      clearApplied('store');
+      // Reset to default size for store
+      setPendingSize('large');
+    } catch (e) {
+      console.warn('Error clearing applied state:', e);
+      // Force reset to default even on error to prevent stuck state
+      try {
+        setPendingSize('large');
+      } catch (fallbackError) {
+        console.error('Critical error in handleRemove fallback:', fallbackError);
+      }
+    }
     onRemove && onRemove();
-    onClose();
+    onClose && onClose();
   };
 
   // Button size control: use a pending local selection until user hits Apply
-  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
+  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled, isSmallDisabled, clearApplied, debugState} = useCreatePostContext();
   const [pendingSize, setPendingSize] = useState(getAppliedSizeFor('store'));
-  const largeDisabled = isLargeDisabled('store');
+  
+  // Make disabled states reactive to context changes
+  const [largeDisabled, setLargeDisabled] = useState(isLargeDisabled('store'));
+  const [smallDisabled, setSmallDisabled] = useState(isSmallDisabled('store'));
+  
+  // Update disabled states when context changes
+  useEffect(() => {
+    const newLargeDisabled = isLargeDisabled('store');
+    const newSmallDisabled = isSmallDisabled('store');
+    console.log(`StoreBottomnav: Updating disabled states - Large: ${newLargeDisabled}, Small: ${newSmallDisabled}, appliedLargeBy: ${appliedLargeBy}`);
+    setLargeDisabled(newLargeDisabled);
+    setSmallDisabled(newSmallDisabled);
+  }, [appliedLargeBy, isLargeDisabled, isSmallDisabled]);
 
-  // keep in sync with context when other side applies
+  // keep in sync with context when other side applies or removes
   useEffect(() => {
     try {
       const effective = getAppliedSizeFor('store');
       setPendingSize(effective);
+      debugState('STORE_SYNC_PENDING', 'store', effective);
     } catch (e) {
-      // ignore
+      console.warn('Error syncing pending size:', e);
+      // Fallback to default on error
+      setPendingSize('large');
     }
-  }, [appliedLargeBy]);
+  }, [appliedLargeBy, getAppliedSizeFor, debugState]);
+
+  // Initialize pendingSize when component mounts or becomes visible
+  useEffect(() => {
+    if (visible) {
+      try {
+        const effective = getAppliedSizeFor('store');
+        setPendingSize(effective);
+        debugState('STORE_OPENED', 'store', effective);
+      } catch (e) {
+        console.warn('Error initializing pending size:', e);
+        setPendingSize('large');
+      }
+    }
+  }, [visible, getAppliedSizeFor, debugState]);
 
   const handleSizeChange = (size) => {
-    if (size === 'large' && largeDisabled) return;
+    if (size === 'large' && largeDisabled) {
+      // user tried to select a disabled large; show info and ignore
+      Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
+      return;
+    }
+    if (size === 'small' && smallDisabled) {
+      // user tried to select a disabled small; show info and ignore
+      Alert.alert('Info', 'Product button is already small so you cannot select Small for Store.');
+      return;
+    }
     // allow changing pending size freely; the applied lock only sets on Apply
     setPendingSize(size);
   };
@@ -235,23 +293,41 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
               <Text style={{fontWeight: '600', marginBottom: 8}}>Button size</Text>
               <View style={{flexDirection: 'row', gap: 12}}>
                 <TouchableOpacity
-                  style={[styles.sizeButton, pendingSize === 'large' && styles.sizeButtonActive, largeDisabled && styles.sizeButtonDisabled]}
+                  style={[
+                    styles.sizeButton,
+                    pendingSize === 'large' && styles.sizeButtonActive,
+                    largeDisabled && styles.sizeButtonDisabled
+                  ]}
+                  disabled={largeDisabled}
                   onPress={() => {
-                    if (largeDisabled && pendingSize !== 'large') {
+                    if (largeDisabled) {
                       Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
                       return;
                     }
                     handleSizeChange('large');
                   }}
                 >
-                  <Text style={[styles.sizeText, pendingSize === 'large' && styles.sizeTextActive]}>Large</Text>
+                  <Text style={[
+                    styles.sizeText, 
+                    pendingSize === 'large' && styles.sizeTextActive,
+                    largeDisabled && styles.sizeTextDisabled
+                  ]}>Large</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.sizeButton, pendingSize === 'small' && styles.sizeButtonActive]}
+                  style={[
+                    styles.sizeButton, 
+                    pendingSize === 'small' && styles.sizeButtonActive,
+                    smallDisabled && styles.sizeButtonDisabled
+                  ]}
+                  disabled={smallDisabled}
                   onPress={() => handleSizeChange('small')}
                 >
-                  <Text style={[styles.sizeText, pendingSize === 'small' && styles.sizeTextActive]}>Small</Text>
+                  <Text style={[
+                    styles.sizeText, 
+                    pendingSize === 'small' && styles.sizeTextActive,
+                    smallDisabled && styles.sizeTextDisabled
+                  ]}>Small</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -264,10 +340,17 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
 
               <TouchableOpacity style={styles.applyBtn} onPress={async () => {
                 try {
-                  applySize('store', pendingSize);
+                  // Debug before apply
+                  debugState('STORE_BEFORE_APPLY', 'store', pendingSize);
+                  // Attempt parent apply first; only then commit to context
                   await handleApply();
+                  // Only apply size if parent apply succeeded
+                  applySize('store', pendingSize);
+                  debugState('STORE_AFTER_APPLY', 'store', pendingSize);
                 } catch (e) {
-                  console.warn('Apply size error', e);
+                  console.warn('Apply error:', e);
+                  Alert.alert('Error', 'Failed to apply changes. Please try again.');
+                  // Don't update context on failure
                 }
               }}>
                 <Text style={styles.applyText}>Apply</Text>
@@ -326,6 +409,7 @@ const styles = StyleSheet.create({
   sizeButtonDisabled: {opacity: 0.45},
   sizeText: {color: '#333', fontWeight: '500'},
   sizeTextActive: {color: '#fff'},
+  sizeTextDisabled: {color: '#999'},
 });
 
 export default StoreBottomnav;

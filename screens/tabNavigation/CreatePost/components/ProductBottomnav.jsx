@@ -114,7 +114,7 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
     // when switching to product mode we rely on previously fetched products
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (selectedMode === 'url') {
       if (!url || !urlRegex.test(url)) {
         Alert.alert('Validation Error', 'Please enter a valid URL');
@@ -132,9 +132,24 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
       Alert.alert('No items', 'No products available to select.');
       return;
     }
+    // No direct synchronous apply here; product selection triggers onSelectProduct
   };
 
   const handleRemove = () => {
+    // clear any applied lock that belonged to product when user removes product
+    try {
+      clearApplied('product');
+      // Reset to default size for product
+      setPendingSize('small');
+    } catch (e) {
+      console.warn('Error clearing applied state:', e);
+      // Force reset to default even on error to prevent stuck state
+      try {
+        setPendingSize('small');
+      } catch (fallbackError) {
+        console.error('Critical error in handleRemove fallback:', fallbackError);
+      }
+    }
     onRemove && onRemove();
     onClose && onClose();
   };
@@ -145,23 +160,59 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
   };
 
   // button size controls: use pending local selection until user hits Apply
-  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled} = useCreatePostContext();
+  const {appliedLargeBy, getAppliedSizeFor, applySize, isLargeDisabled, isSmallDisabled, clearApplied, debugState} = useCreatePostContext();
   const [pendingSize, setPendingSize] = useState(getAppliedSizeFor('product'));
-  const largeDisabled = isLargeDisabled('product');
+  
+  // Make disabled states reactive to context changes
+  const [largeDisabled, setLargeDisabled] = useState(isLargeDisabled('product'));
+  const [smallDisabled, setSmallDisabled] = useState(isSmallDisabled('product'));
+  
+  // Update disabled states when context changes
+  useEffect(() => {
+    const newLargeDisabled = isLargeDisabled('product');
+    const newSmallDisabled = isSmallDisabled('product');
+    console.log(`ProductBottomnav: Updating disabled states - Large: ${newLargeDisabled}, Small: ${newSmallDisabled}, appliedLargeBy: ${appliedLargeBy}`);
+    setLargeDisabled(newLargeDisabled);
+    setSmallDisabled(newSmallDisabled);
+  }, [appliedLargeBy, isLargeDisabled, isSmallDisabled]);
 
-  // Keep pendingSize in-sync with context when appliedLargeBy changes
+  // Keep pendingSize in-sync with context when appliedLargeBy changes or other component removes
   useEffect(() => {
     try {
       const effective = getAppliedSizeFor('product');
       setPendingSize(effective);
+      debugState('PRODUCT_SYNC_PENDING', 'product', effective);
     } catch (e) {
-      // ignore
+      console.warn('Error syncing pending size:', e);
+      // Fallback to default on error
+      setPendingSize('small');
     }
-  }, [appliedLargeBy]);
+  }, [appliedLargeBy, getAppliedSizeFor, debugState]);
+
+  // Initialize pendingSize when component mounts or becomes visible
+  useEffect(() => {
+    if (visible) {
+      try {
+        const effective = getAppliedSizeFor('product');
+        setPendingSize(effective);
+        debugState('PRODUCT_OPENED', 'product', effective);
+      } catch (e) {
+        console.warn('Error initializing pending size:', e);
+        setPendingSize('small');
+      }
+    }
+  }, [visible, getAppliedSizeFor, debugState]);
 
   const handleSizeChange = (size) => {
-    // If large is disabled, prevent selecting it
-    if (size === 'large' && largeDisabled) return;
+    // If large is disabled, show info and prevent selecting it
+    if (size === 'large' && largeDisabled) {
+      Alert.alert('Info', 'Store button is already large so you cannot select Large for Product.');
+      return;
+    }
+    if (size === 'small' && smallDisabled) {
+      Alert.alert('Info', 'Store button is already small so you cannot select Small for Product.');
+      return;
+    }
     setPendingSize(size);
   };
 
@@ -250,23 +301,41 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
               <Text style={{fontWeight: '600', marginBottom: 8}}>Button size</Text>
               <View style={{flexDirection: 'row', gap: 12}}>
                 <TouchableOpacity
-                  style={[styles.sizeButton, pendingSize === 'large' && styles.sizeButtonActive, largeDisabled && styles.sizeButtonDisabled]}
+                  style={[
+                    styles.sizeButton,
+                    pendingSize === 'large' && styles.sizeButtonActive,
+                    largeDisabled && styles.sizeButtonDisabled
+                  ]}
+                  disabled={largeDisabled}
                   onPress={() => {
-                    if (largeDisabled && pendingSize !== 'large') {
+                    if (largeDisabled) {
                       Alert.alert('Info', 'Store button is already large so you cannot select Large for Product.');
                       return;
                     }
                     handleSizeChange('large');
                   }}
                 >
-                  <Text style={[styles.sizeText, pendingSize === 'large' && styles.sizeTextActive]}>Large</Text>
+                  <Text style={[
+                    styles.sizeText, 
+                    pendingSize === 'large' && styles.sizeTextActive,
+                    largeDisabled && styles.sizeTextDisabled
+                  ]}>Large</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.sizeButton, pendingSize === 'small' && styles.sizeButtonActive]}
+                  style={[
+                    styles.sizeButton, 
+                    pendingSize === 'small' && styles.sizeButtonActive,
+                    smallDisabled && styles.sizeButtonDisabled
+                  ]}
+                  disabled={smallDisabled}
                   onPress={() => handleSizeChange('small')}
                 >
-                  <Text style={[styles.sizeText, pendingSize === 'small' && styles.sizeTextActive]}>Small</Text>
+                  <Text style={[
+                    styles.sizeText, 
+                    pendingSize === 'small' && styles.sizeTextActive,
+                    smallDisabled && styles.sizeTextDisabled
+                  ]}>Small</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -279,10 +348,17 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
 
               <TouchableOpacity style={styles.applyBtn} onPress={async () => {
                 try {
+                  // Debug before apply
+                  debugState('PRODUCT_BEFORE_APPLY', 'product', pendingSize);
+                  // ensure parent apply-side effects run first
+                  await handleApply();
+                  // Only apply size if parent apply succeeded
                   applySize('product', pendingSize);
-                  handleApply();
+                  debugState('PRODUCT_AFTER_APPLY', 'product', pendingSize);
                 } catch (e) {
-                  console.warn('Apply size error', e);
+                  console.warn('Apply error:', e);
+                  Alert.alert('Error', 'Failed to apply changes. Please try again.');
+                  // Don't update context on failure
                 }
               }}>
                 <Text style={styles.applyText}>Apply</Text>
@@ -333,6 +409,7 @@ const styles = StyleSheet.create({
   sizeButtonDisabled: {opacity: 0.45},
   sizeText: {color: '#333', fontWeight: '500'},
   sizeTextActive: {color: '#fff'},
+  sizeTextDisabled: {color: '#999'},
 });
 
 export default ProductBottomnav;

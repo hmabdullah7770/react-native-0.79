@@ -1,5 +1,3 @@
-
-
 // Updated CreatepostScreen with inline media upload and layout options
 import {
   StyleSheet,
@@ -14,14 +12,18 @@ import {
 import React, {useState, useCallback, useEffect} from 'react';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ProductBottomnav from './components/ProductBottomnav';
-import {CreatePostProvider} from './context/CreatePostContext';
+import {
+  CreatePostProvider,
+  useCreatePostContext,
+} from './context/CreatePostContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import InlineImageGrid from './components/InlineImageGrid'; // New inline component
 import RecorderBottomnav from './components/RecorderBottomnav';
 import ThumbnailBottomnav from './components/ThumbnailBottomnav';
 import StoreBottomnav from './components/StoreBottomnav';
 
-const CreatepostScreen = () => {
+const CreatepostScreenContent = () => {
+  const {clearApplied} = useCreatePostContext();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [description, setDescription] = useState('');
@@ -32,7 +34,7 @@ const CreatepostScreen = () => {
   const [appliedStore, setAppliedStore] = useState(null); // {type: 'store'|'url', value}
   const [showProductBottomnav, setShowProductBottomnav] = useState(false);
   const [appliedProduct, setAppliedProduct] = useState(null); // object or url
-  
+
   // Video settings state
   const [showVideoSettings, setShowVideoSettings] = useState(false);
   const [videoSettingsData, setVideoSettingsData] = useState(null);
@@ -55,7 +57,7 @@ const CreatepostScreen = () => {
     setShowAudioRecorder(true);
   };
 
-  const handleAudioRecorded = (audioData) => {
+  const handleAudioRecorded = audioData => {
     setUploadedAudio(audioData);
     console.log('Audio uploaded:', audioData);
   };
@@ -72,23 +74,25 @@ const CreatepostScreen = () => {
     }
   }, [videoSettingsData?.lastUpdate]);
 
-  const handleVideoSettingsOpen = (data) => {
+  const handleVideoSettingsOpen = data => {
     setVideoSettingsData({
       ...data,
       // Add reactive update mechanism
-      onStateChange: (newState) => {
+      onStateChange: newState => {
         // Force re-render of modal items
         setVideoSettingsData(prev => ({
           ...prev,
           ...newState,
-          lastUpdate: Date.now() // Force re-render trigger
+          lastUpdate: Date.now(), // Force re-render trigger
         }));
-      }
+      },
     });
     setShowVideoSettings(true);
   };
 
-  const handleThumbnailUpload = (videoIndex = videoSettingsData?.currentVideoIndex) => {
+  const handleThumbnailUpload = (
+    videoIndex = videoSettingsData?.currentVideoIndex,
+  ) => {
     if (videoIndex === null || videoIndex === undefined || !videoSettingsData) {
       Alert.alert('Error', 'No video selected for thumbnail upload.');
       return;
@@ -137,7 +141,7 @@ const CreatepostScreen = () => {
             [videoIndex]: thumbnail,
           },
         };
-        
+
         videoSettingsData.setVideoSettings(prev => ({
           ...prev,
           thumbnails: {
@@ -151,7 +155,7 @@ const CreatepostScreen = () => {
           if (videoSettingsData?.onStateChange) {
             videoSettingsData.onStateChange({
               videoSettings: newSettings,
-              lastUpdate: Date.now()
+              lastUpdate: Date.now(),
             });
           }
         } catch (error) {
@@ -175,7 +179,9 @@ const CreatepostScreen = () => {
 
     const currentThumbnail =
       videoSettingsData.currentVideoIndex !== null
-        ? videoSettingsData.videoSettings.thumbnails[videoSettingsData.currentVideoIndex]
+        ? videoSettingsData.videoSettings.thumbnails[
+            videoSettingsData.currentVideoIndex
+          ]
         : null;
 
     const items = [
@@ -186,7 +192,8 @@ const CreatepostScreen = () => {
         title: currentThumbnail ? 'Change Thumbnail' : 'Upload Thumbnail',
         textColor: '#2196F3',
         showArrow: false,
-        onPress: () => handleThumbnailUpload(videoSettingsData.currentVideoIndex),
+        onPress: () =>
+          handleThumbnailUpload(videoSettingsData.currentVideoIndex),
       },
       {
         type: 'divider',
@@ -200,7 +207,10 @@ const CreatepostScreen = () => {
         value: videoSettingsData.videoSettings.autoPlay,
         component: Switch,
         onToggle: value =>
-          videoSettingsData.setVideoSettings(prev => ({...prev, autoPlay: value})),
+          videoSettingsData.setVideoSettings(prev => ({
+            ...prev,
+            autoPlay: value,
+          })),
       },
     ];
 
@@ -225,12 +235,12 @@ const CreatepostScreen = () => {
         onPress: () => {
           const newThumbnails = {...videoSettingsData.videoSettings.thumbnails};
           delete newThumbnails[videoSettingsData.currentVideoIndex];
-          
+
           const newSettings = {
             ...videoSettingsData.videoSettings,
             thumbnails: newThumbnails,
           };
-          
+
           videoSettingsData.setVideoSettings(prev => {
             const updatedThumbnails = {...prev.thumbnails};
             delete updatedThumbnails[videoSettingsData.currentVideoIndex];
@@ -245,7 +255,7 @@ const CreatepostScreen = () => {
             if (videoSettingsData?.onStateChange) {
               videoSettingsData.onStateChange({
                 videoSettings: newSettings,
-                lastUpdate: Date.now()
+                lastUpdate: Date.now(),
               });
             }
           } catch (error) {
@@ -269,7 +279,7 @@ const CreatepostScreen = () => {
           style: 'destructive',
           onPress: () => setUploadedAudio(null),
         },
-      ]
+      ],
     );
   };
 
@@ -290,15 +300,22 @@ const CreatepostScreen = () => {
     Alert.alert('Add Songs', 'Song addition functionality');
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = seconds => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
   };
 
   const ActionButton = ({title, iconName, onPress, iconColor = '#666'}) => (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-      <Icon name={iconName} size={24} color={iconColor} style={styles.buttonIcon} />
+      <Icon
+        name={iconName}
+        size={24}
+        color={iconColor}
+        style={styles.buttonIcon}
+      />
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
@@ -316,7 +333,7 @@ const CreatepostScreen = () => {
                 Duration: {formatTime(uploadedAudio.duration)}
               </Text>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.removeAudioButton}
               onPress={handleRemoveAudio}>
               <Icon name="close" size={18} color="#ff4757" />
@@ -337,10 +354,11 @@ const CreatepostScreen = () => {
   };
 
   return (
-    <CreatePostProvider>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}>
       <View style={styles.topSpacer} />
-      
+
       <Text style={styles.title}>Create Post Screen</Text>
 
       {/* Description Input */}
@@ -373,7 +391,7 @@ const CreatepostScreen = () => {
       {showImageGrid && (
         <InlineImageGrid
           onClose={() => setShowImageGrid(false)}
-          onMediaChange={(mediaCount) => {
+          onMediaChange={mediaCount => {
             // You can use this to track media count if needed
             console.log('Media count changed:', mediaCount);
           }}
@@ -385,16 +403,28 @@ const CreatepostScreen = () => {
       <View style={styles.actionsContainer}>
         {/* Audio Upload Section - Dynamic */}
         <AudioUploadSection />
-        
+
         {appliedStore ? (
           <View style={styles.appliedStorePill}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Icon name="store" size={18} color="#2196F3" />
               <Text style={{marginLeft: 8, fontWeight: '500'}}>
-                {appliedStore.type === 'store' ? 'Store attached' : appliedStore.value}
+                {appliedStore.type === 'store'
+                  ? 'Store attached'
+                  : appliedStore.value}
               </Text>
             </View>
-            <TouchableOpacity style={styles.appliedRemove} onPress={() => { setAppliedStore(null); }}>
+            <TouchableOpacity
+              style={styles.appliedRemove}
+              onPress={() => {
+                try {
+                  clearApplied('store');
+                  setAppliedStore(null);
+                } catch (error) {
+                  console.warn('Error clearing store applied state:', error);
+                  setAppliedStore(null); // Still remove from UI
+                }
+              }}>
               <Icon name="close" size={16} color="#666" />
             </TouchableOpacity>
           </View>
@@ -406,23 +436,29 @@ const CreatepostScreen = () => {
             iconColor="#2196F3"
           />
         )}
-        
+
         {/* Applied Product Pill - mirrors appliedStore behavior so user can remove the attached product */}
         {appliedProduct ? (
           <View style={styles.appliedStorePill}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Icon name="shopping-cart" size={18} color="#9C27B0" />
               <Text style={{marginLeft: 8, fontWeight: '500'}}>
-                {appliedProduct.type === 'product' ? (appliedProduct.value.productName || 'Product attached') : (appliedProduct.value || 'Product attached')}
+                {appliedProduct.type === 'product'
+                  ? appliedProduct.value.productName || 'Product attached'
+                  : appliedProduct.value || 'Product attached'}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.appliedRemove}
               onPress={() => {
-                // clear applied product
-                setAppliedProduct(null);
-              }}
-            >
+                try {
+                  clearApplied('product');
+                  setAppliedProduct(null);
+                } catch (error) {
+                  console.warn('Error clearing product applied state:', error);
+                  setAppliedProduct(null); // Still remove from UI
+                }
+              }}>
               <Icon name="close" size={16} color="#666" />
             </TouchableOpacity>
           </View>
@@ -434,14 +470,14 @@ const CreatepostScreen = () => {
             iconColor="#9C27B0"
           />
         )}
-        
+
         <ActionButton
           title="Link Social Media"
           iconName="share"
           onPress={handleLinkSocialMedia}
           iconColor="#FF5722"
         />
-        
+
         <ActionButton
           title="Add Songs"
           iconName="music-note"
@@ -477,17 +513,23 @@ const CreatepostScreen = () => {
         onClose={() => setShowAudioRecorder(false)}
         onAudioRecorded={handleAudioRecorded}
       />
-      
+
       {/* Store Bottomnav Modal */}
       <StoreBottomnav
         visible={showStoreBottomnav}
         onClose={() => setShowStoreBottomnav(false)}
-        onApply={(data) => {
+        onApply={data => {
           setAppliedStore(data);
           setShowStoreBottomnav(false);
         }}
         onRemove={() => {
-          setAppliedStore(null);
+          try {
+            clearApplied('store');
+            setAppliedStore(null);
+          } catch (error) {
+            console.warn('Error clearing store applied state:', error);
+            setAppliedStore(null); // Still remove from UI
+          }
         }}
       />
 
@@ -495,13 +537,19 @@ const CreatepostScreen = () => {
       <ProductBottomnav
         visible={showProductBottomnav}
         onClose={() => setShowProductBottomnav(false)}
-        onApply={(data) => {
+        onApply={data => {
           // data: {type: 'product'|'url', value}
           setAppliedProduct(data);
           setShowProductBottomnav(false);
         }}
         onRemove={() => {
-          setAppliedProduct(null);
+          try {
+            clearApplied('product');
+            setAppliedProduct(null);
+          } catch (error) {
+            console.warn('Error clearing product applied state:', error);
+            setAppliedProduct(null); // Still remove from UI
+          }
           setShowProductBottomnav(false);
         }}
       />
@@ -520,12 +568,21 @@ const CreatepostScreen = () => {
         items={getVideoSettingsItems()}
         height={
           videoSettingsData?.currentVideoIndex !== null &&
-          videoSettingsData?.videoSettings.thumbnails[videoSettingsData.currentVideoIndex]
+          videoSettingsData?.videoSettings.thumbnails[
+            videoSettingsData.currentVideoIndex
+          ]
             ? 380
             : 250
         }
       />
-      </ScrollView>
+    </ScrollView>
+  );
+};
+
+const CreatepostScreen = () => {
+  return (
+    <CreatePostProvider>
+      <CreatepostScreenContent />
     </CreatePostProvider>
   );
 };
@@ -691,15 +748,7 @@ const styles = StyleSheet.create({
   },
 });
 
-
-
-
-
-
-
-
-
-// // witt audio too 
+// // witt audio too
 // import {
 //   StyleSheet,
 //   Text,
@@ -802,7 +851,7 @@ const styles = StyleSheet.create({
 //                 Duration: {formatTime(uploadedAudio.duration)}
 //               </Text>
 //             </View>
-//             <TouchableOpacity 
+//             <TouchableOpacity
 //               style={styles.removeAudioButton}
 //               onPress={handleRemoveAudio}>
 //               <Icon name="close" size={18} color="#ff4757" />
@@ -825,7 +874,7 @@ const styles = StyleSheet.create({
 //   return (
 //     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 //       <View style={styles.topSpacer} />
-      
+
 //       <Text style={styles.title}>Create Post Screen</Text>
 
 //       {/* Description Input */}
@@ -850,31 +899,31 @@ const styles = StyleSheet.create({
 //           onPress={handleUploadMedia}
 //           iconColor="#4CAF50"
 //         />
-        
+
 //         {/* Audio Upload Section - Dynamic */}
 //         <AudioUploadSection />
-        
+
 //         <ActionButton
 //           title="Add Store"
 //           iconName="store"
 //           onPress={handleAddStore}
 //           iconColor="#2196F3"
 //         />
-        
+
 //         <ActionButton
 //           title="Add Product"
 //           iconName="shopping-cart"
 //           onPress={handleAddProduct}
 //           iconColor="#9C27B0"
 //         />
-        
+
 //         <ActionButton
 //           title="Link Social Media"
 //           iconName="share"
 //           onPress={handleLinkSocialMedia}
 //           iconColor="#FF5722"
 //         />
-        
+
 //         <ActionButton
 //           title="Add Songs"
 //           iconName="music-note"
@@ -1071,6 +1120,3 @@ const styles = StyleSheet.create({
 //     fontWeight: 'bold',
 //   },
 // });
-
-
-
