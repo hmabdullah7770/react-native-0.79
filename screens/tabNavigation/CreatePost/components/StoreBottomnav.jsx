@@ -126,51 +126,69 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
   };
 
   const handleApply = async () => {
-    if (selectedMode === 'url') {
-      try {
-        await urlSchema.validate({url});
-        onApply({type: 'url', value: url});
-        onClose();
-      } catch (err) {
-        Alert.alert('Validation Error', err.message);
-      }
-      return;
-    }
-
-    // selectedMode === 'store'
-    if (!storeIdPresent) {
-      Alert.alert('No Store Found', 'You do not have a store in this app.');
-      return;
-    }
-
-    // Confirm applying store
     try {
-      // first call the parent apply handler so any side-effects run
-      onApply && onApply({type: 'store', value: true});
-      // record the applied size in context only after parent apply succeeds
+      if (selectedMode === 'url') {
+        try {
+          await urlSchema.validate({url});
+          onApply({type: 'url', value: url});
+          onClose();
+        } catch (err) {
+          Alert.alert('Validation Error', err.message);
+        }
+        return;
+      }
+
+      // selectedMode === 'store'
+      if (!storeIdPresent) {
+        Alert.alert('No Store Found', 'You do not have a store in this app.');
+        return;
+      }
+
+      // First call the parent apply handler - this may throw if it fails
+      if (onApply) {
+        await onApply({type: 'store', value: true});
+      }
+      
+      // Only update context if parent apply succeeded
+      applySize('store', pendingSize);
+      console.log('StoreBottomnav: Successfully applied store with size:', pendingSize);
+      
+      // Close the bottom sheet
       onClose && onClose();
-    } catch (err) {
-      console.warn('Parent onApply failed', err);
+    } catch (error) {
+      console.warn('Store apply operation failed:', error);
+      Alert.alert('Error', 'Failed to apply store changes. Please try again.');
+      // Don't update context or close on failure
     }
   };
 
   const handleRemove = () => {
-    // clear any applied lock that belonged to store when user removes store
     try {
+      // Clear context constraint first
       clearApplied('store');
-      // Reset to default size for store
-      setPendingSize('large');
-    } catch (e) {
-      console.warn('Error clearing applied state:', e);
-      // Force reset to default even on error to prevent stuck state
+      
+      // Reset local state to default (store default is 'large')
+      const defaultSize = 'large';
+      setPendingSize(defaultSize);
+      
+      console.log('StoreBottomnav: Removed store and reset to default size:', defaultSize);
+      
+      // Notify parent components
+      onRemove && onRemove();
+      onClose && onClose();
+    } catch (error) {
+      console.warn('Error during store remove operation:', error);
+      // Still proceed with removal to avoid stuck state
       try {
-        setPendingSize('large');
+        setPendingSize('large'); // Force reset to default
+        onRemove && onRemove();
+        onClose && onClose();
       } catch (fallbackError) {
         console.error('Critical error in handleRemove fallback:', fallbackError);
+        // Still try to close to avoid completely stuck state
+        onClose && onClose();
       }
     }
-    onRemove && onRemove();
-    onClose && onClose();
   };
 
   // Button size control: use a pending local selection until user hits Apply
@@ -196,40 +214,69 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
       const effective = getAppliedSizeFor('store');
       setPendingSize(effective);
       debugState('STORE_SYNC_PENDING', 'store', effective);
-    } catch (e) {
-      console.warn('Error syncing pending size:', e);
-      // Fallback to default on error
-      setPendingSize('large');
+      console.log('StoreBottomnav: Synced pendingSize to:', effective, 'due to appliedLargeBy:', appliedLargeBy);
+    } catch (error) {
+      console.warn('Error syncing store pending size with context:', error);
+      // Fallback to default on error to prevent stuck state
+      try {
+        setPendingSize('large');
+        console.log('StoreBottomnav: Fallback to default size due to sync error');
+      } catch (fallbackError) {
+        console.error('Critical error in store sync fallback:', fallbackError);
+      }
     }
   }, [appliedLargeBy, getAppliedSizeFor, debugState]);
 
-  // Initialize pendingSize when component mounts or becomes visible
+  // Initialize pendingSize and disabled states when component mounts or becomes visible
   useEffect(() => {
     if (visible) {
       try {
         const effective = getAppliedSizeFor('store');
         setPendingSize(effective);
+        
+        // Also update disabled states when component becomes visible
+        const newLargeDisabled = isLargeDisabled('store');
+        const newSmallDisabled = isSmallDisabled('store');
+        console.log(`StoreBottomnav: Initializing on open - Size: ${effective}, Large disabled: ${newLargeDisabled}, Small disabled: ${newSmallDisabled}, appliedLargeBy: ${appliedLargeBy}`);
+        setLargeDisabled(newLargeDisabled);
+        setSmallDisabled(newSmallDisabled);
+        
         debugState('STORE_OPENED', 'store', effective);
-      } catch (e) {
-        console.warn('Error initializing pending size:', e);
-        setPendingSize('large');
+      } catch (error) {
+        console.warn('Error initializing store component state:', error);
+        // Fallback to defaults on error
+        try {
+          setPendingSize('large');
+          setLargeDisabled(false);
+          setSmallDisabled(false);
+          console.log('StoreBottomnav: Fallback to default state due to initialization error');
+        } catch (fallbackError) {
+          console.error('Critical error in store initialization fallback:', fallbackError);
+        }
       }
     }
-  }, [visible, getAppliedSizeFor, debugState]);
+  }, [visible, getAppliedSizeFor, debugState, appliedLargeBy, isLargeDisabled, isSmallDisabled]);
 
   const handleSizeChange = (size) => {
-    if (size === 'large' && largeDisabled) {
-      // user tried to select a disabled large; show info and ignore
-      Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
-      return;
+    try {
+      if (size === 'large' && largeDisabled) {
+        // user tried to select a disabled large; show info and ignore
+        Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
+        return;
+      }
+      if (size === 'small' && smallDisabled) {
+        // user tried to select a disabled small; show info and ignore
+        Alert.alert('Info', 'Product button is already small so you cannot select Small for Store.');
+        return;
+      }
+      
+      // allow changing pending size freely; the applied lock only sets on Apply
+      setPendingSize(size);
+      console.log('StoreBottomnav: Changed pending size to:', size);
+    } catch (error) {
+      console.warn('Error changing store size:', error);
+      Alert.alert('Error', 'Failed to change button size. Please try again.');
     }
-    if (size === 'small' && smallDisabled) {
-      // user tried to select a disabled small; show info and ignore
-      Alert.alert('Info', 'Product button is already small so you cannot select Small for Store.');
-      return;
-    }
-    // allow changing pending size freely; the applied lock only sets on Apply
-    setPendingSize(size);
   };
 
   if (!visible) return null;
@@ -342,15 +389,14 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
                 try {
                   // Debug before apply
                   debugState('STORE_BEFORE_APPLY', 'store', pendingSize);
-                  // Attempt parent apply first; only then commit to context
+                  
+                  // Use the handleApply function which now handles context updates properly
                   await handleApply();
-                  // Only apply size if parent apply succeeded
-                  applySize('store', pendingSize);
+                  
                   debugState('STORE_AFTER_APPLY', 'store', pendingSize);
-                } catch (e) {
-                  console.warn('Apply error:', e);
-                  Alert.alert('Error', 'Failed to apply changes. Please try again.');
-                  // Don't update context on failure
+                } catch (error) {
+                  console.warn('Apply button error:', error);
+                  // Error handling is already done in handleApply
                 }
               }}>
                 <Text style={styles.applyText}>Apply</Text>

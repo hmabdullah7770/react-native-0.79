@@ -49,8 +49,17 @@ export const CreatePostProvider = ({children}) => {
       }
 
       setAppliedLargeBy((current) => {
+        // Clear if the component being removed has the large applied
         if (current === which) {
-          console.log(`Cleared applied state for ${which}`);
+          console.log(`Cleared applied state for ${which} (had large)`)
+          return null;
+        }
+        // Also clear if the component being removed caused the other to have large
+        // This happens when Store selects "small" -> appliedLargeBy becomes "product"
+        // So when Store is removed, we should clear the state even though appliedLargeBy is "product"
+        const other = which === 'store' ? 'product' : 'store';
+        if (current === other) {
+          console.log(`Cleared applied state for ${which} (caused ${other} to have large)`);
           return null;
         }
         console.log(`No need to clear ${which}, current appliedLargeBy is:`, current);
@@ -116,13 +125,26 @@ export const CreatePostProvider = ({children}) => {
 
   const isSmallDisabled = (which) => {
     try {
-      // small is disabled for `which` if the other side already has an applied small
-      // This means if store has small applied, product can't have small (must be large)
-      const other = which === 'store' ? 'product' : 'store';
+      // Small is disabled for `which` if this component currently has large applied
+      // OR if the other component has small applied (mutual exclusivity)
+      
+      if (!appliedLargeBy) {
+        // No constraints exist, small is not disabled
+        return false;
+      }
+      
+      // If this component has large applied, then small is disabled for this component
+      if (appliedLargeBy === which) {
+        return true;
+      }
+      
       // If the other component has large applied, then this component must be small, so small is NOT disabled
-      // If this component has large applied, then small IS disabled for this component
-      // If the other component has small applied (meaning appliedLargeBy === this component), then small IS disabled for this component
-      return appliedLargeBy === which; // If this component has large applied, small is disabled
+      const other = which === 'store' ? 'product' : 'store';
+      if (appliedLargeBy === other) {
+        return false;
+      }
+      
+      return false;
     } catch (error) {
       console.warn('Error in isSmallDisabled:', error);
       return false;

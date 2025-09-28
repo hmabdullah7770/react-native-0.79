@@ -418,8 +418,12 @@ const CreatepostScreenContent = () => {
               style={styles.appliedRemove}
               onPress={() => {
                 try {
+                  console.log('CreatepostScreen: Clearing store applied state');
                   clearApplied('store');
                   setAppliedStore(null);
+                  console.log(
+                    'CreatepostScreen: Store state cleared successfully',
+                  );
                 } catch (error) {
                   console.warn('Error clearing store applied state:', error);
                   setAppliedStore(null); // Still remove from UI
@@ -452,8 +456,14 @@ const CreatepostScreenContent = () => {
               style={styles.appliedRemove}
               onPress={() => {
                 try {
+                  console.log(
+                    'CreatepostScreen: Clearing product applied state',
+                  );
                   clearApplied('product');
                   setAppliedProduct(null);
+                  console.log(
+                    'CreatepostScreen: Product state cleared successfully',
+                  );
                 } catch (error) {
                   console.warn('Error clearing product applied state:', error);
                   setAppliedProduct(null); // Still remove from UI
