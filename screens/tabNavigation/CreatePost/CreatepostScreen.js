@@ -21,6 +21,7 @@ import InlineImageGrid from './components/InlineImageGrid'; // New inline compon
 import RecorderBottomnav from './components/RecorderBottomnav';
 import ThumbnailBottomnav from './components/ThumbnailBottomnav';
 import StoreBottomnav from './components/StoreBottomnav';
+import MediaBottomnav from './components/MediaBottomnav';
 
 const CreatepostScreenContent = () => {
   const {clearApplied} = useCreatePostContext();
@@ -34,6 +35,8 @@ const CreatepostScreenContent = () => {
   const [appliedStore, setAppliedStore] = useState(null); // {type: 'store'|'url', value}
   const [showProductBottomnav, setShowProductBottomnav] = useState(false);
   const [appliedProduct, setAppliedProduct] = useState(null); // object or url
+  const [showMediaBottomnav, setShowMediaBottomnav] = useState(false);
+  const [appliedSocialMedia, setAppliedSocialMedia] = useState(null);
 
   // Video settings state
   const [showVideoSettings, setShowVideoSettings] = useState(false);
@@ -293,7 +296,7 @@ const CreatepostScreenContent = () => {
   };
 
   const handleLinkSocialMedia = () => {
-    Alert.alert('Link Social Media', 'Social media linking functionality');
+    setShowMediaBottomnav(true);
   };
 
   const handleAddSongs = () => {
@@ -481,12 +484,28 @@ const CreatepostScreenContent = () => {
           />
         )}
 
-        <ActionButton
-          title="Link Social Media"
-          iconName="share"
-          onPress={handleLinkSocialMedia}
-          iconColor="#FF5722"
-        />
+        {appliedSocialMedia ? (
+          <View style={styles.appliedStorePill}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Icon name="share" size={18} color="#FF5722" />
+              <Text style={{marginLeft: 8, fontWeight: '500'}}>
+                Social media linked
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.appliedRemove}
+              onPress={() => setAppliedSocialMedia(null)}>
+              <Icon name="close" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ActionButton
+            title="Link Social Media"
+            iconName="share"
+            onPress={handleLinkSocialMedia}
+            iconColor="#FF5722"
+          />
+        )}
 
         <ActionButton
           title="Add Songs"
@@ -584,6 +603,17 @@ const CreatepostScreenContent = () => {
             ? 380
             : 250
         }
+      />
+
+      {/* Media/Social Media Bottom Nav */}
+      <MediaBottomnav
+        visible={showMediaBottomnav}
+        onClose={() => setShowMediaBottomnav(false)}
+        onApply={(data) => {
+          setAppliedSocialMedia(data);
+          setShowMediaBottomnav(false);
+        }}
+        initialData={appliedSocialMedia}
       />
     </ScrollView>
   );
