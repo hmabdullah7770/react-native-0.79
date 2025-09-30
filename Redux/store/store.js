@@ -2,6 +2,7 @@ import {configureStore} from '@reduxjs/toolkit';
 import rootReducer from '../reducer/index'; // or reducer if you have only one
 import authrootSaga from '../saga/Auth';
 import productrootSaga from '../saga/storee/Store_Product';
+import postrootSaga from '../saga/Post';
 // import staterootSaga from '../saga/states';
 // import categouryrootSaga from '../saga/Categoury';
 import createSagaMiddleware from 'redux-saga';
@@ -20,6 +21,7 @@ const store = configureStore({
 
 sagaMiddleware.run(authrootSaga);
 sagaMiddleware.run(productrootSaga);
+sageMiddleware.run(postrootSaga);
 // sagaMiddleware.run(staterootSaga);
 // sagaMiddleware.run(categouryrootSaga);
 
