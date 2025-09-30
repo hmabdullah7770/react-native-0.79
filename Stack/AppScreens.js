@@ -9,7 +9,7 @@ import TestingScreen from '../screens/TestingScreen'; // Assuming this is the in
 import Tabnavigation from '../screens/tabNavigation/Tabnavigation';
 import {clearerror, clearmessege} from '../Redux/action/auth';
 import {useDispatch} from 'react-redux';
-import AsyncStorage from 'react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // import api from '../services/apiservice'; //
 const AppScreens = () => {
@@ -35,6 +35,8 @@ const AppScreens = () => {
   console.log('error in AppScreens', error);
 
   console.log('user whatsapp with .user ', user?.data?.data?.user?.whatsapp);
+    console.log('user instagram with .user ', user?.data?.data?.user?.instagram);
+  
   console.log('user facebook  ', user?.data?.data?.facebook);
   console.log('user instagram  ', user?.data?.data?.instagram);
   console.log('user whatsapp  ', user?.data?.data?.whatsapp);

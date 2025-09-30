@@ -32,7 +32,7 @@ const InlineImageGrid = React.memo(
     // Layout constraint configuration system
     const layoutConstraints = {
       1: {minItems: 1, maxItems: 1, description: 'Single item only'},
-      2: {minItems: 1, maxItems: 10, description: '2+ items'},
+      2: {minItems: 1, maxItems: 2, description: '2 items'},
       '2x2': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
       '1x2': {minItems: 3, maxItems: 3, description: 'Exactly 3 items'},
       '1x3': {minItems: 4, maxItems: 4, description: 'Exactly 4 items'},
