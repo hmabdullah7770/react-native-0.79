@@ -315,6 +315,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingBottom: 20,
     minHeight: 320,
+    elevation: 20,
   },
   handleBar: {
     width: 40,

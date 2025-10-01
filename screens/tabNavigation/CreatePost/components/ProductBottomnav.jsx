@@ -293,7 +293,7 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
   return (
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-  <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}, {translateY: keyboardOffset.interpolate({inputRange: [0, 1000], outputRange: [0, -1], extrapolate: 'clamp'})}], bottom: 16, maxHeight: sheetHeight + 16}] }>
+  <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}, {translateY: keyboardOffset.interpolate({inputRange: [0, 1000], outputRange: [0, -1000], extrapolate: 'clamp'})}], bottom: 16, maxHeight: sheetHeight + 16}] }>
         <SafeAreaView edges={["bottom"]}>
           <View style={styles.header}>
             <Text style={styles.title}>Add Product</Text>
@@ -445,7 +445,7 @@ const ProductBottomnav = ({visible, onClose, onApply, onRemove}) => {
 const styles = StyleSheet.create({
   overlay: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 3000},
   backdrop: {flex: 1},
-  container: {position: 'absolute', left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16},
+  container: {position: 'absolute', left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, elevation: 20},
   header: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   title: {fontSize: 18, fontWeight: '600', color: '#333'},
   closeButton: {padding: 4},

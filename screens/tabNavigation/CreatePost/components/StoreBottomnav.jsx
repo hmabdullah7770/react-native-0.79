@@ -290,7 +290,7 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
           {
             transform: [
               {translateY: slideAnim},
-              {translateY: keyboardOffset.interpolate({inputRange: [0, 1000], outputRange: [0, -1], extrapolate: 'clamp'})},
+              {translateY: keyboardOffset.interpolate({inputRange: [0, 1000], outputRange: [0, -1000], extrapolate: 'clamp'})},
             ],
             bottom: 20,
             maxHeight: sheetHeight + 20,
@@ -430,6 +430,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,
+    elevation: 20,
   },
   header: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   title: {fontSize: 18, fontWeight: '600', color: '#333'},

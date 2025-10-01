@@ -29,8 +29,6 @@ const CategouryBottomnav = ({visible, onClose, onApply, initialSelected, categor
     }
   }, [visible]);
 
-  // Categories are now passed as props from parent component
-
   if (!visible) return null;
 
   const renderItem = ({item}) => {
@@ -39,7 +37,7 @@ const CategouryBottomnav = ({visible, onClose, onApply, initialSelected, categor
       <TouchableOpacity
         style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
         onPress={() => onApply?.({id: item.id, name: item.name})}
-      >
+        activeOpacity={0.7}>
         <Icon name="category" size={18} color={isSelected ? '#fff' : '#FF9800'} />
         <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>{item.name}</Text>
       </TouchableOpacity>
@@ -47,52 +45,55 @@ const CategouryBottomnav = ({visible, onClose, onApply, initialSelected, categor
   };
 
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} pointerEvents="box-none">
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}]}]}>
-        {/* Handle Bar */}
-        <View style={styles.handleBar} />
+      {/* FIX: Remove Animated wrapper from content area to allow proper touch handling */}
+      <View style={[styles.containerWrapper, {transform: [{translateY: 0}]}]}>
+        <Animated.View style={[styles.animatedContainer, {transform: [{translateY: slideAnim}]}]}>
+          <View style={styles.container}>
+            <View style={styles.handleBar} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Select Category</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          {isLoading && (
-            <View style={styles.loadingState}>
-              <ActivityIndicator color="#FF9800" />
-              <Text style={styles.loadingText}>Loading categories…</Text>
+            <View style={styles.header}>
+              <Text style={styles.title}>Select Category</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <Icon name="close" size={24} color="#666" />
+              </TouchableOpacity>
             </View>
-          )}
 
-          {error && (
-            <View style={styles.errorState}>
-              <Icon name="error-outline" size={20} color="#ff4757" />
-              <Text style={styles.errorText}>Failed to load categories</Text>
-            </View>
-          )}
+            <View style={styles.content}>
+              {isLoading && (
+                <View style={styles.loadingState}>
+                  <ActivityIndicator color="#FF9800" />
+                  <Text style={styles.loadingText}>Loading categories…</Text>
+                </View>
+              )}
 
-          {!isLoading && !error && (
-            <View>
-              <FlatList
-                data={categories}
-                renderItem={renderItem}
-                keyExtractor={item => String(item.id || item._id || item.name)}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.list}
-                keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled
-              />
+              {error && (
+                <View style={styles.errorState}>
+                  <Icon name="error-outline" size={20} color="#ff4757" />
+                  <Text style={styles.errorText}>Failed to load categories</Text>
+                </View>
+              )}
+
+              {!isLoading && !error && (
+                <FlatList
+                  data={categories}
+                  renderItem={renderItem}
+                  keyExtractor={item => String(item.id || item._id || item.name)}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.list}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled={false}
+                  scrollEnabled={true}
+                  bounces={true}
+                  removeClippedSubviews={false}
+                />
+              )}
             </View>
-          )}
-        </View>
-      </Animated.View>
+          </View>
+        </Animated.View>
+      </View>
     </View>
   );
 };
@@ -110,11 +111,16 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
   },
-  container: {
+  containerWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  animatedContainer: {
+    width: '100%',
+  },
+  container: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -155,7 +161,6 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 4,
     paddingVertical: 8,
-    gap: 8,
   },
   categoryChip: {
     flexDirection: 'row',
@@ -206,6 +211,3 @@ const styles = StyleSheet.create({
 });
 
 export default CategouryBottomnav;
-
-
-
