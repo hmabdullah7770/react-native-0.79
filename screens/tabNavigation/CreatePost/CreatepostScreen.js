@@ -22,12 +22,18 @@ import RecorderBottomnav from './components/RecorderBottomnav';
 import ThumbnailBottomnav from './components/ThumbnailBottomnav';
 import StoreBottomnav from './components/StoreBottomnav';
 import MediaBottomnav from './components/MediaBottomnav';
+import CategouryBottomnav from './components/CategouryBottomnav';
+import {useCategoryNames} from '../../../ReactQuery/TanStackQueryHooks/useCategories';
 
 const CreatepostScreenContent = () => {
   const {clearApplied} = useCreatePostContext();
+  
+  // Get categories data to pass to CategouryBottomnav
+  const {data: categoriesData, isLoading: categoriesLoading, error: categoriesError} = useCategoryNames();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [description, setDescription] = useState('');
+  const [title, setTitle] = useState('');
   const [showImageGrid, setShowImageGrid] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [uploadedAudio, setUploadedAudio] = useState(null);
@@ -37,6 +43,8 @@ const CreatepostScreenContent = () => {
   const [appliedProduct, setAppliedProduct] = useState(null); // object or url
   const [showMediaBottomnav, setShowMediaBottomnav] = useState(false);
   const [appliedSocialMedia, setAppliedSocialMedia] = useState(null);
+  const [appliedCategory, setAppliedCategory] = useState(null);
+  const [showCategoryBottomnav, setShowCategoryBottomnav] = useState(false);
 
   // Video settings state
   const [showVideoSettings, setShowVideoSettings] = useState(false);
@@ -299,6 +307,10 @@ const CreatepostScreenContent = () => {
     setShowMediaBottomnav(true);
   };
 
+  const handleSelectCategory = () => {
+    setShowCategoryBottomnav(true);
+  };
+
   const handleAddSongs = () => {
     Alert.alert('Add Songs', 'Song addition functionality');
   };
@@ -362,7 +374,27 @@ const CreatepostScreenContent = () => {
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.topSpacer} />
 
-      <Text style={styles.title}>Create Post Screen</Text>
+      {/* <Text style={styles.title}>Create Post Screen</Text> */}
+
+
+
+
+ {/*  title Input */}
+ <View style={styles.descriptionContainer}>
+        <Text style={styles.sectionTitle}>Title</Text>
+        <TextInput
+          style={styles.titleInput}
+          placeholder="What is the title of the post"
+          multiline={true}
+          numberOfLines={2}
+          value={title}
+          onChangeText={setTitle}
+          textAlignVertical="top"
+        />
+      </View>
+
+
+
 
       {/* Description Input */}
       <View style={styles.descriptionContainer}>
@@ -481,6 +513,30 @@ const CreatepostScreenContent = () => {
             iconName="shopping-cart"
             onPress={handleAddProduct}
             iconColor="#9C27B0"
+          />
+        )}
+
+        {/* Applied Category Pill - mirrors appliedStore behavior so user can remove the attached category */}
+        {appliedCategory ? (
+          <View style={styles.appliedStorePill}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Icon name="category" size={18} color="#FF9800" />
+              <Text style={{marginLeft: 8, fontWeight: '500'}}>
+                {appliedCategory.name || 'Category selected'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.appliedRemove}
+              onPress={() => setAppliedCategory(null)}>
+              <Icon name="close" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ActionButton
+            title="Select Category"
+            iconName="category"
+            onPress={handleSelectCategory}
+            iconColor="#FF9800"
           />
         )}
 
@@ -615,6 +671,20 @@ const CreatepostScreenContent = () => {
         }}
         initialData={appliedSocialMedia}
       />
+
+      {/* Category Bottomnav Modal */}
+      <CategouryBottomnav
+        visible={showCategoryBottomnav}
+        onClose={() => setShowCategoryBottomnav(false)}
+        onApply={(category) => {
+          setAppliedCategory(category);
+          setShowCategoryBottomnav(false);
+        }}
+        initialSelected={appliedCategory}
+        categories={categoriesData?.list || []}
+        isLoading={categoriesLoading}
+        error={categoriesError}
+      />
     </ScrollView>
   );
 };
@@ -666,6 +736,20 @@ const styles = StyleSheet.create({
     minHeight: 100,
     backgroundColor: '#f9f9f9',
   },
+
+
+
+  titleInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 60,
+    backgroundColor: '#f9f9f9',
+  },
+
+
   actionsContainer: {
     marginBottom: 24,
   },

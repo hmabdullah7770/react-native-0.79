@@ -71,6 +71,14 @@ export const uploadpostrequest = (
   instagramurl,
   whatsappnumberurl,
   storelinkurl,
+
+   facebook,
+  instagram,
+  whatsapp,
+  storeLink,  
+
+
+
 ) => {
   console.log('Inside uploadpostrequest with title:', title);
 
@@ -124,6 +132,11 @@ export const uploadpostrequest = (
       instagramurl,
       whatsappnumberurl,
       storelinkurl,
+
+      facebook,
+      instagram,
+      whatsapp,
+      storeLink
     
   };
 };

@@ -7,15 +7,15 @@ const initialState = {
 
 const post = (state = initialState, action) => {
   switch (action.type) {
-    case 'GET_ALL_POST_REQUEST':
-    case 'ADD_POST_REQUEST':
-    case 'DELETE_POST_REQUEST':
-      return {
-        ...state,
-        loading: true,
-        error: null,
-        messege: null,
-      };
+    // case 'GET_ALL_POST_REQUEST':
+    // case 'ADD_POST_REQUEST':
+    // case 'DELETE_POST_REQUEST':
+    //   return {
+    //     ...state,
+    //     loading: true,
+    //     error: null,
+    //     messege: null,
+    //   };
 
     case 'GET_ALL_POST_SUCCESSFUL':
       return {

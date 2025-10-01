@@ -1,6 +1,6 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import * as actions from '../action/post';
-import * as api from '../../API/Post';
+import * as api from '../../API/post';
 
 function buildFormDataFromAction(action) {
   const formData = new FormData();
@@ -42,6 +42,10 @@ function buildFormDataFromAction(action) {
     instagramurl,
     whatsappnumberurl,
     storelinkurl,
+    facebook,
+    instagram,
+    whatsapp,
+    storeLink,
   } = action;
 
   const maybeAppend = (key, value) => {
@@ -76,6 +80,12 @@ function buildFormDataFromAction(action) {
   maybeAppend('instagramurl', instagramurl);
   maybeAppend('whatsappnumberurl', whatsappnumberurl);
   maybeAppend('storelinkurl', storelinkurl);
+
+
+    maybeAppend('facebook', facebook);
+  maybeAppend('instagram', instagram);
+  maybeAppend('whatsapp', whatsapp);
+  maybeAppend('storeLink', storeLink);
 
   // Media helpers
   const appendFile = (key, file) => {

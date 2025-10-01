@@ -21,7 +21,7 @@ const store = configureStore({
 
 sagaMiddleware.run(authrootSaga);
 sagaMiddleware.run(productrootSaga);
-sageMiddleware.run(postrootSaga);
+sagaMiddleware.run(postrootSaga);
 // sagaMiddleware.run(staterootSaga);
 // sagaMiddleware.run(categouryrootSaga);
 
