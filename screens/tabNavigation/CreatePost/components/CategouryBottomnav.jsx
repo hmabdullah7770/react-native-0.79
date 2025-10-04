@@ -4,34 +4,24 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
   FlatList,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import RBSheet from 'react-native-raw-bottom-sheet';
 
 const CategouryBottomnav = ({visible, onClose, onApply, initialSelected, categories, isLoading, error}) => {
-  const slideAnim = useRef(new Animated.Value(300)).current;
+  const bottomSheetRef = useRef(null);
 
+  // Handle bottom sheet visibility
   useEffect(() => {
     if (visible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      bottomSheetRef.current?.open();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: 300,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      bottomSheetRef.current?.close();
     }
   }, [visible]);
-
-  // Categories are now passed as props from parent component
-
-  if (!visible) return null;
 
   const renderItem = ({item}) => {
     const isSelected = initialSelected?.id === item.id || initialSelected?.name === item.name;
@@ -39,88 +29,90 @@ const CategouryBottomnav = ({visible, onClose, onApply, initialSelected, categor
       <TouchableOpacity
         style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
         onPress={() => onApply?.({id: item.id, name: item.name})}
-      >
+        activeOpacity={0.7}>
         <Icon name="category" size={18} color={isSelected ? '#fff' : '#FF9800'} />
         <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>{item.name}</Text>
       </TouchableOpacity>
     );
   };
 
+  const renderContent = () => (
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.handleBar} />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Select Category</Text>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Icon name="close" size={24} color="#666" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.content}>
+        {isLoading && (
+          <View style={styles.loadingState}>
+            <ActivityIndicator color="#FF9800" />
+            <Text style={styles.loadingText}>Loading categories…</Text>
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.errorState}>
+            <Icon name="error-outline" size={20} color="#ff4757" />
+            <Text style={styles.errorText}>Failed to load categories</Text>
+          </View>
+        )}
+
+        {!isLoading && !error && (
+          <FlatList
+            data={categories}
+            renderItem={renderItem}
+            keyExtractor={item => String(item.id || item._id || item.name)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.list}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled={true}
+            scrollEnabled={true}
+            bounces={true}
+            removeClippedSubviews={false}
+          />
+        )}
+      </View>
+    </SafeAreaView>
+  );
+
   return (
-    <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}]}]}>
-        {/* Handle Bar */}
-        <View style={styles.handleBar} />
-
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Select Category</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          {isLoading && (
-            <View style={styles.loadingState}>
-              <ActivityIndicator color="#FF9800" />
-              <Text style={styles.loadingText}>Loading categories…</Text>
-            </View>
-          )}
-
-          {error && (
-            <View style={styles.errorState}>
-              <Icon name="error-outline" size={20} color="#ff4757" />
-              <Text style={styles.errorText}>Failed to load categories</Text>
-            </View>
-          )}
-
-          {!isLoading && !error && (
-            <View>
-              <FlatList
-                data={categories}
-                renderItem={renderItem}
-                keyExtractor={item => String(item.id || item._id || item.name)}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.list}
-                keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled
-              />
-            </View>
-          )}
-        </View>
-      </Animated.View>
-    </View>
+    <RBSheet
+      ref={bottomSheetRef}
+      height={200}
+      openDuration={250}
+      closeDuration={200}
+      onClose={onClose}
+      customStyles={{
+        wrapper: styles.sheetWrapper,
+        container: styles.sheetContainer,
+        draggableIcon: styles.draggableIcon,
+      }}
+    >
+      {renderContent()}
+    </RBSheet>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  sheetWrapper: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 3000,
   },
-  backdrop: {
-    flex: 1,
-  },
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  sheetContainer: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 20,
+  },
+  draggableIcon: {
+    backgroundColor: '#ddd',
+  },
+  container: {
     minHeight: 200,
-    elevation: 20,
   },
   handleBar: {
     width: 40,
@@ -155,7 +147,6 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 4,
     paddingVertical: 8,
-    gap: 8,
   },
   categoryChip: {
     flexDirection: 'row',
@@ -206,6 +197,3 @@ const styles = StyleSheet.create({
 });
 
 export default CategouryBottomnav;
-
-
-

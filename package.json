@@ -30,6 +30,7 @@
     "formik": "^2.4.6",
     "react": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-animated-bottom-drawer": "^0.0.23",
     "react-native-audio-api": "^0.7.2",
     "react-native-axios": "^0.17.1",
     "react-native-edge-to-edge": "^1.6.2",

@@ -4,24 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
   TextInput,
   Alert,
   SafeAreaView,
-  Platform,
-  Dimensions,
-  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Keychain from 'react-native-keychain';
-// try to load keyboard controller; it's optional but already installed in the workspace
-let KeyboardController;
-try {
-  // eslint-disable-next-line global-require
-  KeyboardController = require('react-native-keyboard-controller').default;
-} catch (e) {
-  KeyboardController = null;
-}
+import RBSheet from 'react-native-raw-bottom-sheet';
 import {useCreatePostContext} from '../context/CreatePostContext';
 import * as yup from 'yup';
 
@@ -34,12 +23,10 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
   const [placeholderEnabled, setPlaceholderEnabled] = useState(false);
   const [url, setUrl] = useState('');
   const [storeIdPresent, setStoreIdPresent] = useState(false);
-  // compute a responsive sheet height so the sheet is lifted above the very bottom
-  const windowHeight = Dimensions.get('window').height;
-  const sheetHeight = useRef(Math.min(420, Math.round(windowHeight * 0.45))).current; // max 420 or 45% of screen
-  // initialize animation starting off-screen by sheetHeight
-  const slideAnim = useRef(new Animated.Value(sheetHeight)).current;
-  const keyboardOffset = useRef(new Animated.Value(0)).current; // additional lift when keyboard opens
+  
+  // Add TextInput ref for focus management
+  const textInputRef = useRef(null);
+  const bottomSheetRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -47,12 +34,10 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
         const creds = await Keychain.getGenericPassword({service: 'storeId'});
         if (creds) {
           setStoreIdPresent(true);
-          // default to store when storeId exists
           setSelectedMode('store');
           setPlaceholderEnabled(false);
         } else {
           setStoreIdPresent(false);
-          // default to url when storeId missing
           setSelectedMode('url');
           setPlaceholderEnabled(true);
         }
@@ -65,64 +50,30 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
     })();
   }, [visible]);
 
+  // Handle bottom sheet visibility
   useEffect(() => {
     if (visible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      bottomSheetRef.current?.open();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: sheetHeight,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      bottomSheetRef.current?.close();
     }
   }, [visible]);
 
-  // Keyboard handling: use KeyboardController if available for more robust events; otherwise RN Keyboard
-  useEffect(() => {
-    if (!visible) return;
-
-    let subs = [];
-    if (KeyboardController) {
-      const onShow = ({height}) => {
-        Animated.timing(keyboardOffset, {toValue: height + 8, duration: 250, useNativeDriver: true}).start();
-      };
-      const onHide = () => {
-        Animated.timing(keyboardOffset, {toValue: 0, duration: 200, useNativeDriver: true}).start();
-      };
-      KeyboardController.on('keyboardWillShow', onShow);
-      KeyboardController.on('keyboardWillHide', onHide);
-      subs.push(() => KeyboardController.off('keyboardWillShow', onShow));
-      subs.push(() => KeyboardController.off('keyboardWillHide', onHide));
-    } else {
-      const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
-        const h = e.endCoordinates ? e.endCoordinates.height : 300;
-        Animated.timing(keyboardOffset, {toValue: h + 8, duration: 250, useNativeDriver: true}).start();
-      });
-      const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
-        Animated.timing(keyboardOffset, {toValue: 0, duration: 200, useNativeDriver: true}).start();
-      });
-      subs.push(() => showSub.remove());
-      subs.push(() => hideSub.remove());
-    }
-
-    return () => {
-      subs.forEach((s) => s());
-    };
-  }, [visible, keyboardOffset]);
-
   const toggleMode = (mode) => {
     if (mode === 'store' && !storeIdPresent) {
-      // User attempted to switch to store but there is no store id
       Alert.alert('No Store Found', 'You do not have a store in this app.');
       return;
     }
 
     setSelectedMode(mode);
     setPlaceholderEnabled(mode === 'url');
+    
+    // Focus TextInput when switching to URL mode
+    if (mode === 'url' && textInputRef.current) {
+      setTimeout(() => {
+        textInputRef.current?.focus();
+      }, 100);
+    }
   };
 
   const handleApply = async () => {
@@ -158,7 +109,6 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
     } catch (error) {
       console.warn('Store apply operation failed:', error);
       Alert.alert('Error', 'Failed to apply store changes. Please try again.');
-      // Don't update context or close on failure
     }
   };
 
@@ -185,7 +135,6 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
         onClose && onClose();
       } catch (fallbackError) {
         console.error('Critical error in handleRemove fallback:', fallbackError);
-        // Still try to close to avoid completely stuck state
         onClose && onClose();
       }
     }
@@ -217,7 +166,6 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
       console.log('StoreBottomnav: Synced pendingSize to:', effective, 'due to appliedLargeBy:', appliedLargeBy);
     } catch (error) {
       console.warn('Error syncing store pending size with context:', error);
-      // Fallback to default on error to prevent stuck state
       try {
         setPendingSize('large');
         console.log('StoreBottomnav: Fallback to default size due to sync error');
@@ -234,7 +182,6 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
         const effective = getAppliedSizeFor('store');
         setPendingSize(effective);
         
-        // Also update disabled states when component becomes visible
         const newLargeDisabled = isLargeDisabled('store');
         const newSmallDisabled = isSmallDisabled('store');
         console.log(`StoreBottomnav: Initializing on open - Size: ${effective}, Large disabled: ${newLargeDisabled}, Small disabled: ${newSmallDisabled}, appliedLargeBy: ${appliedLargeBy}`);
@@ -244,7 +191,6 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
         debugState('STORE_OPENED', 'store', effective);
       } catch (error) {
         console.warn('Error initializing store component state:', error);
-        // Fallback to defaults on error
         try {
           setPendingSize('large');
           setLargeDisabled(false);
@@ -260,17 +206,14 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
   const handleSizeChange = (size) => {
     try {
       if (size === 'large' && largeDisabled) {
-        // user tried to select a disabled large; show info and ignore
         Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
         return;
       }
       if (size === 'small' && smallDisabled) {
-        // user tried to select a disabled small; show info and ignore
         Alert.alert('Info', 'Product button is already small so you cannot select Small for Store.');
         return;
       }
       
-      // allow changing pending size freely; the applied lock only sets on Apply
       setPendingSize(size);
       console.log('StoreBottomnav: Changed pending size to:', size);
     } catch (error) {
@@ -279,184 +222,277 @@ const StoreBottomnav = ({visible, onClose, onApply, onRemove}) => {
     }
   };
 
-  if (!visible) return null;
+  const renderContent = () => (
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Add Store</Text>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Icon name="close" size={24} color="#666" />
+        </TouchableOpacity>
+      </View>
 
-  return (
-    <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            transform: [
-              {translateY: slideAnim},
-              {translateY: keyboardOffset.interpolate({inputRange: [0, 1000], outputRange: [0, -1000], extrapolate: 'clamp'})},
-            ],
-            bottom: 20,
-            maxHeight: sheetHeight + 20,
-            paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-          },
-        ]}
-      >
-        <SafeAreaView edges={["bottom"]}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Store</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name="close" size={24} color="#666" />
+      <View style={styles.body}>
+        <View style={styles.switchRow}>
+          <TouchableOpacity
+            style={[styles.modeButton, selectedMode === 'store' && styles.modeButtonActive]}
+            onPress={() => toggleMode('store')}
+          >
+            <Text style={[styles.modeText, selectedMode === 'store' && styles.modeTextActive]}>Store</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.modeButton, selectedMode === 'url' && styles.modeButtonActive]}
+            onPress={() => toggleMode('url')}
+          >
+            <Text style={[styles.modeText, selectedMode === 'url' && styles.modeTextActive]}>URL</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputRow}>
+          <TextInput
+            ref={textInputRef}
+            style={[styles.input, placeholderEnabled ? styles.inputEnabled : styles.inputDisabled]}
+            placeholder={selectedMode === 'url' ? 'Enter URL' : 'Store selection (disabled)'}
+            editable={placeholderEnabled}
+            value={url}
+            onChangeText={setUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            contextMenuHidden={false}
+            onFocus={() => console.log('StoreBottomnav TextInput focused')}
+            onBlur={() => console.log('StoreBottomnav TextInput blurred')}
+            returnKeyType="done"
+          />
+        </View>
+
+        <View style={styles.sizeRow}>
+          <Text style={styles.sizeTitle}>Button size</Text>
+          <View style={styles.sizeButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.sizeButton,
+                pendingSize === 'large' && styles.sizeButtonActive,
+                largeDisabled && styles.sizeButtonDisabled
+              ]}
+              disabled={largeDisabled}
+              onPress={() => {
+                if (largeDisabled) {
+                  Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
+                  return;
+                }
+                handleSizeChange('large');
+              }}
+            >
+              <Text style={[
+                styles.sizeText, 
+                pendingSize === 'large' && styles.sizeTextActive,
+                largeDisabled && styles.sizeTextDisabled
+              ]}>Large</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sizeButton, 
+                pendingSize === 'small' && styles.sizeButtonActive,
+                smallDisabled && styles.sizeButtonDisabled
+              ]}
+              disabled={smallDisabled}
+              onPress={() => handleSizeChange('small')}
+            >
+              <Text style={[
+                styles.sizeText, 
+                pendingSize === 'small' && styles.sizeTextActive,
+                smallDisabled && styles.sizeTextDisabled
+              ]}>Small</Text>
             </TouchableOpacity>
           </View>
+        </View>
 
-          <View style={styles.body}>
-            <View style={styles.switchRow}>
-              <TouchableOpacity
-                style={[styles.modeButton, selectedMode === 'store' && styles.modeButtonActive]}
-                onPress={() => toggleMode('store')}
-              >
-                <Text style={[styles.modeText, selectedMode === 'store' && styles.modeTextActive]}>Store</Text>
-              </TouchableOpacity>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.removeBtn} onPress={handleRemove}>
+            <Icon name="close" size={18} color="#ff4757" />
+            <Text style={styles.removeText}>Remove</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.modeButton, selectedMode === 'url' && styles.modeButtonActive]}
-                onPress={() => toggleMode('url')}
-              >
-                <Text style={[styles.modeText, selectedMode === 'url' && styles.modeTextActive]}>URL</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputRow}>
-              <TextInput
-                style={[styles.input, placeholderEnabled ? styles.inputEnabled : styles.inputDisabled]}
-                placeholder={selectedMode === 'url' ? 'Enter URL' : 'Store selection (disabled)'}
-                editable={placeholderEnabled}
-                value={url}
-                onChangeText={setUrl}
-                autoCapitalize="none"
-                keyboardType="url"
-                contextMenuHidden={false}
-              />
-            </View>
-
-            <View style={styles.sizeRow}>
-              <Text style={{fontWeight: '600', marginBottom: 8}}>Button size</Text>
-              <View style={{flexDirection: 'row', gap: 12}}>
-                <TouchableOpacity
-                  style={[
-                    styles.sizeButton,
-                    pendingSize === 'large' && styles.sizeButtonActive,
-                    largeDisabled && styles.sizeButtonDisabled
-                  ]}
-                  disabled={largeDisabled}
-                  onPress={() => {
-                    if (largeDisabled) {
-                      Alert.alert('Info', 'Product button is already large so you cannot select Large for Store.');
-                      return;
-                    }
-                    handleSizeChange('large');
-                  }}
-                >
-                  <Text style={[
-                    styles.sizeText, 
-                    pendingSize === 'large' && styles.sizeTextActive,
-                    largeDisabled && styles.sizeTextDisabled
-                  ]}>Large</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.sizeButton, 
-                    pendingSize === 'small' && styles.sizeButtonActive,
-                    smallDisabled && styles.sizeButtonDisabled
-                  ]}
-                  disabled={smallDisabled}
-                  onPress={() => handleSizeChange('small')}
-                >
-                  <Text style={[
-                    styles.sizeText, 
-                    pendingSize === 'small' && styles.sizeTextActive,
-                    smallDisabled && styles.sizeTextDisabled
-                  ]}>Small</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.removeBtn} onPress={handleRemove}>
-                <Icon name="close" size={18} color="#ff4757" />
-                <Text style={styles.removeText}>Remove</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.applyBtn} onPress={async () => {
-                try {
-                  // Debug before apply
-                  debugState('STORE_BEFORE_APPLY', 'store', pendingSize);
-                  
-                  // Use the handleApply function which now handles context updates properly
-                  await handleApply();
-                  
-                  debugState('STORE_AFTER_APPLY', 'store', pendingSize);
-                } catch (error) {
-                  console.warn('Apply button error:', error);
-                  // Error handling is already done in handleApply
-                }
-              }}>
-                <Text style={styles.applyText}>Apply</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SafeAreaView>
-      </Animated.View>
-    </View>
+          <TouchableOpacity style={styles.applyBtn} onPress={async () => {
+            try {
+              debugState('STORE_BEFORE_APPLY', 'store', pendingSize);
+              await handleApply();
+              debugState('STORE_AFTER_APPLY', 'store', pendingSize);
+            } catch (error) {
+              console.warn('Apply button error:', error);
+            }
+          }}>
+            <Text style={styles.applyText}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 
+  return (
+    <RBSheet
+      ref={bottomSheetRef}
+      height={420}
+      openDuration={250}
+      closeDuration={200}
+      onClose={onClose}
+      customStyles={{
+        wrapper: styles.sheetWrapper,
+        container: styles.sheetContainer,
+        draggableIcon: styles.draggableIcon,
+      }}
+    >
+      {renderContent()}
+    </RBSheet>
+  );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  sheetWrapper: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 3000,
   },
-  backdrop: {flex: 1},
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  sheetContainer: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 16,
-    elevation: 20,
   },
-  header: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  title: {fontSize: 18, fontWeight: '600', color: '#333'},
-  closeButton: {padding: 4},
-  body: {marginTop: 12},
-  switchRow: {flexDirection: 'row', marginBottom: 12, gap: 12},
-  modeButton: {flex: 1, padding: 12, borderRadius: 10, backgroundColor: '#f2f2f2', alignItems: 'center'},
-  modeButtonActive: {backgroundColor: '#2196F3'},
-  modeText: {color: '#333', fontWeight: '500'},
-  modeTextActive: {color: '#fff'},
-  inputRow: {marginVertical: 12},
-  input: {borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12},
-  inputDisabled: {backgroundColor: '#f5f5f5', color: '#999'},
-  inputEnabled: {backgroundColor: '#fff'},
-  actionsRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 12},
-  removeBtn: {flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#fff5f5', borderRadius: 8, borderWidth: 1, borderColor: '#ffebee'},
-  removeText: {marginLeft: 8, color: '#ff4757'},
-  applyBtn: {padding: 12, backgroundColor: '#2196F3', borderRadius: 8, alignItems: 'center', justifyContent: 'center'},
-  applyText: {color: '#fff', fontWeight: '600'},
-  sizeRow: {marginTop: 12, marginBottom: 6},
-  sizeButton: {paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#f2f2f2', alignItems: 'center'},
-  sizeButtonActive: {backgroundColor: '#2196F3'},
-  sizeButtonDisabled: {opacity: 0.45},
-  sizeText: {color: '#333', fontWeight: '500'},
-  sizeTextActive: {color: '#fff'},
-  sizeTextDisabled: {color: '#999'},
+  draggableIcon: {
+    backgroundColor: '#ddd',
+  },
+  container: {
+    padding: 16,
+    minHeight: 420,
+  },
+  header: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18, 
+    fontWeight: '600', 
+    color: '#333'
+  },
+  closeButton: {
+    padding: 4
+  },
+  body: {
+    flex: 1,
+  },
+  switchRow: {
+    flexDirection: 'row', 
+    marginBottom: 16, 
+    gap: 12
+  },
+  modeButton: {
+    flex: 1, 
+    padding: 12, 
+    borderRadius: 10, 
+    backgroundColor: '#f2f2f2', 
+    alignItems: 'center'
+  },
+  modeButtonActive: {
+    backgroundColor: '#2196F3'
+  },
+  modeText: {
+    color: '#333', 
+    fontWeight: '500'
+  },
+  modeTextActive: {
+    color: '#fff'
+  },
+  inputRow: {
+    marginBottom: 16
+  },
+  input: {
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+    borderRadius: 8, 
+    padding: 12,
+    fontSize: 16,
+  },
+  inputDisabled: {
+    backgroundColor: '#f5f5f5', 
+    color: '#999'
+  },
+  inputEnabled: {
+    backgroundColor: '#fff'
+  },
+  sizeRow: {
+    marginBottom: 16
+  },
+  sizeTitle: {
+    fontWeight: '600', 
+    marginBottom: 8,
+    fontSize: 16,
+    color: '#333',
+  },
+  sizeButtonsRow: {
+    flexDirection: 'row', 
+    gap: 12
+  },
+  sizeButton: {
+    paddingVertical: 8, 
+    paddingHorizontal: 14, 
+    borderRadius: 8, 
+    backgroundColor: '#f2f2f2', 
+    alignItems: 'center',
+    flex: 1,
+  },
+  sizeButtonActive: {
+    backgroundColor: '#2196F3'
+  },
+  sizeButtonDisabled: {
+    opacity: 0.45
+  },
+  sizeText: {
+    color: '#333', 
+    fontWeight: '500'
+  },
+  sizeTextActive: {
+    color: '#fff'
+  },
+  sizeTextDisabled: {
+    color: '#999'
+  },
+  actionsRow: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 16
+  },
+  removeBtn: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 12, 
+    backgroundColor: '#fff5f5', 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: '#ffebee',
+    flex: 1,
+    marginRight: 8,
+    justifyContent: 'center',
+  },
+  removeText: {
+    marginLeft: 8, 
+    color: '#ff4757',
+    fontWeight: '500',
+  },
+  applyBtn: {
+    padding: 12, 
+    backgroundColor: '#2196F3', 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    flex: 1,
+    marginLeft: 8,
+  },
+  applyText: {
+    color: '#fff', 
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });
 
 export default StoreBottomnav;
