@@ -278,7 +278,7 @@ const MediaBottomnav = ({visible, onClose, onApply, initialData = null}) => {
   return (
     <RBSheet
       ref={bottomSheetRef}
-      height={420}
+      height={620}
       openDuration={250}
       closeDuration={200}
       onClose={onClose}
@@ -286,8 +286,7 @@ const MediaBottomnav = ({visible, onClose, onApply, initialData = null}) => {
         wrapper: styles.sheetWrapper,
         container: styles.sheetContainer,
         draggableIcon: styles.draggableIcon,
-      }}
-    >
+      }}>
       {renderContent()}
     </RBSheet>
   );
@@ -306,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
   },
   container: {
-    minHeight: 420,
+    minHeight: 620,
   },
   handleBar: {
     width: 40,
@@ -336,10 +335,11 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 12,
-    paddingBottom: 4,
+    paddingBottom: 8,
+    flex: 1,
   },
   platformContainer: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   platformHeader: {
     flexDirection: 'row',
@@ -396,8 +396,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 20,
+    paddingBottom: 20,
+    marginTop: 'auto',
   },
   saveButton: {
     backgroundColor: '#6366F1',
